@@ -177,7 +177,7 @@ sequenceDiagram
     User->>Frontend: Input private data
     Frontend->>Aleo SDK: Generate witness
     Aleo SDK->>Aleo Program: Execute prove_eligibility
-    leo SDK executes the program locally using snarkVM and produces a proof artifact
+    Note over Aleo SDK: Executes program locally via snarkVM\nand produces a proof artifact
     Aleo SDK->>Frontend: Proof + transaction ID
     Frontend->>Backend: Submit proof with application
 ```
@@ -370,4 +370,5 @@ TBD
 - [Zero-Knowledge Proofs](https://z.cash/technology/zksnarks/)
 
 ---
+
 
