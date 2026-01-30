@@ -28,7 +28,7 @@ This project implements a zero-knowledge–verifiable eligibility verification m
 ### Program: `eligibility.aleo`
 
 ```leo
-program eligibility.aleo {
+program main.aleo {
     transition prove_eligibility(
         private contribution_count: u32,
         private joined_at: u64,
@@ -370,3 +370,4 @@ TBD
 - [Zero-Knowledge Proofs](https://z.cash/technology/zksnarks/)
 
 ---
+
