@@ -2,6 +2,8 @@
 
 A privacy-preserving eligibility verification system built on Aleo blockchain, enabling zero-knowledge proof-based validation for distribution programs while maintaining user privacy.
 
+**[Watch Demo](https://youtu.be/NLh_GkFCUuE)**
+
 ## Architecture Overview
 
 This project implements a zero-knowledge–verifiable eligibility verification mechanism using Aleo's zero-knowledge proof capabilities, consisting of two main components:
@@ -370,5 +372,6 @@ TBD
 - [Zero-Knowledge Proofs](https://z.cash/technology/zksnarks/)
 
 ---
+
 
 
