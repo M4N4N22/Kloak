@@ -28,14 +28,20 @@ export default function Home() {
           <p className="text-xl md:text-2xl text-[#666666] mb-12 max-w-2xl mx-auto leading-relaxed">
             Kloak enables organizations to distribute grants, payroll, and access while keeping eligibility, recipients, and amounts confidential by default.
           </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/dashboard" className="w-full sm:w-auto bg-[#015FFD] text-white px-8 py-4 text-base font-medium hover:bg-[#0052db] transition-colors text-center">
-                Create a Distribution
-              </Link>
-              <button className="w-full sm:w-auto bg-white text-[#111111] border border-[#dddddd] px-8 py-4 text-base font-medium hover:border-[#111111] transition-colors">
-                View How It Works
-              </button>
-            </div>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link href="/dashboard" className="w-full sm:w-auto bg-[#015FFD] text-white px-8 py-4 text-base font-medium hover:bg-[#0052db] transition-colors text-center">
+              Create a Distribution
+            </Link>
+            <a
+              href="https://youtu.be/NLh_GkFCUuE"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full sm:w-auto bg-white text-[#111111] border border-[#dddddd] px-8 py-4 text-base font-medium hover:border-[#111111] transition-colors text-center"
+            >
+              Watch Demo
+            </a>
+
+          </div>
           <p className="mt-12 text-sm uppercase tracking-widest text-[#999999] font-medium">
             Built for Institutions • Powered by Aleo
           </p>
