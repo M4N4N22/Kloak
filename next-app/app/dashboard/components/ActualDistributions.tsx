@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { Eye, Plus, Copy } from "lucide-react";
+import { Eye, Plus, Copy, Check } from "lucide-react";
 import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
 import { getDistributions } from "@/app/lib/storage/distributions";
+import { useState } from "react";
 
 /* --------------------------------------------
    Helpers
@@ -37,13 +38,26 @@ export function ActualDistributions() {
   }
 
   const distributions = getDistributions(publicKey);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const copyShareLink = async (id: string) => {
     const link = `${window.location.origin}/apply/${id}`;
+
     try {
       await navigator.clipboard.writeText(link);
-    } catch {}
+
+      // mark this row as copied
+      setCopiedId(id);
+
+      // reset after 2 seconds
+      setTimeout(() => {
+        setCopiedId(null);
+      }, 2000);
+    } catch (err) {
+      console.error("Failed to copy link", err);
+    }
   };
+
 
   if (distributions.length === 0) {
     return (
@@ -66,71 +80,95 @@ export function ActualDistributions() {
     <div className="overflow-x-auto">
       <table className="w-full text-left border-collapse">
         <thead>
-          <tr className="border-b border-[#eeeeee] text-[11px] uppercase tracking-widest text-[#999999] font-bold">
+          <tr className="border-b border-[#eeeeee]  text-[11px] uppercase tracking-widest text-[#999999] font-bold">
             <th className="pb-4">Distribution</th>
-            <th className="pb-4">Deadline</th>
             <th className="pb-4">Status</th>
-            <th className="pb-4 text-right">Actions</th>
+            <th className="pb-4">Deadline</th>
+            <th className="pb-4 textht">Actions</th>
           </tr>
         </thead>
 
-        <tbody className="text-sm">
+        <tbody className="text-sm ">
           {distributions.map((dist) => {
             const status = getStatus(dist.data.deadline);
 
             return (
               <tr
                 key={dist.id}
-                className="border-b border-[#eeeeee] hover:bg-[#fafafa]"
+                className="border-b border-[#eeeeee] hover:bg-[#fafafa] "
               >
                 {/* Name + Eligibility */}
-                <td className="py-5">
+                <td className="py-5  align-top">
                   <div className="font-medium">
                     {dist.data.name}
                   </div>
                   <div className="text-xs text-[#666666] mt-1">
-                    {dist.data.eligibilityPreview || "Open to all"}
+                    {dist.data.eligibilityPreview ? (
+                      <ul className="list-disc list-inside space-y-0.5">
+                        {dist.data.eligibilityPreview
+                          .split(".")
+                          .map(point => point.trim())
+                          .filter(Boolean)
+                          .map((point, i) => (
+                            <li key={i}>{point}</li>
+                          ))}
+                      </ul>
+                    ) : (
+                      "Open to all"
+                    )}
                   </div>
+
                 </td>
 
-                {/* Deadline */}
-                <td className="py-5 text-sm text-[#666666]">
-                  {dist.data.deadline
-                    ? formatDate(dist.data.deadline)
-                    : "—"}
-                </td>
+
 
                 {/* Status */}
-                <td className="py-5">
+                <td className="py-5 align-top">
                   <span
                     className={`inline-flex px-2 py-0.5 text-[10px] font-bold uppercase
-                      ${
-                        status === "Open"
-                          ? "bg-green-50 text-green-700 border border-green-200"
-                          : "bg-gray-100 text-gray-500 border border-gray-200"
+                      ${status === "Open"
+                        ? "bg-green-50 text-green-700 border border-green-200"
+                        : "bg-gray-100 text-gray-500 border border-gray-200"
                       }`}
                   >
                     {status}
                   </span>
                 </td>
-
+                {/* Deadline */}
+                <td className="py-5 text-sm text-[#666666] align-top">
+                  {dist.data.deadline
+                    ? formatDate(dist.data.deadline)
+                    : "—"}
+                </td>
                 {/* Actions */}
-                <td className="py-5 text-right">
-                  <div className="inline-flex items-center gap-4">
+                <td className="py-5 text-right  align-top">
+                  <div className=" gap-4 flex flex-col  ">
+
+
                     <button
                       onClick={() => copyShareLink(dist.id)}
-                      className="inline-flex items-center gap-1.5 text-[#666666] hover:text-[#111111] text-xs"
+                      className="inline-flex items-center gap-1.5 text-xs transition-colors
+                     text-[#666666] hover:text-[#111111]"
                     >
-                      <Copy size={14} />
-                      Share
+                      {copiedId === dist.id ? (
+                        <>
+                          <Check size={14} className="text-green-600" />
+                          Copied Shareable Link!
+                        </>
+                      ) : (
+                        <>
+                          <Copy size={14} />
+                          Copy Shareable Link
+                        </>
+                      )}
                     </button>
-
                     <Link
                       href={`/dashboard/${dist.id}`}
-                      className="inline-flex items-center gap-1.5 text-[#015FFD] font-medium hover:underline text-xs"
+                      className="inline-flex items-end gap-1.5 text-[#015FFD] font-medium hover:underline text-xs"
                     >
                       View <Eye size={14} />
                     </Link>
+
                   </div>
                 </td>
               </tr>
