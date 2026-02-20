@@ -27,7 +27,7 @@ This project implements a zero-knowledge–verifiable eligibility verification m
 
 ## Smart Contract Architecture
 
-### Program: `eligibility.aleo`
+### Program: `kloak_distribution.aleo`
 
 ```leo
 program kloak_distribution.aleo {
@@ -464,6 +464,7 @@ TBD
 - [Zero-Knowledge Proofs](https://z.cash/technology/zksnarks/)
 
 ---
+
 
 
 
