@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Eye, Plus, Copy, Check } from "lucide-react";
-import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
+
 import { getDistributions } from "@/app/lib/storage/distributions";
 import { useState } from "react";
 
@@ -25,19 +25,10 @@ function getStatus(deadline?: string) {
 }
 
 export function ActualDistributions() {
-  const { publicKey } = useWallet();
 
-  if (!publicKey) {
-    return (
-      <div className="py-16 border border-dashed border-[#dddddd] text-center">
-        <p className="text-[#666666] mb-4">
-          Connect your wallet to view your created distributions.
-        </p>
-      </div>
-    );
-  }
 
-  const distributions = getDistributions(publicKey);
+
+  const distributions = getDistributions("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const copyShareLink = async (id: string) => {

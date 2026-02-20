@@ -7,7 +7,7 @@ import { ChevronLeft } from "lucide-react";
 import { Step, CreateDistributionForm } from "./types";
 import StepBasics from "./steps/StepBasics";
 import StepEligibility from "./steps/StepEligibility";
-import StepReview from "./steps/StepReview";
+
 import StepSuccess from "./steps/StepSuccess";
 
 export default function CreateDistributionPage() {
@@ -71,13 +71,7 @@ const [formData, setFormData] = useState<CreateDistributionForm>({
           />
         )}
 
-        {step === 3 && (
-          <StepReview
-            formData={formData}
-            onNext={nextStep}
-            onBack={prevStep}
-          />
-        )}
+
 
         {step === "success" && <StepSuccess formData={formData} />}
       </main>
