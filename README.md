@@ -1,7 +1,3 @@
-Here is the updated **README.md**. I have overhauled it to reflect the specific **Merkle-tree-based distribution** architecture, the **deterministic secret derivation**, and the **real-time transaction polling** logic we implemented.
-
----
-
 # Kloak Distribution
 
 A privacy-preserving asset distribution system built on the Aleo blockchain. Kloak allows organizations to distribute grants or tokens using **Zero-Knowledge Merkle Inclusion Proofs**, ensuring that users can claim their assets without ever revealing their identity or wallet address to the public ledger.
@@ -153,3 +149,4 @@ NEXT_PUBLIC_NETWORK=testnet
 ## License
 
 MIT - Created for the Aleo Ecosystem.
+
