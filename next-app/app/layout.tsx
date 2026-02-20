@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { AleoWalletProvider } from "./providers/AleoWalletProvider";
+import { KloakWalletProvider } from "./providers/AleoWalletProvider";
 
 export const metadata: Metadata = {
   title: "Kloak",
@@ -17,7 +17,7 @@ export default function RootLayout({
     <html lang="en">
       <head />
       <body className="antialiased">
-        <AleoWalletProvider>{children}</AleoWalletProvider>
+        <KloakWalletProvider>{children}</KloakWalletProvider>
       </body>
     </html>
   );

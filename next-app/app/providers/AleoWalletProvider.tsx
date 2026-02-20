@@ -1,35 +1,42 @@
 "use client";
 
-import { FC, ReactNode, useMemo } from "react";
-import { WalletProvider } from "@demox-labs/aleo-wallet-adapter-react";
-import { WalletModalProvider } from "@demox-labs/aleo-wallet-adapter-reactui";
-import { LeoWalletAdapter } from "@demox-labs/aleo-wallet-adapter-leo";
-import {
-    DecryptPermission,
-    WalletAdapterNetwork,
-} from "@demox-labs/aleo-wallet-adapter-base";
+import { FC, ReactNode, useEffect, useState } from "react";
+import { AleoWalletProvider } from "@provablehq/aleo-wallet-adaptor-react";
+import { WalletModalProvider } from "@provablehq/aleo-wallet-adaptor-react-ui";
+import { Network } from "@provablehq/aleo-types";
 
-import "@demox-labs/aleo-wallet-adapter-reactui/styles.css";
+export const KloakWalletProvider: FC<{ children: ReactNode }> = ({ children }) => {
+  const [wallets, setWallets] = useState<any[]>([]);
 
-export const AleoWalletProvider: FC<{ children: ReactNode }> = ({ children }) => {
-    const wallets = useMemo(
-        () => [
-            new LeoWalletAdapter({
-                appName: "Kloak",
-            }),
-        ],
-        []
-    );
+  useEffect(() => {
+    async function loadWallets() {
+      const { LeoWalletAdapter } = await import(
+        "@provablehq/aleo-wallet-adaptor-leo"
+      );
+      const { ShieldWalletAdapter } = await import(
+        "@provablehq/aleo-wallet-adaptor-shield"
+      );
 
-    return (
-        <WalletProvider
-            wallets={wallets}
-            autoConnect={false}
-            decryptPermission={DecryptPermission.UponRequest}
-            network={WalletAdapterNetwork.TestnetBeta}
-        >
+      setWallets([
+        new LeoWalletAdapter(),
+        new ShieldWalletAdapter(),
+      ]);
+    }
 
-            <WalletModalProvider>{children}</WalletModalProvider>
-        </WalletProvider>
-    );
+    loadWallets();
+  }, []);
+
+  if (!wallets.length) return null;
+
+  return (
+    <AleoWalletProvider
+      wallets={wallets}
+      autoConnect={false}
+      network={Network.TESTNET}
+    >
+      <WalletModalProvider>
+        {children}
+      </WalletModalProvider>
+    </AleoWalletProvider>
+  );
 };

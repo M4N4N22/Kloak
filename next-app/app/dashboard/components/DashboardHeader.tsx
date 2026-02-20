@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { WalletMultiButton } from "@demox-labs/aleo-wallet-adapter-reactui";
+
 
 export function DashboardHeader() {
   return (
@@ -40,7 +40,7 @@ export function DashboardHeader() {
 
         {/* Right */}
         <div className="flex items-center space-x-4">
-          <WalletMultiButton />
+     
         </div>
       </div>
     </nav>
