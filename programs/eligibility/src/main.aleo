@@ -1,4 +1,7 @@
-program kloak_distribution.aleo {
+program kloak_distribution_v1.aleo {
+
+    @noupgrade
+    async constructor() {}
 
     mapping nullifiers: field => bool;
 
@@ -73,10 +76,30 @@ program kloak_distribution.aleo {
     }
 
     inline hash1(a: field) -> field {
-        return BHP256::hash_to_field(a);
+        // Use _raw to ensure metadata bits are not included
+        return BHP256::hash_to_field_raw(a);
     }
 
     inline hash2(a: field, b: field) -> field {
-        return BHP256::hash_to_field([a, b]);
+        // Use _raw to match simple bit concatenation in SDK
+        return BHP256::hash_to_field_raw([a, b]);
+    }
+
+    transition debug_hash(secret: field, payout: u64) -> (field, field) {
+        let commitment: field = hash1(secret);
+        let leaf: field = hash2(commitment, payout as field);
+        return (commitment, leaf);
+    }
+
+    transition debug_merkle(
+        leaf: field,
+        s1: field,
+        s2: field,
+        s3: field,
+        d1: bool,
+        d2: bool,
+        d3: bool
+    ) -> field {
+        return verify_merkle(leaf, s1, s2, s3, d1, d2, d3);
     }
 }
