@@ -13,8 +13,8 @@ export default function Home() {
             <Link href="#how-it-works" className="hover:text-[#111111] transition-colors">How It Works</Link>
             <Link href="#use-cases" className="hover:text-[#111111] transition-colors">Use Cases</Link>
           </div>
-          <Link href="/dashboard" className="bg-[#015FFD] text-white px-5 py-2 text-sm font-medium hover:bg-[#0052db] transition-colors">
-            Create a Distribution
+          <Link href="/claim" className="bg-[#015FFD] text-white px-5 py-2 text-sm font-medium hover:bg-[#0052db] transition-colors">
+            Claim a Demo Grant
           </Link>
         </div>
       </nav>
@@ -29,8 +29,8 @@ export default function Home() {
             Kloak enables organizations to distribute grants, payroll, and access while keeping eligibility, recipients, and amounts confidential by default.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/dashboard" className="w-full sm:w-auto bg-[#015FFD] text-white px-8 py-4 text-base font-medium hover:bg-[#0052db] transition-colors text-center">
-              Create a Distribution
+            <Link href="/claim" className="w-full sm:w-auto bg-[#015FFD] text-white px-8 py-4 text-base font-medium hover:bg-[#0052db] transition-colors text-center">
+             Claim a Demo Grant
             </Link>
             <a
               href="https://youtu.be/NLh_GkFCUuE"
