@@ -1,9 +1,10 @@
 import { Field, BHP256 } from "@provablehq/sdk";
 
 /**
- * Single reusable BHP256 instance
+ * Single reusable BHP256 instance.
+ * Using the standard "AleoBHP256" domain to match Leo's internal defaults.
  */
-const bhp256 = new BHP256();
+const bhp256 = new BHP256;
 
 /**
  * IMPORTANT:
@@ -12,74 +13,53 @@ const bhp256 = new BHP256();
 const DISTRIBUTION_SALT = "kloak_grant_001";
 
 /**
- * Convert Field -> little endian bit array
+ * CORE HELPER: 253-bit Truncation
+ * Aleo fields have a capacity of 253 bits. 
+ * Leo's _raw functions hash exactly these 253 bits.
  */
-function fieldToBits(field: Field): boolean[] {
-  return field.toBitsLe();
+function toLeoBits(field: Field): boolean[] {
+  return field.toBitsLe().slice(0, 253);
 }
 
 /**
- * Convert bytes -> little endian bit array
+ * Convert arbitrary string -> Field
+ * Used for the salt and wallet mapping.
  */
-function bytesToBits(bytes: Uint8Array): boolean[] {
+function stringToField(str: string): Field {
+  const bytes = new TextEncoder().encode(str);
   const bits: boolean[] = [];
-
   for (const byte of bytes) {
     for (let i = 0; i < 8; i++) {
       bits.push(((byte >> i) & 1) === 1);
     }
   }
-
-  return bits;
+  // Standard BHP hash of raw string bits
+  return bhp256.hash(bits);
 }
 
 /**
- * Convert arbitrary string -> Field
- * Safe for wallet addresses or salts.
- *
- * string → bytes → bits → BHP256 → Field
+ * Matches Leo: BHP256::hash_to_field_raw(a)
  */
-function stringToField(str: string): Field {
-  const bytes = new TextEncoder().encode(str);
-  return bhp256.hash(bytesToBits(bytes));
-}
-
-/**
- * hash1(a) = BHP256::hash_to_field(a)
- * Matches Leo:
- *
- * inline hash1(a: field) -> field {
- *   return BHP256::hash_to_field(a);
- * }
- */
-function fieldToCanonicalBits(field: Field): boolean[] {
-  return bytesToBits(field.toBytesLe());
-}
-
 export function computeCommitment(secret: Field): Field {
-  return bhp256.hash(fieldToCanonicalBits(secret));
+  return bhp256.hash(toLeoBits(secret));
 }
 
+/**
+ * Matches Leo: BHP256::hash_to_field_raw([a, b])
+ * Concatenates two 253-bit chunks into one 506-bit input.
+ */
 export function computeHash2(a: Field, b: Field): Field {
   return bhp256.hash([
-    ...fieldToCanonicalBits(a),
-    ...fieldToCanonicalBits(b),
+    ...toLeoBits(a),
+    ...toLeoBits(b),
   ]);
 }
 
 /**
  * Deterministic Secret
- *
  * secret = hash2(address_field, salt_field)
- *
- * ✔ No storage required
- * ✔ Deterministic
- * ✔ Unique per wallet
- * ✔ Unique per distribution
  */
-export function generateDeterministicSecret(
-  address: string
-): Field {
+export function generateDeterministicSecret(address: string): Field {
   const addressField = stringToField(address);
   const saltField = stringToField(DISTRIBUTION_SALT);
 
@@ -88,32 +68,22 @@ export function generateDeterministicSecret(
 
 /**
  * leaf = hash2(commitment, payout)
- * Matches Leo:
- * leaf = hash2(hash1(secret), payout as field)
  */
-export function computeLeaf(
-  commitment: Field,
-  payout: string
-): Field {
+export function computeLeaf(commitment: Field, payout: string): Field {
   const payoutField = Field.fromString(`${payout}field`);
   return computeHash2(commitment, payoutField);
 }
 
 /**
  * nullifier = hash2(secret, merkle_root)
- * Matches Leo exactly.
  */
-export function computeNullifier(
-  secret: Field,
-  merkleRoot: string
-): Field {
-const rootField = Field.fromString(merkleRoot);
+export function computeNullifier(secret: Field, merkleRoot: string): Field {
+  const rootField = Field.fromString(merkleRoot.endsWith("field") ? merkleRoot : `${merkleRoot}field`);
   return computeHash2(secret, rootField);
 }
 
 /**
  * Convert string -> Field safely
- * (exposed helper if needed elsewhere)
  */
 export function toField(value: string): Field {
   return stringToField(value);
@@ -134,14 +104,14 @@ export function formatClaimInputs(params: {
   d3: boolean;
 }) {
   return [
-    params.merkleRoot,                 // already "Xfield"
+    params.merkleRoot.endsWith("field") ? params.merkleRoot : `${params.merkleRoot}field`,
     `${params.payout}u64`,
-    params.secret.toString(),          // "Xfield"
-    params.s1,                         // already field string
-    params.s2,
-    params.s3,
-    params.d1,
-    params.d2,
-    params.d3,
+    params.secret.toString(),
+    params.s1.endsWith("field") ? params.s1 : `${params.s1}field`,
+    params.s2.endsWith("field") ? params.s2 : `${params.s2}field`,
+    params.s3.endsWith("field") ? params.s3 : `${params.s3}field`,
+    params.d1.toString(),
+    params.d2.toString(),
+    params.d3.toString(),
   ];
 }

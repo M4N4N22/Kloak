@@ -2,10 +2,6 @@
 
 import { useState } from "react";
 import { useWallet } from "@provablehq/aleo-wallet-adaptor-react";
-import {
-    generateDeterministicSecret,
-    computeCommitment,
-} from "@/core/zk";
 
 export default function StepGenerateSecret({
   address,
@@ -14,137 +10,138 @@ export default function StepGenerateSecret({
   address?: string | null;
   onGenerated: (secret: string, commitment: string) => void;
 }) {
-    const {  connected } = useWallet();
+  const { connected } = useWallet();
 
-    const [secret, setSecret] = useState<any>(null);
-    const [commitment, setCommitment] = useState<any>(null);
-    const [revealSecret, setRevealSecret] = useState(false);
-    const [loading, setLoading] = useState(false);
+  const [secret, setSecret] = useState<string | null>(null);
+  const [commitment, setCommitment] = useState<string | null>(null);
+  const [revealSecret, setRevealSecret] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-const handleGenerate = async () => {
-  if (!address) return;
+  const handleGenerate = async () => {
+    if (!address) return;
 
-  setLoading(true);
+    setLoading(true);
+    try {
+      const res = await fetch("/api/zk/derive", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ address }),
+      });
 
-  const res = await fetch("/api/zk/derive", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ address }),
-  });
+      const data = await res.json();
+      setSecret(data.secret);
+      setCommitment(data.commitment);
+      onGenerated(data.secret, data.commitment);
+    } catch (error) {
+      console.error("Derivation failed", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const data = await res.json();
+  const secretReady = Boolean(secret && commitment);
 
-  setSecret(data.secret);
-  setCommitment(data.commitment);
+  return (
+    <div className="border border-[#eeeeee] bg-white p-8 space-y-8 shadow-sm rounded-sm">
+      {/* Header aligned with Claim UI */}
+      <div className="flex justify-between items-start">
+        <div className="space-y-1">
+          <h3 className="text-sm uppercase tracking-widest text-[#015FFD] font-bold">
+            Step 1 — Identity Derivation
+          </h3>
+          <p className="text-[11px] text-gray-500 mt-1">
+            Derive a private claim key from your public wallet address.
+          </p>
+        </div>
+        <span className="text-[9px] bg-black text-white px-2 py-1 rounded uppercase font-bold tracking-tighter">
+          Transparency Mode
+        </span>
+      </div>
 
-  // 🔥 pass upward
-  onGenerated(data.secret, data.commitment);
-
-  setLoading(false);
-};
-
-    const secretReady = Boolean(secret && commitment);
-
-    return (
-        <div className="border border-[#eeeeee] p-10 space-y-6 transition-all">
-
-            {/* Header */}
-            <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                    <h3 className="text-sm uppercase tracking-widest text-[#015FFD] font-bold">
-                        Step 1 — Generate Claim Key
-                    </h3>
-
-                    <span className="text-[10px] uppercase tracking-wide bg-black text-white px-2 py-1">
-                        Demo Mode
-                    </span>
-                </div>
-
-                <p className="text-[#666666] text-sm leading-relaxed">
-                    Your claim key is deterministically derived from your wallet and a
-                    fixed distribution salt.
-                </p>
-
-                <p className="text-xs text-[#999]">
-                    In production, this value is never revealed. It is shown here for
-                    judges and demo transparency only.
-                </p>
+      {/* Visual Flow: Address -> Hash -> Secret */}
+      <div className="flex items-center justify-between px-4 py-2 bg-gray-50 rounded-lg border border-gray-100 relative overflow-hidden">
+        <div className="text-center z-10">
+          <p className="text-[9px] uppercase text-gray-400 font-bold mb-1">Public Address</p>
+          <p className="text-[10px] font-mono">{address ? `${address.slice(0, 6)}...${address.slice(-4)}` : "Not Connected"}</p>
+        </div>
+        
+        <div className="flex-1 flex justify-center items-center px-4">
+            <div className={`h-px flex-1 ${secretReady ? "bg-[#015FFD]" : "bg-gray-200"}`} />
+            <div className={`mx-2 text-[10px] ${secretReady ? "text-[#015FFD]" : "text-gray-300"}`}>
+                {loading ? "⟁" : "⏈"}
             </div>
+            <div className={`h-px flex-1 ${secretReady ? "bg-[#015FFD]" : "bg-gray-200"}`} />
+        </div>
 
-            {/* Generate Button */}
-            <div>
-                <button
-                    onClick={handleGenerate}
-                    disabled={!connected || loading || secretReady}
-                    className="bg-[#015FFD] text-white px-6 py-3 text-sm font-medium hover:bg-[#0052db] transition-colors disabled:opacity-40"
+        <div className="text-center z-10">
+          <p className="text-[9px] uppercase text-gray-400 font-bold mb-1">Private Secret</p>
+          <p className="text-[10px] font-mono">{secretReady ? "••••••••••••" : "Pending"}</p>
+        </div>
+      </div>
+
+      {/* Action Button */}
+      <button
+        onClick={handleGenerate}
+        disabled={!connected || loading || secretReady}
+        className={`w-full py-4 text-xs font-bold tracking-widest transition-all ${
+          !connected ? "bg-gray-100 text-gray-400 cursor-not-allowed" :
+          loading ? "bg-gray-50 text-gray-400 cursor-wait" :
+          secretReady ? "bg-green-50 text-green-700 border border-green-200" : 
+          "bg-[#015FFD] text-white hover:bg-[#0052db]"
+        }`}
+      >
+        {!connected ? "CONNECT WALLET TO START" : 
+         loading ? "DERIVING CRYPTOGRAPHIC KEY..." : 
+         secretReady ? "✓ KEY DERIVED SUCCESSFULLY" : "GENERATE CLAIM KEY"}
+      </button>
+
+      {/* Output Sections */}
+      {secretReady && (
+        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
+          {/* Public Commitment */}
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">Public Commitment</label>
+                <span className="text-[9px] text-[#015FFD] font-mono">BHP256(Secret)</span>
+            </div>
+            <div className="bg-[#fafafa] border border-gray-100 p-3 text-[10px] font-mono break-all text-gray-600 rounded">
+              {commitment}
+            </div>
+          </div>
+
+          {/* Private Secret - Reveal Toggle Dashboard Style */}
+          <div className="border-t border-gray-100 pt-4">
+            <div className="flex justify-between items-center mb-3">
+               <div>
+                  <p className="text-[10px] font-bold text-gray-900 uppercase">Deterministic Secret</p>
+                  <p className="text-[9px] text-gray-400">Never shared with the network.</p>
+               </div>
+               <button
+                  onClick={() => setRevealSecret((prev) => !prev)}
+                  className={`text-[10px] px-3 py-1 rounded-full border transition-all ${
+                    revealSecret ? "bg-red-50 border-red-200 text-red-600" : "bg-gray-50 border-gray-200 text-gray-600"
+                  }`}
                 >
-                    {!connected
-                        ? "Connect Wallet First"
-                        : loading
-                            ? "Generating..."
-                            : secretReady
-                                ? "Key Generated"
-                                : "Generate Key"}
+                  {revealSecret ? "Hide Secret" : "Reveal (Demo Only)"}
                 </button>
             </div>
 
-            {/* Output Box */}
-            <div className="bg-[#fafafa] border border-[#eeeeee] p-4 text-xs font-mono break-all space-y-4 min-h-[100px]">
-
-                {!connected && (
-                    <div className="text-[#999]">
-                        Connect wallet to generate claim key
-                    </div>
-                )}
-
-                {secretReady && commitment && (
-                    <>
-                        {/* Commitment */}
-                        <div>
-                            <div className="text-[#015FFD] font-medium mb-1">
-                                Commitment (Inserted into Merkle Tree)
-                            </div>
-                            <div className="bg-white border border-[#eeeeee] p-2">
-                                {commitment.toString()}
-                            </div>
-                        </div>
-
-                        {/* Reveal Toggle */}
-                        <div className="pt-3 border-t border-[#e5e5e5]">
-                            <button
-                                onClick={() => setRevealSecret((prev) => !prev)}
-                                className="text-[#015FFD] text-xs underline hover:opacity-70 transition"
-                            >
-                                {revealSecret ? "Hide Secret" : "Reveal Secret (Demo Only)"}
-                            </button>
-
-                            {revealSecret && (
-                                <div className="mt-3 bg-white border border-red-300 p-3 text-[11px]">
-                                    <div className="text-red-500 font-semibold mb-1">
-                                        Sensitive Value — Debug Only
-                                    </div>
-                                    <div>{secret.toString()}</div>
-                                </div>
-                            )}
-                        </div>
-                    </>
-                )}
-            </div>
-
-            {/* Status */}
-            <div className="flex items-center justify-between">
-                <div className="text-xs text-[#888]">
-                    {secretReady
-                        ? "Key derived successfully"
-                        : "Awaiting action"}
-                </div>
-
-                {secretReady && (
-                    <div className="text-xs bg-[#015FFD] text-white px-3 py-1">
-                        Ready
-                    </div>
-                )}
-            </div>
+            {revealSecret && (
+              <div className="bg-red-50/50 border border-red-100 p-3 rounded font-mono text-[10px] text-red-800 break-all relative">
+                <div className="absolute top-2 right-2 text-[8px] font-bold text-red-300 uppercase">Sensitive Data</div>
+                {secret}
+              </div>
+            )}
+          </div>
         </div>
-    );
+      )}
+
+      {/* Footer / Explanation */}
+      <div className="bg-blue-50/50 p-4 rounded text-[11px] text-blue-700 leading-relaxed border border-blue-100">
+        <strong>How it works:</strong> We use your wallet address as a seed to create a 
+        unique private secret. This secret is used to generate the <strong>nullifier</strong> later, ensuring 
+        your identity remains hidden while preventing double-claims.
+      </div>
+    </div>
+  );
 }
