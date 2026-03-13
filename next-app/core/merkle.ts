@@ -1,84 +1,105 @@
-import { Field } from "@provablehq/sdk";
 import { computeHash2, computeCommitment, computeLeaf } from "./zk";
 
-const TREE_DEPTH = 3;
-const MAX_LEAVES = 2 ** TREE_DEPTH;
+// Depth 10 = 1024 max leaves
+const TREE_DEPTH = 10;
+const MAX_LEAVES = Math.pow(2, TREE_DEPTH);
 
 /**
- * Syncing the Zero Leaf:
- * Instead of a literal 0, we use a hashed representation 
- * of an "empty" claim so the tree math stays consistent.
+ * We initialize this lazily to avoid WASM issues on import
  */
-const EMPTY_SECRET = Field.fromString("0field");
-const EMPTY_COMMITMENT = computeCommitment(EMPTY_SECRET);
-const ZERO_LEAF = computeLeaf(EMPTY_COMMITMENT, "0"); 
+let CACHED_ZERO_LEAF: any = null;
 
-export function buildMerkleTree(initialLeaves: Field[]) {
+/**
+ * Initializes the Zero Leaf and SDK components asynchronously.
+ * Call this before buildMerkleTree if calling from a fresh environment.
+ */
+async function getZeroLeaf() {
+  if (CACHED_ZERO_LEAF) return CACHED_ZERO_LEAF;
+
+  const { Field } = await import("@provablehq/sdk");
+
+  const EMPTY_SECRET = Field.fromString("0field");
+
+  const EMPTY_COMMITMENT = await computeCommitment(EMPTY_SECRET);
+
+  CACHED_ZERO_LEAF = await computeLeaf(EMPTY_COMMITMENT, "0");
+
+  return CACHED_ZERO_LEAF;
+}
+
+/**
+ * Build a Depth-10 Merkle Tree
+ * Now async to allow for WASM Field initialization
+ */
+export async function buildMerkleTree(initialLeaves: any[]) {
   if (initialLeaves.length > MAX_LEAVES) {
-    throw new Error("Too many leaves for depth-3 tree");
+    throw new Error(`Too many leaves`);
   }
 
-  // 1. Pad to 8 leaves using the Hashed Zero Leaf
-  const leaves: Field[] = [...initialLeaves];
-  while (leaves.length < MAX_LEAVES) {
-    leaves.push(ZERO_LEAF);
-  }
+  const ZERO_LEAF = await getZeroLeaf();
 
-  // 2. Level 1 (8 → 4)
-  const level1: Field[] = [];
-  for (let i = 0; i < 8; i += 2) {
-    level1.push(computeHash2(leaves[i], leaves[i + 1]));
-  }
+  const levels: any[][] = [];
+  let currentLevel: any[] = [...initialLeaves];
 
-  // 3. Level 2 (4 → 2)
-  const level2: Field[] = [];
-  for (let i = 0; i < 4; i += 2) {
-    level2.push(computeHash2(level1[i], level1[i + 1]));
+  while (currentLevel.length < MAX_LEAVES) {
+    currentLevel.push(ZERO_LEAF);
   }
+  levels.push(currentLevel);
 
-  // 4. Root (2 → 1)
-  const root = computeHash2(level2[0], level2[1]);
+  // Iteratively hash levels
+  for (let d = 0; d < TREE_DEPTH; d++) {
+    const nextLevel: any[] = [];
+    const processingLevel = levels[d];
+
+    for (let i = 0; i < processingLevel.length; i += 2) {
+      // CRITICAL FIX: Must await the hash calculation
+      const combinedHash = await computeHash2(processingLevel[i], processingLevel[i + 1]);
+      nextLevel.push(combinedHash);
+    }
+    levels.push(nextLevel);
+  }
 
   return {
-    leaves,
-    level1,
-    level2,
-    root,
+    levels,
+    root: levels[TREE_DEPTH][0],
   };
 }
 
 /**
- * Generate Merkle proof for a given leaf index (0–7)
+ * Generate Merkle proof for Depth 10
  */
 export function generateProof(
-  tree: ReturnType<typeof buildMerkleTree>,
+  tree: { levels: any[][] },
   index: number
 ) {
-  const { leaves, level1, level2 } = tree;
 
-  if (index < 0 || index > 7) {
-    throw new Error("Invalid leaf index");
+  const s: string[] = []
+  const d: boolean[] = []
+
+  let currentIndex = index
+
+  for (let level = 0; level < TREE_DEPTH; level++) {
+
+    const levelNodes = tree.levels[level]
+
+    const isRight = currentIndex % 2 === 1
+
+    const siblingIndex = isRight
+      ? currentIndex - 1
+      : currentIndex + 1
+
+    const sibling = levelNodes[siblingIndex]
+
+    if (!sibling) {
+      throw new Error(`Missing sibling at level ${level}`)
+    }
+
+    s.push(sibling.toString())
+
+    d.push(isRight)
+
+    currentIndex = Math.floor(currentIndex / 2)
   }
 
-  // --- Level 1 ---
-  const isRight1 = index % 2 === 1;
-  const siblingIndex1 = isRight1 ? index - 1 : index + 1;
-  const s1 = leaves[siblingIndex1];
-  const d1 = isRight1; // true if leaf is on right, meaning sibling is on LEFT
-
-  // --- Level 2 ---
-  const parentIndex = Math.floor(index / 2);
-  const isRight2 = parentIndex % 2 === 1;
-  const siblingIndex2 = isRight2 ? parentIndex - 1 : parentIndex + 1;
-  const s2 = level1[siblingIndex2];
-  const d2 = isRight2;
-
-  // --- Level 3 ---
-  const parentIndex2 = Math.floor(parentIndex / 2);
-  const isRight3 = parentIndex2 % 2 === 1;
-  const siblingIndex3 = isRight3 ? parentIndex2 - 1 : parentIndex2 + 1;
-  const s3 = level2[siblingIndex3];
-  const d3 = isRight3;
-
-  return { s1, s2, s3, d1, d2, d3 };
+  return { s, d }
 }

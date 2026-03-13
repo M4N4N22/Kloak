@@ -1,38 +1,36 @@
 "use client";
 
-import { FC, ReactNode, useEffect, useState } from "react";
+import { FC, ReactNode, useMemo } from "react";
+
 import { AleoWalletProvider } from "@provablehq/aleo-wallet-adaptor-react";
 import { WalletModalProvider } from "@provablehq/aleo-wallet-adaptor-react-ui";
+
 import { Network } from "@provablehq/aleo-types";
+import { DecryptPermission } from "@provablehq/aleo-wallet-adaptor-core";
+
+import { LeoWalletAdapter } from "@provablehq/aleo-wallet-adaptor-leo";
+import { ShieldWalletAdapter } from "@provablehq/aleo-wallet-adaptor-shield";
 
 export const KloakWalletProvider: FC<{ children: ReactNode }> = ({ children }) => {
-  const [wallets, setWallets] = useState<any[]>([]);
 
-  useEffect(() => {
-    async function loadWallets() {
-      const { LeoWalletAdapter } = await import(
-        "@provablehq/aleo-wallet-adaptor-leo"
-      );
-      const { ShieldWalletAdapter } = await import(
-        "@provablehq/aleo-wallet-adaptor-shield"
-      );
-
-      setWallets([
-        new LeoWalletAdapter(),
-        new ShieldWalletAdapter(),
-      ]);
-    }
-
-    loadWallets();
-  }, []);
-
-  if (!wallets.length) return null;
+  const wallets = useMemo(
+    () => [
+      new LeoWalletAdapter(),
+      new ShieldWalletAdapter(),
+    ],
+    []
+  );
 
   return (
     <AleoWalletProvider
       wallets={wallets}
-      autoConnect={false}
+      autoConnect
       network={Network.TESTNET}
+      decryptPermission={DecryptPermission.UponRequest}
+      programs={[
+        "credits.aleo",
+        "kloak_protocol_v5.aleo"
+      ]}
     >
       <WalletModalProvider>
         {children}

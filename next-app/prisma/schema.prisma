@@ -1,0 +1,168 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Campaign {
+  id String @id // campaign_id (field)
+
+  creatorAddress String
+
+  name        String
+  description String?
+
+  merkleRoot String
+  depth      Int    @default(10)
+
+  asset       Int
+  totalBudget BigInt
+
+  totalRecipients Int
+
+  // aggregate stats only
+  claimedCount  Int    @default(0)
+  claimedAmount BigInt @default(0)
+
+  poolAmount BigInt @default(0)
+
+  creationTxHash String?
+  fundingTxHash  String?
+
+  createdAt DateTime  @default(now())
+  expiry    DateTime?
+
+  proofs     MerkleProofStore[]
+  nullifiers ClaimNullifier[]
+
+  escrow CampaignEscrow?
+
+  status CampaignStatus
+
+  @@index([creatorAddress])
+}
+
+model MerkleProofStore {
+  // hash(address + campaignId + salt)
+  lookupHash String @id
+
+  campaignId String
+
+  payout BigInt
+
+  proofData Json
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId])
+}
+
+model ClaimNullifier {
+  nullifier String @id
+
+  campaignId String
+
+  claimedAt DateTime @default(now())
+
+  campaign Campaign @relation(fields: [campaignId], references: [id])
+
+  @@index([campaignId])
+}
+
+model CampaignEscrow {
+  id String @id @default(cuid())
+
+  campaignId String @unique
+
+  recordCiphertext String
+  recordPlaintext String
+
+  amount BigInt
+
+  createdAt DateTime @default(now())
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+}
+
+model PaymentLink {
+  id String @id @default(cuid())
+
+  // creator
+  creatorAddress String
+
+  // on-chain mapping id
+  requestId String @unique
+
+  // link metadata
+  title       String
+  description String?
+
+  // pricing
+  amount Decimal?
+  token  Token
+
+  allowCustomAmount Boolean @default(false)
+
+  // limits
+  maxPayments      Int?
+  paymentsReceived Int  @default(0)
+
+  // expiration
+  expiresAt DateTime?
+
+  // status
+  active Boolean @default(true)
+
+  // analytics counters (fast dashboard queries)
+  views          Int     @default(0)
+  uniqueVisitors Int     @default(0)
+  totalVolume    Decimal @default(0)
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // relations
+  visits   PaymentLinkVisit[]
+  payments Payment[]
+}
+
+model PaymentLinkVisit {
+  id        String   @id @default(cuid())
+  linkId    String
+  ipHash    String?
+  userAgent String?
+  country   String?
+  createdAt DateTime @default(now())
+
+  PaymentLink PaymentLink @relation(fields: [linkId], references: [id])
+
+  @@index([linkId])
+}
+
+model Payment {
+  id        String   @id @default(cuid())
+  linkId    String
+  payer     String?
+  amount    Decimal
+  token     Token
+  txHash    String?
+  createdAt DateTime @default(now())
+
+  PaymentLink PaymentLink @relation(fields: [linkId], references: [id])
+
+  @@index([linkId])
+}
+
+enum Token {
+  ALEO
+  USDCX
+}
+
+enum CampaignStatus {
+  PENDING
+  CREATED
+  FUNDED
+}
