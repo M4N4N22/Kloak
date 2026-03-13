@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { useWallet } from "@provablehq/aleo-wallet-adaptor-react"
 import { getShortAddress } from "@provablehq/aleo-wallet-adaptor-core"
 
-
+import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -79,8 +79,13 @@ export default function DashboardPage() {
                     </p>
                 </div>
                 <div className="flex gap-2">
-                    <Button>Get Paid Privately</Button>
-                    <Button>Distribute Funds Privately</Button>
+                    <Link href="/payment-links">
+                        <Button>Get Paid Privately</Button>
+                    </Link>
+
+                    <Link href="/campaigns">
+                        <Button>Distribute Funds Privately</Button>
+                    </Link>
                 </div>
             </div>
 

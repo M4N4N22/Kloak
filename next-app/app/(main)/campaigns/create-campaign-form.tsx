@@ -328,7 +328,9 @@ export default function CreateCampaignForm() {
                               {row.address || "EMPTY"}
                             </td>
                             <td className="p-2 text-right font-mono">
-                              {row.amount} {asset.toUpperCase()}
+                              {(Number(row.amount) / 1_000_000).toLocaleString(undefined, {
+                                maximumFractionDigits: 6,
+                              })} {asset.toUpperCase()}
                               {!row.isValid && <XCircle className="h-3 w-3 inline ml-1" />}
                             </td>
                           </tr>
@@ -354,7 +356,9 @@ export default function CreateCampaignForm() {
                 </div>
                 <div className={`flex items-center gap-3 text-xs ${status === "funding" ? "text-primary font-bold" : "opacity-50"}`}>
                   <Wallet className={`h-4 w-4 ${status === "funding" ? "animate-bounce" : ""}`} />
-                  2. Deposit {budget} {asset.toUpperCase()}
+                  2. Deposit   {(Number(budget) / 1_000_000).toLocaleString(undefined, {
+                    maximumFractionDigits: 6,
+                  })} {asset.toUpperCase()}
                 </div>
               </div>
             )}
@@ -381,7 +385,9 @@ export default function CreateCampaignForm() {
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Total Budget</span>
                     <span className="font-medium">
-                      {budget} {asset.toUpperCase()}
+                      {(Number(budget) / 1_000_000).toLocaleString(undefined, {
+                        maximumFractionDigits: 6,
+                      })} {asset.toUpperCase()}
                     </span>
                   </div>
 

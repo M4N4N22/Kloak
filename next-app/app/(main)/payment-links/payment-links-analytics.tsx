@@ -105,7 +105,7 @@ export default function PaymentLinksAnalytics({ stats }: any) {
       <div className="grid grid-cols-1 gap-1 md:grid-cols-3">
         <QuickStat
           title="Total Received"
-          value={totals.totalVolume}
+          value={Number(totals.totalVolume).toFixed(4)}
           label="ALEO"
           icon={<TrendingUp className="h-5 w-5" />}
           subtext="Volume across platform"
@@ -228,24 +228,24 @@ export default function PaymentLinksAnalytics({ stats }: any) {
                             </linearGradient>
                           </defs>
 
-                  <Bar
-              dataKey="revenue"
-              fill="url(#barGradient)" // Direct fill with gradient
-              radius={[4, 4, 0, 0]}
-              barSize={24}
-              animationDuration={1500}
-              // This replaces the hover logic previously handled by Cell
-              activeBar={
-                <Rectangle 
-                  fill="#015FFD" 
-                  stroke="#4f8fff" 
-                  strokeWidth={1} 
-                  filter="drop-shadow(0px 0px 8px rgba(1, 95, 253, 0.5))"
-                />
-              }
-            />
-          </BarChart>
-        </ResponsiveContainer>
+                          <Bar
+                            dataKey="revenue"
+                            fill="url(#barGradient)" // Direct fill with gradient
+                            radius={[4, 4, 0, 0]}
+                            barSize={24}
+                            animationDuration={1500}
+                            // This replaces the hover logic previously handled by Cell
+                            activeBar={
+                              <Rectangle
+                                fill="#015FFD"
+                                stroke="#4f8fff"
+                                strokeWidth={1}
+                                filter="drop-shadow(0px 0px 8px rgba(1, 95, 253, 0.5))"
+                              />
+                            }
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
                     ) : (
                       <div className="flex h-full items-center justify-center border-2 border-dashed border-white/5 rounded-2xl">
                         <div className="text-center space-y-2">
