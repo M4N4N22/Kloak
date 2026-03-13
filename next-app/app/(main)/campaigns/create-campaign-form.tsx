@@ -403,7 +403,9 @@ export default function CreateCampaignForm() {
                   <div className="flex items-start gap-2">
                     <AlertCircle className="h-3 w-3 mt-[2px]" />
                     <span>
-                      Ensure your wallet has at least <b>{budget} {asset.toUpperCase()}</b> in
+                      Ensure your wallet has at least <b>   {(Number(budget) / 1_000_000).toLocaleString(undefined, {
+                        maximumFractionDigits: 6,
+                      })} {asset.toUpperCase()}</b> in
                       private balance before launching the campaign.
                     </span>
                   </div>
@@ -433,8 +435,10 @@ export default function CreateCampaignForm() {
               disabled={status !== "idle" || recipients === 0}
               onClick={handleCreateCampaign}
             >
-              {status === "idle" && `Create & Fund (${budget} ${asset.toUpperCase()})`}
-
+              {status === "idle" &&
+                `Create & Fund (${(Number(budget) / 1_000_000).toLocaleString(undefined, {
+                  maximumFractionDigits: 6,
+                })} ${asset.toUpperCase()})`}
               {status !== "idle" && status !== "completed" && (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
