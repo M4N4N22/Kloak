@@ -67,7 +67,7 @@ export function useCreateCampaign() {
             const leaves = await Promise.all(
                 rows.map(async (row) => {
 
-                    const payoutMicro = Math.floor(row.amount * 1_000_000)
+                    const payoutMicro = row.amount
 
                     const secret = await generateDeterministicSecret(
                         row.address,
@@ -126,7 +126,7 @@ export function useCreateCampaign() {
                         new TextEncoder().encode(`${row.address}:${campaignIdFormatted}`)
                     )
                 )
-                const payoutMicro = Math.floor(row.amount * 1_000_000)
+                const payoutMicro = row.amount
                 return {
                     lookupHash,
                     payout: payoutMicro,
@@ -135,9 +135,7 @@ export function useCreateCampaign() {
 
             })
 
-            const totalBudget = rows.reduce((sum, r) => sum + r.amount, 0)
-
-            const microBudget = Math.floor(totalBudget * 1_000_000)
+            const microBudget = rows.reduce((sum, r) => sum + r.amount, 0)
 
 
             /* ---------------- CREATE CAMPAIGN TX ---------------- */
