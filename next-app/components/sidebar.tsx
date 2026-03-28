@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LucideIcon, ChevronDown, Circle } from "lucide-react"
+import { LucideIcon, ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
 import { useState } from "react"
@@ -10,7 +10,6 @@ import { useState } from "react"
 import {
   LayoutDashboard,
   Link2,
-  Gift,
   ShieldCheck,
   Wallet,
   Bot,
@@ -52,22 +51,13 @@ const sections: SidebarSection[] = [
     ],
   },
   {
-    heading: "Private Distribution",
-    icon: Gift,
-    badge: "Flagship",
-    items: [
-      { name: "Campaigns", href: "/campaigns" },
-      { name: "Payouts", href: "/payroll", disabled: true },
-    ],
-  },
-  {
     heading: "Automation",
     icon: Bot,
-    badge: "Coming Soon",
     items: [
-      { name: "Bots", href: "#", disabled: true },
-      { name: "AI Agent", href: "#", disabled: true },
-      { name: "Webhooks", href: "#", disabled: true },
+      { name: "Telegram Bot", href: "/bots" },
+      { name: "Webhooks", href: "/webhooks" },
+      { name: "Integrations", href: "/automation" },
+      { name: "Pricing", href: "/pricing" },
     ],
   },
   {
@@ -95,7 +85,7 @@ export function Sidebar() {
   const pathname = usePathname()
 
   return (
-    <aside className="sticky top-0 h-screen p-2  w-1/5  flex flex-col  shadow-[0_0_40px_-15px_rgba(0,0,0,0.3)]  overflow-hidden bg-linear-to-b from-black to-zinc-950">
+    <aside className="sticky top-0 h-screen p-2  w-1/5  flex flex-col  shadow-[0_0_40px_-15px_rgba(0,0,0,0.3)]  overflow-hidden bg-black">
 
       {/* Brand Header */}
       <Link href="/">

@@ -31,7 +31,7 @@ import {
 
 function QuickStat({ title, value, label, icon, subtext, trend }: any) {
   return (
-    <Card className="relative overflow-hidden">
+    <Card className="relative overflow-hidden ">
 
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="">
@@ -102,7 +102,7 @@ export default function PaymentLinksAnalytics({ stats }: any) {
 
 
       {/* CORE STATS GRID */}
-      <div className="grid grid-cols-1 gap-1 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <QuickStat
           title="Total Received"
           value={Number(totals.totalVolume).toFixed(4)}
@@ -135,37 +135,15 @@ export default function PaymentLinksAnalytics({ stats }: any) {
             : "grid-rows-[0fr] "
         )}
       >
-        <div className="overflow-hidden">
+        <div className="overflow-hidden mt-4">
 
-          <div className="grid gap-1">
+          <div className="grid gap-4">
 
             {/* FIRST ROW STATS */}
-            <div className="grid grid-cols-1 gap-1 md:grid-cols-3">
-              <QuickStat
-                title="Total Views"
-                value={totals.totalViews}
-                label="Visits"
-                icon={<Eye className="h-5 w-5" />}
-                subtext="Total impressions"
-              />
-              <QuickStat
-                title="Unique Users"
-                value={totals.uniqueVisitors}
-                label="Users"
-                icon={<Users className="h-5 w-5" />}
-                subtext="Identified by hash"
-              />
-              <QuickStat
-                title="Avg. Conversion"
-                value={`${(totals.conversionRate * 100).toFixed(1)}%`}
-                label="Rate"
-                icon={<Target className="h-5 w-5" />}
-                subtext="Visits to claims"
-              />
-            </div>
+
 
             {/* SECOND ROW */}
-            <div className="grid grid-cols-1 gap-1 lg:grid-cols-5">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
 
               {/* CHART */}
               <Card className="lg:col-span-3 ">
@@ -259,10 +237,10 @@ export default function PaymentLinksAnalytics({ stats }: any) {
               </Card>
 
               {/* SIDE INSIGHTS */}
-              <div className="flex flex-col gap-1 lg:col-span-2">
+              <div className="flex flex-col gap-4 lg:col-span-2">
                 {insights?.highestRevenueLink && (
                   <QuickStat
-                    title="Best Seller"
+                    title="Best Performance"
                     value={insights.highestRevenueLink.title}
                     label=""
                     icon={<ArrowUpRight className="h-5 w-5" />}
@@ -282,7 +260,29 @@ export default function PaymentLinksAnalytics({ stats }: any) {
               </div>
 
             </div>
-
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <QuickStat
+                title="Total Views"
+                value={totals.totalViews}
+                label="Visits"
+                icon={<Eye className="h-5 w-5" />}
+                subtext="Total impressions"
+              />
+              <QuickStat
+                title="Unique Users"
+                value={totals.uniqueVisitors}
+                label="Users"
+                icon={<Users className="h-5 w-5" />}
+                subtext="Identified by hash"
+              />
+              <QuickStat
+                title="Avg. Conversion"
+                value={`${(totals.conversionRate * 100).toFixed(1)}%`}
+                label="Rate"
+                icon={<Target className="h-5 w-5" />}
+                subtext="Visits to claims"
+              />
+            </div>
           </div>
         </div>
       </div>

@@ -1,10 +1,16 @@
 {
-  "program": "kloak_protocol_v5.aleo",
+  "program": "kloak_protocol_v6.aleo",
   "version": "0.1.0",
   "description": "",
   "license": "MIT",
-  "leo": "3.4.0",
+  "leo": "3.5.0",
   "dependencies": [
+    {
+      "name": "test_usad_stablecoin.aleo",
+      "location": "network",
+      "path": null,
+      "edition": null
+    },
     {
       "name": "test_usdcx_stablecoin.aleo",
       "location": "network",

@@ -10,15 +10,17 @@ import { WalletConnect } from "@/components/wallet-connect"
 import PaymentStepper from "../components/payment-stepper"
 import { cn } from "@/lib/utils"
 import { useHandlePay } from "@/hooks/use-handle-pay"
+import { useHandleStablePay } from "@/hooks/use-handle-stable-pay"
 
 export default function PayClient({ link }: any) {
   const { connected } = useWallet()
 
   const [amount, setAmount] = useState(link.amount || "")
 
-
-
-  const { handlePay, status, txId, loading, errorMessage } = useHandlePay(link, amount)
+  const aleoPayment = useHandlePay(link, amount)
+  const stablePayment = useHandleStablePay(link, amount)
+  const { handlePay, status, txId, loading, errorMessage } =
+    link.token === "ALEO" ? aleoPayment : stablePayment
 
   useEffect(() => {
     fetch(`/api/payment-links/${link.id}/visit`, { method: "POST" })

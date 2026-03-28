@@ -4,9 +4,7 @@ import Image from "next/image"
 
 const images = [
     "/pay1.png",
-    "/camp1.png",
     "/pay2.png",
-    "/camp2.png",
 ]
 
 const INTERVAL = 4000

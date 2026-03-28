@@ -4,10 +4,6 @@ import { Button } from "@/components/ui/button"
 import HeroImages from "@/components/hero-carousel"
 
 import Image from "next/image"
-
-
-
-
 export default function Home() {
 
 
@@ -19,47 +15,13 @@ export default function Home() {
           alt="Aurora background"
           fill
           priority
-          className="object-cover blur-xl rotate"
+          className="object-cover blur-xl rotate opacity-50"
         />
       </div>
 
 
-
-      {/* --- NAVIGATION --- */}
-      <nav className="fixed top-6 inset-x-0 z-50 max-w-5xl mx-auto ">
-        <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-full p-4  flex items-center justify-between shadow-2xl">
-          <div className=" flex items-center shrink-0">
-            <div className="relative group">
-              <div className="absolute -inset-1 bg-linear-to-br from-primary via-green-400 to-emerald-400 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
-              <Image
-                src="/kloak_logo.png"
-                alt="Kloak"
-                height={40}
-                width={40}
-                className="relative rounded-full "
-              />
-            </div>
-            <span className="font-bold tracking-tight text-4xl  text-foreground ">
-              loak
-            </span>
-          </div>
-
-          <div className="hidden md:flex items-center space-x-8 text-[13px] font-medium text-muted-foreground">
-            <Link href="#problem" className="hover:text-primary transition-colors">Problem</Link>
-            <Link href="#features" className="hover:text-primary transition-colors">Features</Link>
-            <Link href="#how-it-works" className="hover:text-primary transition-colors">Process</Link>
-          </div>
-
-          <Link href="/dashboard">
-            <Button>
-              Launch App
-            </Button>
-          </Link>
-        </div>
-      </nav>
-
       {/* --- HERO SECTION --- */}
-      <section className="relative pt-44 pb-0 px-6 bg-black/50">
+      <section className="relative pt-28 pb-0 px-6 ">
         <div className=" text-center mx-auto">
           <div className="flex flex-col gap-16 justify-center items-center">
             <div className="">
@@ -93,7 +55,7 @@ export default function Home() {
                   </Button>
                 </Link>
 
-                <a href="https://youtu.be/NLh_GkFCUuE" target="_blank" rel="noopener">
+                <a href="https://youtu.be/b1AdffOf_PM" target="_blank" rel="noopener">
                   <Button size={"lg"} variant={"secondary"} >
                     Watch Demo
                   </Button>
@@ -122,23 +84,22 @@ export default function Home() {
 
             {/* MAIN FEATURE — CAMPAIGNS */}
 
-            <Link href={"/campaigns"} className="md:col-span-4 hover:bg-green-700 p-8 rounded-tl-[2.5rem] rounded-b-2xl rounded-tr-2xl bg-foreground/5 flex flex-col justify-between min-h-75 group hover:border-primary/50 transition-colors relative">
+            <Link href={"/payment-links"} className="md:col-span-4 hover:bg-green-700 p-8 rounded-tl-[2.5rem] rounded-b-2xl rounded-tr-2xl bg-foreground/5 flex flex-col justify-between min-h-75 group hover:border-primary/50 transition-colors relative">
 
               <div>
                 <h4 className="text-3xl text-foreground mb-2">
-                  Private Campaign Distributions
+                 Private Payment Links
                 </h4>
 
                 <p className="text-foreground/70 max-w-sm">
-                  Distribute rewards to thousands without revealing recipients,
-                  amounts, or the full payout list on-chain.
+                   Share a payment link and receive funds privately without exposing balances or transaction history.
                 </p>
               </div>
 
               {/* Hover CTA */}
               <div className="absolute bottom-8 right-8 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all">
                 <span className="text-sm text-white flex items-center gap-2">
-                  Create Campaign
+                  Create Payment Link
                   <span className="text-lg">↗</span>
                 </span>
               </div>
@@ -147,22 +108,22 @@ export default function Home() {
 
 
             {/* PAYMENT LINKS */}
-            <Link href={"/payment-links"} className="md:col-span-2 p-8 rounded-tr-[2.5rem] hover:bg-blue-700 rounded-b-2xl rounded-tl-2xl bg-foreground/5 flex flex-col justify-between group hover:border-primary/50 transition-colors relative">
+            <Link href={"/bots"} className="md:col-span-2 p-8 rounded-tr-[2.5rem] hover:bg-blue-700 rounded-b-2xl rounded-tl-2xl bg-foreground/5 flex flex-col justify-between group hover:border-primary/50 transition-colors relative">
 
               <div>
                 <h4 className="text-3xl text-foreground mb-2">
-                  Private Payment Links
+                  Access Kloak Telegram Bot
                 </h4>
 
                 <p className="text-sm text-foreground/70">
-                  Share a payment link and receive funds privately without exposing balances or transaction history.
+                  Interact with Kloak's Telegram bot to manage your private payment links, get analytics and payment notifications.
                 </p>
               </div>
 
               {/* Hover CTA */}
               <div className="absolute bottom-8 right-8 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all">
                 <span className="text-sm text-white flex items-center gap-2">
-                  Create Payment Link
+                  Open Telegram Bot
                   <span className="text-lg">↗</span>
                 </span>
               </div>
@@ -185,11 +146,11 @@ export default function Home() {
 
             <div className="md:col-span-2 p-8 hover:bg-fuchsia-700 rounded-2xl bg-foreground/5 group hover:border-primary/50 transition-colors flex flex-col justify-between">
               <h4 className="text-2xl text-foreground mb-12">
-                Fast Proofs
+                Webhooks
               </h4>
 
               <p className="text-sm text-foreground/70">
-                Highly optimized ZK circuits generate proofs in the browser in under 2 seconds.
+                Get real-time notifications of incoming payments to automate workflows and trigger actions.
               </p>
             </div>
 
@@ -227,9 +188,6 @@ export default function Home() {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-12">
           <div className="space-y-6">
             <div className="flex items-center gap-2">
-              <div className="h-5 w-5 bg-foreground rounded flex items-center justify-center">
-                <div className="h-1.5 w-1.5 bg-black rounded-full" />
-              </div>
               <span className="font-bold tracking-tighter text-foreground">KLOAK</span>
             </div>
             <p className="text-muted-foreground max-w-xs text-sm leading-relaxed">

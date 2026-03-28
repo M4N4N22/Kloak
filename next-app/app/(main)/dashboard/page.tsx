@@ -80,12 +80,10 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex gap-2">
                     <Link href="/payment-links">
-                        <Button>Get Paid Privately</Button>
+                        <Button    size="lg">Get Paid Privately</Button>
                     </Link>
 
-                    <Link href="/campaigns">
-                        <Button>Distribute Funds Privately</Button>
-                    </Link>
+                  
                 </div>
             </div>
 
@@ -183,17 +181,7 @@ export default function DashboardPage() {
             </div>
 
 
-            {/* Active Campaigns */}
-            <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                    <h2 className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                        Recent Distributions
-                    </h2>
-                </div>
-
-                <CampaignList />
-            </div>
+           
             <div className="space-y-4">
 
                 <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-4 ml-2">

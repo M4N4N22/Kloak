@@ -9,6 +9,12 @@ import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import Image from "next/image"
 import { useWallet } from "@provablehq/aleo-wallet-adaptor-react"
+import {
+    Zap,
+    Receipt,
+    Building2,
+    Infinity,
+} from "lucide-react"
 
 import {
     Dialog,
@@ -19,7 +25,7 @@ import {
 } from "@/components/ui/dialog"
 
 import { Copy, Share2, CheckCircle2 } from "lucide-react"
-import { ChevronDown, ChevronUp, Globe, Loader2 } from "lucide-react"
+import { Globe, Loader2 } from "lucide-react"
 
 import {
     Select,
@@ -30,6 +36,12 @@ import {
 } from "@/components/ui/select"
 
 type CreateStatus = "idle" | "signing" | "proving" | "broadcasting" | "finalizing" | "saving";
+
+const TOKEN_TO_ASSET: Record<string, string> = {
+    ALEO: "0u8",
+    USDCX: "1u8",
+    USAD: "2u8",
+}
 
 export default function CreateLinkForm() {
     const [loading, setLoading] = useState(false)
@@ -45,30 +57,72 @@ export default function CreateLinkForm() {
 
     const [allowCustomAmount, setAllowCustomAmount] = useState(false)
 
-    const [showAdvanced, setShowAdvanced] = useState(false)
     const [maxPayments, setMaxPayments] = useState("")
-    const [expiration, setExpiration] = useState("never")
+    const [expiration, setExpiration] = useState("30m")
 
     const isFormValid =
         title.trim().length > 0 &&
         (allowCustomAmount || Number(amount) > 0)
+
+    const EXPIRY_OPTIONS = [
+        {
+            label: "Quick payment",
+            icon: Zap,
+            items: [
+                { value: "15m", label: "15 minutes" },
+                { value: "30m", label: "30 minutes" },
+                { value: "1h", label: "1 hour", pro: true },
+            ],
+        },
+        {
+            label: "Invoice (Recommended)",
+            icon: Receipt,
+            items: [
+                { value: "24h", label: "24 hours" },
+                { value: "3d", label: "3 days" },
+                { value: "7d", label: "7 days" },
+            ],
+        },
+        {
+            label: "Business",
+            icon: Building2,
+            items: [
+                { value: "14d", label: "14 days", pro: true },
+                { value: "30d", label: "30 days", pro: true },
+            ],
+        },
+        {
+            label: "Advanced",
+            icon: Infinity,
+            items: [
+                { value: "never", label: "No expiry", pro: true },
+            ],
+        },
+    ]
 
     function computeExpiration() {
         if (expiration === "never") return null
 
         const now = new Date()
 
-        if (expiration === "24h") {
-            now.setHours(now.getHours() + 24)
-            return now
+        const map: Record<string, number> = {
+            "15m": 15 * 60,
+            "30m": 30 * 60,
+            "1h": 60 * 60,
+            "6h": 6 * 60 * 60,
+            "12h": 12 * 60 * 60,
+            "24h": 24 * 60 * 60,
+            "3d": 3 * 24 * 60 * 60,
+            "7d": 7 * 24 * 60 * 60,
+            "14d": 14 * 24 * 60 * 60,
+            "30d": 30 * 24 * 60 * 60,
         }
 
-        if (expiration === "7d") {
-            now.setDate(now.getDate() + 7)
-            return now
-        }
+        const secondsToAdd = map[expiration]
 
-        return null
+        if (!secondsToAdd) return null
+
+        return new Date(now.getTime() + secondsToAdd * 1000)
     }
 
 
@@ -202,7 +256,7 @@ export default function CreateLinkForm() {
                 <CardContent className="space-y-6">
 
                     {/* Title */}
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                         <Label>Title *</Label>
                         <Input
                             placeholder="Freelance Design Services"
@@ -212,7 +266,7 @@ export default function CreateLinkForm() {
                     </div>
 
                     {/* Description */}
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                         <Label>Description</Label>
                         <Textarea
                             placeholder="Add details about the service..."
@@ -223,76 +277,61 @@ export default function CreateLinkForm() {
                     </div>
 
                     {/* Amount */}
-                    <div className="p-4 rounded-xl bg-zinc-500/10 space-y-4">
+                    <div className="space-y-1">
 
-                        <Label className="text-muted-foreground uppercase text-[10px] tracking-widest">
-                            Enter Amount
+                        <Label>
+                            Enter Amount *
                         </Label>
+                        <div className="rounded-xl space-y-4">
+                            <div className="flex gap-3">
+                                <Input
+                                    type="number"
+                                    placeholder="0.00"
+                                    min="0.1"
+                                    value={amount}
+                                    disabled={allowCustomAmount}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        // Prevent manual entry of negative numbers
+                                        if (Number(val) < 0) return;
+                                        setAmount(val);
+                                    }}
+                                />
 
-                        <div className="flex gap-3">
-                            <Input
-                                type="number"
-                                placeholder="0.00"
-                                min="0.1"
-                                value={amount}
-                                disabled={allowCustomAmount}
-                                onChange={(e) => {
-                                    const val = e.target.value;
-                                    // Prevent manual entry of negative numbers
-                                    if (Number(val) < 0) return;
-                                    setAmount(val);
-                                }}
-                            />
+                                <Select value={token} onValueChange={setToken}>
+                                    <SelectTrigger className="w-40"> {/* Widened slightly to fit text */}
+                                        <SelectValue />
+                                    </SelectTrigger>
 
-                            <Select value={token} onValueChange={setToken}>
-                                <SelectTrigger className="w-40"> {/* Widened slightly to fit text */}
-                                    <SelectValue />
-                                </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="ALEO">ALEO</SelectItem>
 
-                                <SelectContent>
-                                    <SelectItem value="ALEO">ALEO</SelectItem>
-
-                                    {/* USDCx is visible but unclickable */}
-                                    <SelectItem value="USDCX" disabled>
-                                        <div className="flex flex-col">
-                                            <span className="opacity-50">USDCx</span>
-                                            <span className="text-[10px] text-primary font-medium leading-none mt-1">
-                                                Coming Soon
-                                            </span>
-                                        </div>
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div className="flex items-center justify-between pt-2">
-                            <div>
-                                <Label className="text-sm">Allow custom amount</Label>
-                                <p className="text-xs text-muted-foreground ml-2">
-                                    Customers can pay what they want
-                                </p>
+                                        <SelectItem value="USDCX">USDCx</SelectItem>
+                                        <SelectItem value="USAD">USAD</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
 
-                            <Switch
-                                checked={allowCustomAmount}
-                                onCheckedChange={setAllowCustomAmount}
-                            />
                         </div>
                     </div>
+                    <div className="space-y-1">
+                        <Label className="text-primary ">Advanced Configuration</Label>
+                        <div className="space-y-6 p-4 border rounded-xl">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <Label>Allow custom amount</Label>
+                                    <p className="text-xs text-muted-foreground ml-2">
+                                        Customers can pay what they want
+                                    </p>
+                                </div>
 
-                    {/* Advanced */}
-                    <div
-                        className="flex justify-between ml-2 cursor-pointer"
-                        onClick={() => setShowAdvanced(!showAdvanced)}
-                    >
-                        <span className="text-sm font-medium">Advanced Configuration</span>
-                        {showAdvanced ? <ChevronUp /> : <ChevronDown />}
-                    </div>
+                                <Switch
+                                    checked={allowCustomAmount}
+                                    onCheckedChange={setAllowCustomAmount}
+                                />
+                            </div>
 
-                    {showAdvanced && (
-                        <div className="space-y-4 p-4 border rounded-xl">
-
-                            <div className="space-y-2">
+                            <div className="space-y-1">
                                 <Label>Max Payments</Label>
                                 <Input
                                     min="0"
@@ -308,23 +347,53 @@ export default function CreateLinkForm() {
                                 />
                             </div>
 
-                            <div className="space-y-2">
+                            <div className="space-y-1">
                                 <Label>Link Expiration</Label>
 
-                                <Select value={expiration} onValueChange={setExpiration}>
+                                <Select
+                                    value={expiration}
+                                    onValueChange={setExpiration}
+                                >
                                     <SelectTrigger>
-                                        <SelectValue />
+                                        <SelectValue placeholder="Select expiration" />
                                     </SelectTrigger>
 
                                     <SelectContent>
-                                        <SelectItem value="never">Never</SelectItem>
-                                        <SelectItem value="24h">24 hours</SelectItem>
-                                        <SelectItem value="7d">7 days</SelectItem>
+                                        {EXPIRY_OPTIONS.map((group) => {
+                                            const Icon = group.icon
+
+                                            return (
+                                                <div key={group.label} className="p-4">
+                                                    <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                                                        <Icon className="h-3.5 w-3.5" />
+                                                        <span>{group.label}</span>
+                                                    </div>
+
+                                                    {group.items.map((item) => (
+                                                        <SelectItem
+                                                            key={item.value}
+                                                            value={item.value}
+                                                            className="flex items-center justify-between"
+                                                        >
+                                                            <span>{item.label}</span>
+
+                                                            {item.pro && (
+                                                                <span className="ml-2 flex items-center  text-xs px-2 py-0.5 rounded-full bg-linear-to-br from-purple-600 to-rose-600 font-medium">
+
+                                                                    PRO
+                                                                </span>
+                                                            )}
+                                                        </SelectItem>
+                                                    ))}
+                                                </div>
+                                            )
+                                        })}
                                     </SelectContent>
                                 </Select>
                             </div>
+
                         </div>
-                    )}
+                    </div>
 
                     {/* Submit */}
                     <Button
@@ -350,11 +419,32 @@ export default function CreateLinkForm() {
             <div className="lg:col-span-2 relative">
                 <div className="sticky top-32 space-y-1 flex flex-col justify-center items-center">
                     <Label className="text-xs font-bold uppercase tracking-tighter text-muted-foreground">Live Preview</Label>
-                    <div className=" w-full  mx-auto bg-zinc-500/10 border rounded-[2.5rem] p-6 flex flex-col justify-between overflow-hidden relative ">
+                    <div className=" w-full  mx-auto bg-zinc-500/10 border rounded-[2.5rem] p-6 flex flex-col justify-between overflow-hidden relative backdrop-blur-xl">
                         <div className="space-y-6"> {/* Fake Mobile Header */}
                             <div className="flex justify-between items-center ">
                                 <div className="flex gap-3 items-center">
-                                    <Image src="/kloak_logo.png" alt="Aurora background" height={36} width={36} priority className="object-cover rounded-full" /> <div className="flex flex-col"> <span className="text-sm">Kloak</span> <span className="text-xs opacity-50">Powered by Aleo</span></div></div> <div className="flex gap-1 opacity-40"> <div className="h-2 w-2 rounded-full bg-foreground" /> <div className="h-2 w-2 rounded-full bg-foreground" /> </div> </div> <div className="mt-12"> <h3 className="text-xl font-bold truncate leading-tight"> {title || "Untitled Link"} </h3> <p className="text-sm text-muted-foreground mt-2 line-clamp-3"> {description || "No description provided."} </p> </div> <div className="border-t border-dashed border-white/30 "></div> <div className=""> <div className=""> <span className="text-xs text-muted-foreground block mb-1">Total to pay</span> <div className="text-3xl font-bold tracking-tight"> {allowCustomAmount ? "—" : amount || "0.00"} <span className="text-sm ml-2 font-medium text-muted-foreground uppercase">{token}</span> </div> </div> <div className="w-full h-12 rounded-full bg-foreground text-background flex items-center justify-center font-bold mt-6"> Pay Now </div> <div className="flex items-center justify-center gap-1.5 opacity-40 mt-6"> <Globe className="h-3 w-3" /> <span className="text-[10px] font-mono tracking-tight">kloak.vercel.app/pay/preview123</span> </div> </div> </div> </div> </div> </div>
+                                    <Image src="/kloak_logo.png" alt="Aurora background" height={36} width={36} priority className="object-cover rounded-full" />
+                                    <div className="flex flex-col"> <span className="text-sm">Kloak</span>
+                                        <span className="text-xs opacity-50">Powered by Aleo</span>
+                                    </div></div> <div className="flex gap-1 opacity-40">
+                                    <div className="h-2 w-2 rounded-full bg-foreground" />
+                                    <div className="h-2 w-2 rounded-full bg-foreground" /> </div>
+                            </div> <div className="mt-12">
+                                <h3 className="text-xl font-bold truncate leading-tight"> {title || "Untitled"} </h3>
+                                <p className="text-sm text-muted-foreground mt-2 line-clamp-3"> {description || "No description provided."} </p>
+                            </div> <div className="border-t border-dashed border-white/30 "></div>
+                            <div className=""> <div className=""> <span className="text-xs text-muted-foreground block mb-1">Amount to pay</span>
+                                <div className="text-3xl font-bold tracking-tight"> {allowCustomAmount ? "Enter Amount" : amount || "0.00"}
+                                    <span className="text-sm ml-2 font-medium text-muted-foreground uppercase">{token}</span> </div>
+                            </div> <div className="w-full h-12 rounded-full bg-foreground text-background flex items-center justify-center font-bold mt-6"> Pay Now </div>
+                                <div className="flex items-center justify-center gap-1.5 opacity-40 mt-6"> <Globe className="h-3 w-3" />
+                                    <span className="text-[10px] font-mono tracking-tight">kloak.vercel.app/pay/preview123</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             {/* SUCCESS MODAL */}
             <Dialog open={successOpen} onOpenChange={setSuccessOpen}>

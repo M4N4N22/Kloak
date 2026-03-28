@@ -143,7 +143,7 @@ export function useCreateCampaign() {
             setStatus("registering")
 
             const result = await executeTransaction({
-                program: "kloak_protocol_v5.aleo",
+                program: "kloak_protocol_v6.aleo",
                 function: "create_campaign",
                 inputs: [
                     campaignIdFormatted,
