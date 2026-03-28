@@ -6,6 +6,26 @@ A privacy-first payment link system built on the Aleo blockchain, enabling secur
 
 Kloak allows creators to generate payment links that can be paid using Aleo's native credits (ALEO) or stablecoins (USDCx, USAD) with full privacy preservation. The system integrates on-chain Aleo programs for transaction logic, a Next.js web application for user interfaces, Supabase for off-chain metadata, and a Telegram bot for notifications and control.
 
+## Important Links
+
+- Deployed App  
+  https://kloak.vercel.app
+
+- Demo Video  
+  https://youtu.be/b1AdffOf_PM
+
+- Create Payment Link  
+  https://kloak.vercel.app/payment-links
+
+- Get Kloak Telegram Bot  
+  https://kloak.vercel.app/bots
+
+- Create a Webhook  
+  https://kloak.vercel.app/webhooks
+
+- Wave 4 Detailed Updates  
+  https://github.com/M4N4N22/Kloak/blob/main/Wave4_Updates.md
+
 ## Architecture
 
 ```mermaid
