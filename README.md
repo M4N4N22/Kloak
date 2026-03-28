@@ -168,11 +168,3 @@ The Aleo program is located in `programs/kloak_protocol/`.
 3. Make your changes
 4. Run tests
 5. Submit a pull request
-
-## License
-
-[Add license information]
-
-## Contact
-
-[Add contact information]
