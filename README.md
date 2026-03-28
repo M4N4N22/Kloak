@@ -23,6 +23,9 @@ Kloak allows creators to generate payment links that can be paid using Aleo's na
 - Create a Webhook  
   https://kloak.vercel.app/webhooks
 
+- Leo Program (kloak_protocol_v6)  
+  https://github.com/M4N4N22/Kloak/blob/main/programs/kloak_protocol/src/main.leo
+
 - Wave 4 Detailed Updates  
   https://github.com/M4N4N22/Kloak/blob/main/Wave4_Updates.md
 
