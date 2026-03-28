@@ -5,7 +5,7 @@ import test_usad_stablecoin.aleo;
 program kloak_protocol_v6.aleo {
 
     @noupgrade
-    constructor() {}
+    async constructor() {}
 
     // --------------------------------------
     // MAPPINGS
@@ -93,12 +93,12 @@ program kloak_protocol_v6.aleo {
 // CAMPAIGN CREATION
 // --------------------------------------
 
-fn create_campaign(
+async transition create_campaign(
     campaign_id: field,
     merkle_root: field,
     asset: u8,
     total_budget: u64
-) -> Final {
+) -> Future {
 
     let creator: address = self.caller;
 
@@ -110,9 +110,14 @@ fn create_campaign(
         active: true
     };
 
-    return final {
-        Mapping::set(campaigns, campaign_id, campaign);
-    };
+    return finalize_create_campaign(campaign_id, campaign);
+}
+
+async function finalize_create_campaign(
+    campaign_id: field,
+    campaign: Campaign
+) {
+    campaigns.set(campaign_id, campaign);
 }
 
 ////////////////////////////////////////////////////////
@@ -301,7 +306,7 @@ async transition send_private_payment_usdcx(
     pay_record: test_usdcx_stablecoin.aleo/Token,
     recipient: address,
     amount: u128,
-    proofs: [MerkleProof; 2]
+    proofs: [test_usdcx_stablecoin.aleo/MerkleProof; 2]
 ) -> (
     test_usdcx_stablecoin.aleo/Token,
     test_usdcx_stablecoin.aleo/Token,
@@ -332,7 +337,7 @@ async transition send_private_payment_usad(
     pay_record: test_usad_stablecoin.aleo/Token,
     recipient: address,
     amount: u128,
-    proofs: [MerkleProof; 2]
+  proofs: [test_usad_stablecoin.aleo/MerkleProof; 2]
 ) -> (
     test_usad_stablecoin.aleo/Token,
     test_usad_stablecoin.aleo/Token,
@@ -444,7 +449,7 @@ async transition pay_request_usdcx(
     pay_record: test_usdcx_stablecoin.aleo/Token,
     request_id: field,
     amount: u128,
-   proofs: [MerkleProof; 2]
+proofs: [test_usdcx_stablecoin.aleo/MerkleProof; 2]
 ) -> (
     test_usdcx_stablecoin.aleo/Token,
     test_usdcx_stablecoin.aleo/Token,
@@ -485,7 +490,7 @@ async transition pay_request_usad(
     pay_record: test_usad_stablecoin.aleo/Token,
     request_id: field,
     amount: u128,
-  proofs: [MerkleProof; 2]
+proofs: [test_usad_stablecoin.aleo/MerkleProof; 2]
 ) -> (
     test_usad_stablecoin.aleo/Token,
     test_usad_stablecoin.aleo/Token,
