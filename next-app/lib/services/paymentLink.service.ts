@@ -18,7 +18,7 @@ export async function createPaymentLink(data: any) {
       allowCustomAmount: data.allowCustomAmount ?? false,
 
       maxPayments: data.maxPayments ?? null,
-      expiresAt: data.expiresAt ?? null
+      expiresAt: data.expiresAt ?? null,
     }
   })
 }

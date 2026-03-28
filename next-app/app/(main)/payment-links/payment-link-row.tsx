@@ -6,18 +6,10 @@ import { Badge } from "@/components/ui/badge"
 import {
     Copy,
     Check,
-    ExternalLink,
     MoreHorizontal,
-    TrendingUp,
-    Clock,
-    Eye,
-    Users,
-    Wallet,
     ChevronDown,
     ChevronUp,
     Tag, // Icon for price
-    Settings2,
-    Link as LinkIcon,
 } from "lucide-react"
 import {
     DropdownMenu,
@@ -42,11 +34,11 @@ export default function PaymentLinkRow({ link }: any) {
         ? ((link.paymentsReceived / link.views) * 100).toFixed(1)
         : "0"
 
-          const generatedLink = `${window.location.origin}/pay/${link.id}`
+    const generatedLink = `${window.location.origin}/pay/${link.id}`
 
     return (
         <div onClick={() => setIsExpanded(!isExpanded)} className={cn(
-            "group relative overflow-hidden rounded-3xl border transition-all duration-300 hover:border-white/10 hover:bg-white/5",
+            "group relative overflow-hidden rounded-3xl bg-white/5 transition-all duration-300 hover:border-white/10 hover:bg-white/5",
             isExpanded ? " " : ""
         )}>
             <div className="flex flex-col md:flex-row md:items-center justify-between p-5 gap-4">
@@ -85,23 +77,24 @@ export default function PaymentLinkRow({ link }: any) {
                 {/* 2. Primary Analytics (Volume & Count) */}
                 <div className="flex flex-1 items-center justify-around md:justify-end gap-10 px-4">
                     <div className="text-center md:text-right">
-                        <p className="text-xs text-foreground/50 mb-1">Total Volume</p>
-                        <p className="text-xl font-black text-foreground leading-tight">
-                            {Number(link.totalVolume).toLocaleString()} <span className="text-xs font-medium">{link.token}</span>
-                        </p>
-                    </div>
-
-                    <div className="text-center md:text-right">
                         <p className="text-xs text-foreground/50 mb-1">Received</p>
                         <div className="flex items-baseline justify-center md:justify-end gap-1">
                             <p className="text-xl font-black text-zinc-100 leading-tight">
-                                {link.paymentsReceived}
+                                {link.paymentsReceived} <span className="text-xs font-medium opacity-50"></span>
                             </p>
                             {link.maxPayments && (
                                 <p className="text-xs text-zinc-500 font-medium">/ {link.maxPayments}</p>
                             )}
                         </div>
                     </div>
+                    <div className="text-center md:text-right">
+                        <p className="text-xs text-foreground/50 mb-1">Total</p>
+                        <p className="text-xl font-black text-foreground leading-tight">
+                            {Number(link.totalVolume).toLocaleString()} <span className="text-xs font-medium opacity-50">{link.token}</span>
+                        </p>
+                    </div>
+
+
                 </div>
 
                 {/* 3. Actions */}
@@ -120,6 +113,15 @@ export default function PaymentLinkRow({ link }: any) {
                             url: generatedLink,
                         })
                     } > Share </Button>
+                    <Button
+                        variant="secondary"
+                        onClick={() => {
+                            if (!generatedLink) return
+                            window.open(generatedLink, "_blank", "noopener,noreferrer")
+                        }}
+                    >
+                        Visit
+                    </Button>
 
                     <div
 

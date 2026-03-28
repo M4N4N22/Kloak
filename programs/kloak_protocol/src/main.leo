@@ -1,9 +1,11 @@
 import credits.aleo;
+import test_usdcx_stablecoin.aleo;
+import test_usad_stablecoin.aleo;
 
-program kloak_protocol_v5.aleo {
+program kloak_protocol_v6.aleo {
 
     @noupgrade
-    async constructor() {}
+    constructor() {}
 
     // --------------------------------------
     // MAPPINGS
@@ -91,31 +93,14 @@ program kloak_protocol_v5.aleo {
 // CAMPAIGN CREATION
 // --------------------------------------
 
-async transition create_campaign(
+fn create_campaign(
     campaign_id: field,
     merkle_root: field,
     asset: u8,
     total_budget: u64
-) -> Future {
+) -> Final {
 
     let creator: address = self.caller;
-
-    return finalize_create_campaign(
-        campaign_id,
-        creator,
-        merkle_root,
-        asset,
-        total_budget
-    );
-}
-
-async function finalize_create_campaign(
-    campaign_id: field,
-    creator: address,
-    merkle_root: field,
-    asset: u8,
-    total_budget: u64
-) {
 
     let campaign: Campaign = Campaign {
         creator: creator,
@@ -125,7 +110,9 @@ async function finalize_create_campaign(
         active: true
     };
 
-    campaigns.set(campaign_id, campaign);
+    return final {
+        Mapping::set(campaigns, campaign_id, campaign);
+    };
 }
 
 ////////////////////////////////////////////////////////
@@ -283,11 +270,14 @@ async function finalize_claim(
 
     nullifiers.set(nullifier, true);
 }
-    /// --------------------------------------
+
+
+// --------------------------------------
 // PRIVATE PAYMENT
 // --------------------------------------
 
-transition send_private_payment(
+// 0 = ALEO
+transition send_private_payment_aleo(
     credits: credits.aleo/credits,
     recipient: address,
     amount: u64
@@ -306,13 +296,82 @@ transition send_private_payment(
 }
 
 
+// 1 = USDCx
+async transition send_private_payment_usdcx(
+    pay_record: test_usdcx_stablecoin.aleo/Token,
+    recipient: address,
+    amount: u128,
+    proofs: [MerkleProof; 2]
+) -> (
+    test_usdcx_stablecoin.aleo/Token,
+    test_usdcx_stablecoin.aleo/Token,
+    test_usdcx_stablecoin.aleo/ComplianceRecord,
+    PaymentReceipt,
+    Future
+) {
+
+    let (compliance, out1, out2, f) =
+        test_usdcx_stablecoin.aleo/transfer_private(
+            recipient,
+            amount,
+            pay_record,
+            proofs
+        );
+
+    let receipt: PaymentReceipt = PaymentReceipt {
+        owner: recipient,
+        amount: amount as u64,
+        reference: 0field
+    };
+
+    return (out1, out2, compliance, receipt, finalize_send_usdcx(f));
+}
+
+// 2 = USAD
+async transition send_private_payment_usad(
+    pay_record: test_usad_stablecoin.aleo/Token,
+    recipient: address,
+    amount: u128,
+    proofs: [MerkleProof; 2]
+) -> (
+    test_usad_stablecoin.aleo/Token,
+    test_usad_stablecoin.aleo/Token,
+    test_usad_stablecoin.aleo/ComplianceRecord,
+    PaymentReceipt,
+    Future
+) {
+
+    let (compliance, out1, out2, f) =
+        test_usad_stablecoin.aleo/transfer_private(
+            recipient,
+            amount,
+            pay_record,
+            proofs
+        );
+
+    let receipt: PaymentReceipt = PaymentReceipt {
+        owner: recipient,
+        amount: amount as u64,
+        reference: 0field
+    };
+
+    return (out1, out2, compliance, receipt, finalize_send_usad(f));
+}
+
+async function finalize_send_usdcx(f: Future) {
+    f.await();
+}
+
+async function finalize_send_usad(f: Future) {
+    f.await();
+}
 // --------------------------------------
 // PAYMENT REQUESTS
 // --------------------------------------
 
 async transition create_payment_request(
     request_id: field,
-    asset: u8,
+    asset: u8, // 0 = ALEO, 1 = USDCx, 2 = USAD
     amount: u64,
     open_amount: bool
 ) -> Future {
@@ -336,6 +395,7 @@ async function finalize_create_payment_request(
     amount: u64,
     open_amount: bool
 ) {
+    assert(asset == 0u8 || asset == 1u8 || asset == 2u8);
 
     let req: PaymentRequest = PaymentRequest {
         merchant: merchant,
@@ -350,16 +410,15 @@ async function finalize_create_payment_request(
 
 
 // --------------------------------------
-// PAY REQUEST
+// PAY REQUEST (ALEO)
 // --------------------------------------
 
-async transition pay_request(
+async transition pay_request_aleo(
     credits: credits.aleo/credits,
     request_id: field,
     amount: u64
 ) -> (credits.aleo/credits, PaymentRequestReceipt, Future) {
 
-    // Transfer immediately
     let (change, sent) =
         credits.aleo/transfer_private(credits, self.caller, amount);
 
@@ -372,30 +431,154 @@ async transition pay_request(
     return (
         change,
         receipt,
-        finalize_pay_request(request_id, amount)
+        finalize_pay_request_aleo(request_id, amount)
     );
 }
 
 
 // --------------------------------------
-// FINALIZE PAYMENT
+// PAY REQUEST (USDCx)
 // --------------------------------------
 
-async function finalize_pay_request(
+async transition pay_request_usdcx(
+    pay_record: test_usdcx_stablecoin.aleo/Token,
+    request_id: field,
+    amount: u128,
+   proofs: [MerkleProof; 2]
+) -> (
+    test_usdcx_stablecoin.aleo/Token,
+    test_usdcx_stablecoin.aleo/Token,
+    test_usdcx_stablecoin.aleo/ComplianceRecord,
+    PaymentRequestReceipt,
+    Future
+) {
+
+    let (compliance, out1, out2, f) =
+        test_usdcx_stablecoin.aleo/transfer_private(
+            self.caller,
+            amount,
+            pay_record,
+            proofs
+        );
+
+    let receipt: PaymentRequestReceipt = PaymentRequestReceipt {
+        owner: self.caller,
+        request_id: request_id,
+        amount: amount as u64
+    };
+
+    return (
+        out1,
+        out2,
+        compliance,
+        receipt,
+        finalize_pay_request_usdcx(request_id, amount as u64, f)
+    );
+}
+
+
+// --------------------------------------
+// PAY REQUEST (USAD)
+// --------------------------------------
+
+async transition pay_request_usad(
+    pay_record: test_usad_stablecoin.aleo/Token,
+    request_id: field,
+    amount: u128,
+  proofs: [MerkleProof; 2]
+) -> (
+    test_usad_stablecoin.aleo/Token,
+    test_usad_stablecoin.aleo/Token,
+    test_usad_stablecoin.aleo/ComplianceRecord,
+    PaymentRequestReceipt,
+    Future
+) {
+
+    let (compliance, out1, out2, f) =
+        test_usad_stablecoin.aleo/transfer_private(
+            self.caller,
+            amount,
+            pay_record,
+            proofs
+        );
+
+    let receipt: PaymentRequestReceipt = PaymentRequestReceipt {
+        owner: self.caller,
+        request_id: request_id,
+        amount: amount as u64
+    };
+
+    return (
+        out1,
+        out2,
+        compliance,
+        receipt,
+        finalize_pay_request_usad(request_id, amount as u64, f)
+    );
+}
+
+
+// --------------------------------------
+// FINALIZE PAYMENT (ALEO)
+// --------------------------------------
+
+async function finalize_pay_request_aleo(
     request_id: field,
     amount: u64
 ) {
-
     let req: PaymentRequest = payment_requests.get(request_id);
 
     assert(req.active);
+    assert_eq(req.asset, 0u8);
 
     if !req.open_amount {
         assert_eq(amount, req.amount);
     }
-
 }
 
+
+// --------------------------------------
+// FINALIZE PAYMENT (USDCx)
+// --------------------------------------
+
+async function finalize_pay_request_usdcx(
+    request_id: field,
+    amount: u64,
+    f: Future
+) {
+    f.await();
+
+    let req: PaymentRequest = payment_requests.get(request_id);
+
+    assert(req.active);
+    assert_eq(req.asset, 1u8);
+
+    if !req.open_amount {
+        assert_eq(amount, req.amount);
+    }
+}
+
+
+// --------------------------------------
+// FINALIZE PAYMENT (USAD)
+// --------------------------------------
+
+async function finalize_pay_request_usad(
+    request_id: field,
+    amount: u64,
+    f: Future
+) {
+    f.await();
+
+    let req: PaymentRequest = payment_requests.get(request_id);
+
+    assert(req.active);
+    assert_eq(req.asset, 2u8);
+
+    if !req.open_amount {
+        assert_eq(amount, req.amount);
+    }
+}
     // --------------------------------------
     // SELECTIVE DISCLOSURE
     // --------------------------------------
@@ -411,7 +594,7 @@ async function finalize_pay_request(
     // MERKLE VERIFICATION (DEPTH 10)
     // --------------------------------------
 
-    // Add this to your program for testing
+    // for testing
 transition test_merkle_alignment(
     secret: field,
     payout: u64,

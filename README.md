@@ -1,152 +1,178 @@
-# Kloak Distribution
+# Kloak
 
-A privacy-preserving asset distribution system built on the Aleo blockchain. Kloak allows organizations to distribute grants or tokens using **Zero-Knowledge Merkle Inclusion Proofs**, ensuring that users can claim their assets without ever revealing their identity or wallet address to the public ledger.
+A privacy-first payment link system built on the Aleo blockchain, enabling secure and private transactions using zero-knowledge proofs.
 
-**[Watch Technical Demo](https://youtu.be/NLh_GkFCUuE)**
+## Overview
 
-## (Core) Innovation: The Privacy Loop
+Kloak allows creators to generate payment links that can be paid using Aleo's native credits (ALEO) or stablecoins (USDCx, USAD) with full privacy preservation. The system integrates on-chain Aleo programs for transaction logic, a Next.js web application for user interfaces, Supabase for off-chain metadata, and a Telegram bot for notifications and control.
 
-Unlike standard airdrops where a list of eligible addresses is public, Kloak uses a three-stage "Shielded Claim" protocol:
+## Architecture
 
-1. **Identity Link**: Derive a private claim key from a public wallet.
-2. **Commitment**: The system uses a Merkle Tree of *hashes*, not addresses.
-3. **Nullification**: A ZK-proof proves you are in the tree and generates a unique "nullifier" to prevent double-claiming, without revealing which leaf you belong to.
+```mermaid
+graph TB
+    A[Creator] -->|Signs transaction| B[Aleo Program]
+    B -->|On-chain state| C[Payment Links]
+    B -->|Validates payments| D[Payment Processing]
 
----
+    E[User] -->|Pays link| B
+    E -->|Interacts via| F[Next.js Web App]
 
-## Architecture Overview
+    F -->|API calls| G[Supabase DB]
+    F -->|Metadata| G
 
-### 1. Aleo Program (`kloak_distribution_v1.aleo`)
+    H[Telegram Bot] -->|Notifications| G
+    H -->|Control| F
 
-The on-chain arbiter. It doesn't store addresses; it stores a **Merkle Root** and a mapping of **spent nullifiers**.
-
-* **`claim`**: The primary transition. It verifies a BHP256 Merkle proof and ensures the nullifier hasn't been used.
-* **`nullifiers` mapping**: A persistent on-chain state that prevents double-spending while maintaining 100% anonymity.
-
-### 2. Next.js Protocol Interface
-
-A guided, step-by-step dashboard designed for high-stakes execution.
-
-* **Deterministic Derivation**: Uses `BHP256` to create a private secret from the user's signature.
-* **Local Proving**: Proofs are generated locally in the browser using the Aleo SDK/Shield Wallet, ensuring "Secret" inputs never touch a server.
-* **On-Chain Polling**: A robust synchronization layer that tracks transactions from "Broadcast" to "Finalized" status.
-
----
-
-## Smart Contract Logic
-
-### Merkle Verification Snippet
-
-```leo
-program kloak_distribution_v1.aleo {
-    // Stores used nullifiers to prevent double-claiming
-    mapping nullifiers: field => bool;
-
-    async transition claim(
-        merkle_root: field,
-        payout: u64,
-        secret: field,
-        s1: field, s2: field, s3: field, // Merkle Siblings
-        d1: bool, d2: bool, d3: bool    // Merkle Directions
-    ) -> (Grant, Future) {
-        // 1. Recompute private commitment
-        let commitment: field = BHP256::hash_to_field(secret);
-        
-        // 2. Recompute leaf (Commitment + Payout)
-        let leaf: field = BHP256::hash_to_field([commitment, payout as field]);
-
-        // 3. Verify Merkle Path against Public Root
-        let root: field = verify_merkle(leaf, s1, s2, s3, d1, d2, d3);
-        assert_eq(root, merkle_root);
-
-        // 4. Generate unique Nullifier (Secret + Root)
-        let nullifier: field = BHP256::hash_to_field([secret, merkle_root]);
-
-        return (Grant { owner: self.caller, amount: payout }, finalize_claim(nullifier));
-    }
-}
-
+    I[Webhook System] -->|Events| G
 ```
 
----
+### Core Components
 
-## Technical Stack
+- **Aleo Program**: Handles on-chain payment request creation and validation using zero-knowledge proofs.
+- **Next.js App**: Web interface for creating payment links, processing payments, and user dashboards.
+- **Supabase**: PostgreSQL database for storing payment link metadata, analytics, and webhook configurations.
+- **Telegram Bot**: Provides notifications and administrative controls.
 
-* **ZK-Logic**: Leo (Aleo's ZK-DSL)
-* **Frontend**: Next.js 14 (App Router)
-* **Styling**: Tailwind CSS + Framer Motion (Protocol Steppers)
-* **Wallet Interaction**: `@provablehq/aleo-wallet-adaptor`
-* **Cryptography**: BHP256 Hashing for Merkle Trees
+## Features
 
----
+- **Private Payments**: All transactions use Aleo's zero-knowledge technology for privacy.
+- **Multi-Token Support**: Pay with ALEO, USDCx, or USAD.
+- **Payment Links**: Generate shareable links for payments.
+- **Webhook Integration**: Receive notifications for payment events.
+- **Telegram Integration**: Bot for notifications and link management.
+- **Analytics**: Track payment link performance.
 
-## The Protocol Flow
+## Tech Stack
 
-### Step 1: Identity Derivation
+- **Blockchain**: Aleo
+- **Frontend/Backend**: Next.js, React
+- **Database**: Supabase (PostgreSQL)
+- **Bot**: Telegram (Grammy framework)
+- **ZK Proofs**: Aleo SDK
+- **Styling**: Tailwind CSS, Radix UI
 
-The user connects their **Shield Wallet**. The app derives a deterministic secret. This acts as the user's "Private Key" for the distribution.
+## Prerequisites
 
-### Step 2: Proof Generation
+- Node.js 18+
+- npm or yarn
+- Aleo CLI (for program development)
+- Supabase account
+- Telegram Bot Token
 
-The client fetches a Merkle Proof (siblings/directions) from the Kloak API. The user’s browser then generates a ZK-SNARK proof that they know a secret which, when hashed, exists at a specific leaf in the Merkle Tree.
+## Installation
 
-### Step 3: On-Chain Finalization
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd Kloak
+   ```
 
-The proof is broadcast to the Aleo Network. The UI enters a **Polling State**, querying the node until the transaction status shifts from `Accepted` to `Finalized`.
+2. Install dependencies for the Next.js app:
+   ```bash
+   cd next-app
+   npm install
+   ```
 
----
+3. Set up the database:
+   ```bash
+   npx prisma generate
+   npx prisma db push
+   ```
 
-## Setup & Installation
+## Environment Variables
 
-### Prerequisites
-
-* [Leo Compiler](https://www.google.com/search?q=https://developer.aleo.org/leo/)
-* [Shield Wallet Extension](https://www.google.com/search?q=https://www.shieldwallet.io/)
-
-### Installation
-
-```bash
-# 1. Install dependencies
-npm install
-
-# 2. Build the Aleo Program
-cd programs/kloak_distribution
-leo build
-
-# 3. Run the Development Server
-npm run dev
-
-```
-
-### Configuration
-
-Update your `.env.local` with your deployment details:
+Create a `.env` file in the `next-app` directory with the following variables:
 
 ```env
-NEXT_PUBLIC_PROGRAM_ID=kloak_distribution_v1.aleo
-NEXT_PUBLIC_NETWORK=testnet
+# Database
+DATABASE_URL="postgresql://username:password@host:port/database"
 
+# Telegram Bot
+BOT_TOKEN="your-telegram-bot-token"
+
+# URLs
+BACKEND_URL="http://localhost:3000"
+APP_URL="https://your-app-url.com"
+NEXT_PUBLIC_BASE_URL="http://localhost:3000"
+
+# Security
+JWT_SECRET="your-jwt-secret-key"
 ```
 
----
+### Variable Explanations
 
-## Security & Privacy Guarantees
+- `DATABASE_URL`: Connection string for your Supabase PostgreSQL database.
+- `BOT_TOKEN`: Token obtained from BotFather on Telegram for the bot integration.
+- `BACKEND_URL`: URL for the backend API (localhost for development).
+- `APP_URL`: Public URL of your deployed application.
+- `NEXT_PUBLIC_BASE_URL`: Public base URL for the Next.js app (exposed to client-side).
+- `JWT_SECRET`: Secret key for JWT token signing (use a strong, random string).
 
-* **Zero-Knowledge**: The Aleo miner sees a valid proof but **cannot** see which user claimed which grant.
-* **Sybil Resistance**: Each secret can only generate one valid nullifier per Merkle Root.
-* **Non-Custodial**: Kloak never holds user funds or private keys. The derivation happens entirely client-side.
+## Running the Application
 
----
+1. Start the development server:
+   ```bash
+   npm run dev
+   ```
 
-## Roadmap
+2. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-* [x] BHP256 Merkle Proof Implementation
-* [x] Deterministic Secret Derivation UI
-* [x] Real-time Transaction Status Polling
-* [ ] Multi-sig Distribution Creation Dashboard
-* [ ] Support for dynamic Merkle Tree updates (Sub-trees)
+3. For the Telegram bot:
+   ```bash
+   # Run the bot script (assuming it's set up)
+   npm run bot
+   ```
+
+## Building the Aleo Program
+
+The Aleo program is located in `programs/kloak_protocol/`.
+
+1. Install Aleo CLI if not already installed.
+
+2. Build the program:
+   ```bash
+   cd programs/kloak_protocol
+   leo build
+   ```
+
+3. Deploy to Aleo testnet/mainnet as needed.
+
+## Deployment
+
+### Next.js App
+- Use Vercel, Netlify, or any Node.js hosting platform.
+- Set environment variables in your hosting platform's dashboard.
+- Run `npm run build` for production build.
+
+### Database
+- Use Supabase for managed PostgreSQL.
+- Run migrations with Prisma.
+
+### Aleo Program
+- Deploy to Aleo network using Aleo CLI or wallet.
+
+### Telegram Bot
+- Host the bot on a server (e.g., Railway, Heroku) and set webhook or use polling.
+
+## API Endpoints
+
+- `POST /api/payment-links`: Create a new payment link
+- `GET /api/payment-links/:id`: Get payment link details
+- `POST /api/payments`: Process a payment
+- `GET /api/analytics`: Get analytics data
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests
+5. Submit a pull request
 
 ## License
 
-MIT - Created for the Aleo Ecosystem.
+[Add license information]
 
+## Contact
+
+[Add contact information]

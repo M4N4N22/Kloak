@@ -19,6 +19,7 @@ type AleoRecord = {
     recordCiphertext: string
     recordPlaintext: string
     spent: boolean
+    originalIndex?: number
 }
 
 export function useHandlePay(link: any, amount: string) {
@@ -45,7 +46,10 @@ export function useHandlePay(link: any, amount: string) {
 
             console.log("Raw records:", rawRecords)
 
-            const records = rawRecords as AleoRecord[]
+            const records = (rawRecords as AleoRecord[]).map((record, index) => ({
+                ...record,
+                originalIndex: index,
+            }))
             const unspent = records.filter((r) => !r.spent)
 
             console.log("Unspent records count:", unspent.length)
@@ -92,8 +96,6 @@ export function useHandlePay(link: any, amount: string) {
                 sorted[0] ? getBalance(sorted[0]).toString() : "none"
             )
 
-            let paymentRecord: string
-
             /* insufficient balance check */
 
             if (sorted.length === 0 || getBalance(sorted[0]) < requiredMicro) {
@@ -132,7 +134,7 @@ export function useHandlePay(link: any, amount: string) {
                         sorted[0].recordCiphertext,
                         sorted[1].recordCiphertext
                     ],
-                    recordIndices: [0, 1],
+                    recordIndices: [sorted[0].originalIndex, sorted[1].originalIndex],
                     privateFee: false,
                 })
 
@@ -151,8 +153,6 @@ export function useHandlePay(link: any, amount: string) {
                 setStatus("idle")
                 return
             }
-
-            paymentRecord = sorted[0].record || sorted[0].recordCiphertext;
 
             console.log(
                 "Selected payment record balance:",
@@ -176,7 +176,7 @@ export function useHandlePay(link: any, amount: string) {
                 program: "kloak_protocol_v5.aleo",
                 function: "pay_request",
                 inputs: [recordPlaintext, requestIdFormatted, amountFormatted],
-                recordIndices: [0],
+                recordIndices: [sorted[0].originalIndex],
                 privateFee: false
             });
 

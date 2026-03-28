@@ -44,6 +44,18 @@ model Campaign {
   @@index([creatorAddress])
 }
 
+model CreatorProfile {
+  id String @id @default(cuid())
+
+  walletAddress String @unique
+  isProUser     Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([walletAddress])
+}
+
 model MerkleProofStore {
   // hash(address + campaignId + salt)
   lookupHash String @id
@@ -77,7 +89,7 @@ model CampaignEscrow {
   campaignId String @unique
 
   recordCiphertext String
-  recordPlaintext String
+  recordPlaintext  String
 
   amount BigInt
 
@@ -89,44 +101,57 @@ model CampaignEscrow {
 model PaymentLink {
   id String @id @default(cuid())
 
-  // creator
-  creatorAddress String
+  creatorAddress String? // wallet-based
+  telegramId     String? // bot-based
 
-  // on-chain mapping id
   requestId String @unique
 
-  // link metadata
   title       String
   description String?
 
-  // pricing
   amount Decimal?
   token  Token
 
   allowCustomAmount Boolean @default(false)
 
-  // limits
   maxPayments      Int?
   paymentsReceived Int  @default(0)
 
-  // expiration
   expiresAt DateTime?
 
-  // status
   active Boolean @default(true)
 
-  // analytics counters (fast dashboard queries)
   views          Int     @default(0)
   uniqueVisitors Int     @default(0)
   totalVolume    Decimal @default(0)
 
-  // timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // relations
-  visits   PaymentLinkVisit[]
-  payments Payment[]
+  telegramChatId    String?
+  telegramMessageId String?
+  createdViaBot     Boolean @default(false)
+
+  visits            PaymentLinkVisit[]
+  payments          Payment[]
+  webhookDeliveries WebhookDelivery[]
+}
+
+model WebhookEndpoint {
+  id String @id @default(cuid())
+
+  creatorAddress String
+  url            String
+  secret         String?
+  active         Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  deliveries WebhookDelivery[]
+
+  @@index([creatorAddress])
+  @@unique([creatorAddress, url])
 }
 
 model PaymentLinkVisit {
@@ -143,22 +168,126 @@ model PaymentLinkVisit {
 }
 
 model Payment {
-  id        String   @id @default(cuid())
-  linkId    String
-  payer     String?
-  amount    Decimal
-  token     Token
-  txHash    String?
+  id     String @id @default(cuid())
+  linkId String
+
+  payer        String?
+  payerAddress String? // wallet
+  telegramId   String? // bot user (if exists)
+
+  amount Decimal
+  token  Token
+  txHash String? @unique
+
+  status PaymentStatus @default(PENDING)
+
   createdAt DateTime @default(now())
 
-  PaymentLink PaymentLink @relation(fields: [linkId], references: [id])
+  PaymentLink  PaymentLink   @relation(fields: [linkId], references: [id])
+  telegramUser TelegramUser? @relation(fields: [telegramId], references: [telegramId])
 
   @@index([linkId])
+  @@index([telegramId])
+}
+
+model WebhookDelivery {
+  id String @id @default(cuid())
+
+  endpointId String
+  linkId String
+
+  eventType String
+  targetUrl String
+  payload   Json
+
+  responseStatus Int?
+  responseBody   String?
+  success        Boolean @default(false)
+
+  attemptedAt DateTime @default(now())
+
+  endpoint    WebhookEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+  paymentLink PaymentLink @relation(fields: [linkId], references: [id], onDelete: Cascade)
+
+  @@index([endpointId])
+  @@index([linkId])
+  @@index([eventType])
+}
+
+model PayerStats {
+  id String @id @default(cuid())
+
+  // identity (either wallet or telegram)
+  telegramId    String?
+  walletAddress String?
+
+  totalPaid     Decimal @default(0)
+  totalPayments Int     @default(0)
+
+  lastPaymentAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([telegramId])
+  @@index([walletAddress])
+}
+
+model TransactionMetadata {
+  id String @id @default(cuid())
+
+  txHash String @unique
+
+  explorerUrl String?
+
+  createdAt DateTime @default(now())
+}
+
+model TelegramUser {
+  id         String  @id @default(cuid())
+  telegramId String  @unique
+  username   String?
+  firstName  String?
+  lastName   String?
+
+  // optional future wallet linking
+  walletAddress String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // relations
+  sessions TelegramSession[]
+  payments Payment[]
+}
+
+model TelegramSession {
+  id         String @id @default(cuid())
+  telegramId String @unique
+
+  step String
+
+  // flexible JSON state
+  data Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user TelegramUser @relation(fields: [telegramId], references: [telegramId])
+
+  @@index([telegramId])
 }
 
 enum Token {
   ALEO
   USDCX
+  USAD
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
 }
 
 enum CampaignStatus {
