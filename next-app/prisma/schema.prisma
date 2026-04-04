@@ -174,20 +174,80 @@ model Payment {
   payer        String?
   payerAddress String? // wallet
   telegramId   String? // bot user (if exists)
+  merchantAddress String?
 
   amount Decimal
   token  Token
   txHash String? @unique
+  receiptCommitment String?
+  receiptOwner      String?
 
   status PaymentStatus @default(PENDING)
 
   createdAt DateTime @default(now())
 
-  PaymentLink  PaymentLink   @relation(fields: [linkId], references: [id])
-  telegramUser TelegramUser? @relation(fields: [telegramId], references: [telegramId])
+  PaymentLink               PaymentLink                @relation(fields: [linkId], references: [id])
+  telegramUser              TelegramUser?              @relation(fields: [telegramId], references: [telegramId])
+  selectiveDisclosureProofs SelectiveDisclosureProof[]
 
   @@index([linkId])
   @@index([telegramId])
+}
+
+model SelectiveDisclosureProof {
+  id String @id @default(cuid())
+
+  proofId String @unique
+
+  paymentId String
+
+  paymentTxHash  String
+  disclosureTxHash String?
+  requestId      String
+  creatorAddress String
+  proverAddress  String
+  ownerAddress   String
+  commitment     String
+  nullifier      String?
+  contractProgram String
+
+  constraints Json
+  proofPayload Json?
+
+  status    SelectiveDisclosureProofStatus @default(ACTIVE)
+  createdAt DateTime                       @default(now())
+  updatedAt DateTime                       @updatedAt
+  revokedAt DateTime?
+
+  payment       Payment                         @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  verifications SelectiveDisclosureVerification[]
+
+  @@index([paymentId])
+  @@index([paymentTxHash])
+  @@index([disclosureTxHash])
+  @@index([requestId])
+  @@index([creatorAddress])
+  @@index([proverAddress])
+  @@index([status])
+}
+
+model SelectiveDisclosureVerification {
+  id String @id @default(cuid())
+
+  proofId String
+
+  success Boolean
+  revoked Boolean @default(false)
+
+  verifier String?
+  details  Json?
+
+  createdAt DateTime @default(now())
+
+  proof SelectiveDisclosureProof @relation(fields: [proofId], references: [proofId], onDelete: Cascade)
+
+  @@index([proofId])
+  @@index([createdAt])
 }
 
 model WebhookDelivery {
@@ -294,4 +354,9 @@ enum CampaignStatus {
   PENDING
   CREATED
   FUNDED
+}
+
+enum SelectiveDisclosureProofStatus {
+  ACTIVE
+  REVOKED
 }

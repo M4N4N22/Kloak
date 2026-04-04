@@ -152,11 +152,11 @@ export default function CreateLinkForm() {
 
             /* 2️⃣ Execution & Proving */
             const txPromise = executeTransaction({
-                program: "kloak_protocol_v5.aleo",
+                program: "kloak_protocol_v8.aleo",
                 function: "create_payment_request",
                 inputs: [
                     requestId,
-                    token === "ALEO" ? "0u8" : "1u8",
+                    TOKEN_TO_ASSET[token],
                     `${allowCustomAmount ? 0 : Math.floor(Number(amount) * 1_000_000)}u64`,
                     allowCustomAmount ? "true" : "false"
                 ],

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useWallet } from "@provablehq/aleo-wallet-adaptor-react"
+import { computePaymentCommitment } from "@/core/zk"
 
 import type { Status } from "./use-handle-pay"
 
@@ -103,7 +104,18 @@ function extractProofInput(record: StableRecord) {
   return null
 }
 
-export function useHandleStablePay(link: any, amount: string) {
+type StablePaymentLink = {
+  id: string
+  requestId: string
+  token: StableToken
+  creatorAddress?: string | null
+}
+
+type ErrorWithMessage = {
+  message?: string
+}
+
+export function useHandleStablePay(link: StablePaymentLink, amount: string) {
   const { connected, address, executeTransaction, transactionStatus, requestRecords } = useWallet()
 
   const [status, setStatus] = useState<Status>("idle")
@@ -194,11 +206,36 @@ export function useHandleStablePay(link: any, amount: string) {
         : `${link.requestId}field`
 
       const amountFormatted = `${requiredAmount}u128`
+      const merchantAddress = link.creatorAddress
+
+      if (!merchantAddress) {
+        throw new Error("Payment link is missing merchant address.")
+      }
+
+      const { Field } = await import("@provablehq/sdk")
+      const receiptSecret = Field.random().toString()
+      const receiptTimestamp = Math.floor(Date.now() / 1000)
+      const commitment = await computePaymentCommitment(
+        requestIdFormatted,
+        requiredAmount.toString(),
+        address,
+        merchantAddress,
+        receiptTimestamp,
+        receiptSecret,
+      )
 
       const resultPromise = executeTransaction({
-        program: "kloak_protocol_v6.aleo",
+        program: "kloak_protocol_v8.aleo",
         function: tokenConfig.payFunction,
-        inputs: [recordPlaintext, requestIdFormatted, amountFormatted, proofInput],
+        inputs: [
+          recordPlaintext,
+          requestIdFormatted,
+          merchantAddress,
+          amountFormatted,
+          proofInput,
+          `${receiptTimestamp}u64`,
+          receiptSecret,
+        ],
         recordIndices: [selectedRecord.originalIndex ?? 0],
         privateFee: false,
       })
@@ -241,9 +278,13 @@ export function useHandleStablePay(link: any, amount: string) {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                   payer: address,
+                  payerAddress: address,
+                  merchantAddress,
                   amount,
                   token: link.token,
                   txHash: finalId,
+                  receiptCommitment: commitment,
+                  receiptOwner: address,
                 }),
               })
 
@@ -270,8 +311,8 @@ export function useHandleStablePay(link: any, amount: string) {
           console.warn("Stablecoin polling error (waiting for propagation...):", error)
         }
       }, 5000)
-    } catch (error: any) {
-      const message = error?.message || ""
+    } catch (error: unknown) {
+      const message = (error as ErrorWithMessage)?.message || ""
 
       if (message.toLowerCase().includes("cancel")) {
         setErrorMessage("Transaction cancelled in wallet.")

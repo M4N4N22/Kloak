@@ -29,7 +29,7 @@ export const KloakWalletProvider: FC<{ children: ReactNode }> = ({ children }) =
       decryptPermission={DecryptPermission.UponRequest}
       programs={[
         "credits.aleo",
-        "kloak_protocol_v5.aleo"
+        "kloak_protocol_v8.aleo"
       ]}
     >
       <WalletModalProvider>

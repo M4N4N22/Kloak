@@ -1,5 +1,5 @@
 {
-  "program": "kloak_protocol_v6.aleo",
+  "program": "kloak_protocol_v8.aleo",
   "structs": [
     {
       "path": [
@@ -82,166 +82,9 @@
           }
         }
       ]
-    },
-    {
-      "path": [
-        "KloakMerkleProof"
-      ],
-      "fields": [
-        {
-          "name": "s1",
-          "ty": {
-            "Primitive": "Field"
-          }
-        },
-        {
-          "name": "s2",
-          "ty": {
-            "Primitive": "Field"
-          }
-        },
-        {
-          "name": "s3",
-          "ty": {
-            "Primitive": "Field"
-          }
-        },
-        {
-          "name": "s4",
-          "ty": {
-            "Primitive": "Field"
-          }
-        },
-        {
-          "name": "s5",
-          "ty": {
-            "Primitive": "Field"
-          }
-        },
-        {
-          "name": "s6",
-          "ty": {
-            "Primitive": "Field"
-          }
-        },
-        {
-          "name": "s7",
-          "ty": {
-            "Primitive": "Field"
-          }
-        },
-        {
-          "name": "s8",
-          "ty": {
-            "Primitive": "Field"
-          }
-        },
-        {
-          "name": "s9",
-          "ty": {
-            "Primitive": "Field"
-          }
-        },
-        {
-          "name": "s10",
-          "ty": {
-            "Primitive": "Field"
-          }
-        },
-        {
-          "name": "d1",
-          "ty": {
-            "Primitive": "Boolean"
-          }
-        },
-        {
-          "name": "d2",
-          "ty": {
-            "Primitive": "Boolean"
-          }
-        },
-        {
-          "name": "d3",
-          "ty": {
-            "Primitive": "Boolean"
-          }
-        },
-        {
-          "name": "d4",
-          "ty": {
-            "Primitive": "Boolean"
-          }
-        },
-        {
-          "name": "d5",
-          "ty": {
-            "Primitive": "Boolean"
-          }
-        },
-        {
-          "name": "d6",
-          "ty": {
-            "Primitive": "Boolean"
-          }
-        },
-        {
-          "name": "d7",
-          "ty": {
-            "Primitive": "Boolean"
-          }
-        },
-        {
-          "name": "d8",
-          "ty": {
-            "Primitive": "Boolean"
-          }
-        },
-        {
-          "name": "d9",
-          "ty": {
-            "Primitive": "Boolean"
-          }
-        },
-        {
-          "name": "d10",
-          "ty": {
-            "Primitive": "Boolean"
-          }
-        }
-      ]
     }
   ],
   "records": [
-    {
-      "path": [
-        "GrantRecord"
-      ],
-      "fields": [
-        {
-          "name": "owner",
-          "ty": {
-            "Primitive": "Address"
-          },
-          "mode": "None"
-        },
-        {
-          "name": "campaign_id",
-          "ty": {
-            "Primitive": "Field"
-          },
-          "mode": "None"
-        },
-        {
-          "name": "amount",
-          "ty": {
-            "Primitive": {
-              "UInt": "U64"
-            }
-          },
-          "mode": "None"
-        }
-      ]
-    },
     {
       "path": [
         "PaymentReceipt"
@@ -285,6 +128,36 @@
           "mode": "None"
         },
         {
+          "name": "counterparty",
+          "ty": {
+            "Primitive": "Address"
+          },
+          "mode": "None"
+        },
+        {
+          "name": "role",
+          "ty": {
+            "Primitive": {
+              "UInt": "U8"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "name": "payer",
+          "ty": {
+            "Primitive": "Address"
+          },
+          "mode": "None"
+        },
+        {
+          "name": "merchant",
+          "ty": {
+            "Primitive": "Address"
+          },
+          "mode": "None"
+        },
+        {
           "name": "request_id",
           "ty": {
             "Primitive": "Field"
@@ -297,6 +170,29 @@
             "Primitive": {
               "UInt": "U64"
             }
+          },
+          "mode": "None"
+        },
+        {
+          "name": "timestamp",
+          "ty": {
+            "Primitive": {
+              "UInt": "U64"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "name": "secret",
+          "ty": {
+            "Primitive": "Field"
+          },
+          "mode": "None"
+        },
+        {
+          "name": "commitment",
+          "ty": {
+            "Primitive": "Field"
           },
           "mode": "None"
         }
@@ -314,6 +210,15 @@
       }
     },
     {
+      "name": "payment_commitments",
+      "key": {
+        "Primitive": "Field"
+      },
+      "value": {
+        "Primitive": "Boolean"
+      }
+    },
+    {
       "name": "campaigns",
       "key": {
         "Primitive": "Field"
@@ -323,7 +228,7 @@
           "path": [
             "Campaign"
           ],
-          "program": "kloak_protocol_v6"
+          "program": "kloak_protocol_v8.aleo"
         }
       }
     },
@@ -348,7 +253,7 @@
           "path": [
             "PaymentRequest"
           ],
-          "program": "kloak_protocol_v6"
+          "program": "kloak_protocol_v8.aleo"
         }
       }
     },
@@ -374,191 +279,10 @@
     }
   ],
   "storage_variables": [],
-  "transitions": [
-    {
-      "name": "create_campaign",
-      "is_async": true,
-      "inputs": [
-        {
-          "name": "campaign_id",
-          "ty": {
-            "Plaintext": {
-              "Primitive": "Field"
-            }
-          },
-          "mode": "None"
-        },
-        {
-          "name": "merkle_root",
-          "ty": {
-            "Plaintext": {
-              "Primitive": "Field"
-            }
-          },
-          "mode": "None"
-        },
-        {
-          "name": "asset",
-          "ty": {
-            "Plaintext": {
-              "Primitive": {
-                "UInt": "U8"
-              }
-            }
-          },
-          "mode": "None"
-        },
-        {
-          "name": "total_budget",
-          "ty": {
-            "Plaintext": {
-              "Primitive": {
-                "UInt": "U64"
-              }
-            }
-          },
-          "mode": "None"
-        }
-      ],
-      "outputs": [
-        {
-          "ty": "Future",
-          "mode": "None"
-        }
-      ]
-    },
-    {
-      "name": "deposit_campaign_funds",
-      "is_async": true,
-      "inputs": [
-        {
-          "name": "campaign_id",
-          "ty": {
-            "Plaintext": {
-              "Primitive": "Field"
-            }
-          },
-          "mode": "None"
-        },
-        {
-          "name": "amount",
-          "ty": {
-            "Plaintext": {
-              "Primitive": {
-                "UInt": "U64"
-              }
-            }
-          },
-          "mode": "None"
-        }
-      ],
-      "outputs": [
-        {
-          "ty": "Future",
-          "mode": "None"
-        }
-      ]
-    },
-    {
-      "name": "claim_distribution",
-      "is_async": true,
-      "inputs": [
-        {
-          "name": "campaign_id",
-          "ty": {
-            "Plaintext": {
-              "Primitive": "Field"
-            }
-          },
-          "mode": "None"
-        },
-        {
-          "name": "campaign_root",
-          "ty": {
-            "Plaintext": {
-              "Primitive": "Field"
-            }
-          },
-          "mode": "None"
-        },
-        {
-          "name": "payout",
-          "ty": {
-            "Plaintext": {
-              "Primitive": {
-                "UInt": "U64"
-              }
-            }
-          },
-          "mode": "None"
-        },
-        {
-          "name": "secret",
-          "ty": {
-            "Plaintext": {
-              "Primitive": "Field"
-            }
-          },
-          "mode": "None"
-        },
-        {
-          "name": "proof",
-          "ty": {
-            "Plaintext": {
-              "Struct": {
-                "path": [
-                  "KloakMerkleProof"
-                ],
-                "program": "kloak_protocol_v6"
-              }
-            }
-          },
-          "mode": "None"
-        }
-      ],
-      "outputs": [
-        {
-          "ty": {
-            "Record": {
-              "path": [
-                "credits"
-              ],
-              "program": "credits"
-            }
-          },
-          "mode": "None"
-        },
-        {
-          "ty": {
-            "Record": {
-              "path": [
-                "GrantRecord"
-              ],
-              "program": "kloak_protocol_v6"
-            }
-          },
-          "mode": "None"
-        },
-        {
-          "ty": {
-            "Record": {
-              "path": [
-                "PaymentReceipt"
-              ],
-              "program": "kloak_protocol_v6"
-            }
-          },
-          "mode": "None"
-        },
-        {
-          "ty": "Future",
-          "mode": "None"
-        }
-      ]
-    },
+  "functions": [
     {
       "name": "send_private_payment_aleo",
-      "is_async": false,
+      "is_final": false,
       "inputs": [
         {
           "name": "credits",
@@ -567,7 +291,7 @@
               "path": [
                 "credits"
               ],
-              "program": "credits"
+              "program": "credits.aleo"
             }
           },
           "mode": "None"
@@ -600,7 +324,7 @@
               "path": [
                 "credits"
               ],
-              "program": "credits"
+              "program": "credits.aleo"
             }
           },
           "mode": "None"
@@ -611,7 +335,7 @@
               "path": [
                 "PaymentReceipt"
               ],
-              "program": "kloak_protocol_v6"
+              "program": "kloak_protocol_v8.aleo"
             }
           },
           "mode": "None"
@@ -620,7 +344,7 @@
     },
     {
       "name": "send_private_payment_usdcx",
-      "is_async": true,
+      "is_final": true,
       "inputs": [
         {
           "name": "pay_record",
@@ -629,7 +353,7 @@
               "path": [
                 "Token"
               ],
-              "program": "test_usdcx_stablecoin"
+              "program": "test_usdcx_stablecoin.aleo"
             }
           },
           "mode": "None"
@@ -664,7 +388,7 @@
                     "path": [
                       "MerkleProof"
                     ],
-                    "program": "test_usdcx_stablecoin"
+                    "program": "test_usdcx_stablecoin.aleo"
                   }
                 },
                 "length": 2
@@ -681,7 +405,7 @@
               "path": [
                 "Token"
               ],
-              "program": "test_usdcx_stablecoin"
+              "program": "test_usdcx_stablecoin.aleo"
             }
           },
           "mode": "None"
@@ -692,7 +416,7 @@
               "path": [
                 "Token"
               ],
-              "program": "test_usdcx_stablecoin"
+              "program": "test_usdcx_stablecoin.aleo"
             }
           },
           "mode": "None"
@@ -703,7 +427,7 @@
               "path": [
                 "ComplianceRecord"
               ],
-              "program": "test_usdcx_stablecoin"
+              "program": "test_usdcx_stablecoin.aleo"
             }
           },
           "mode": "None"
@@ -714,20 +438,20 @@
               "path": [
                 "PaymentReceipt"
               ],
-              "program": "kloak_protocol_v6"
+              "program": "kloak_protocol_v8.aleo"
             }
           },
           "mode": "None"
         },
         {
-          "ty": "Future",
+          "ty": "Final",
           "mode": "None"
         }
       ]
     },
     {
       "name": "send_private_payment_usad",
-      "is_async": true,
+      "is_final": true,
       "inputs": [
         {
           "name": "pay_record",
@@ -736,7 +460,7 @@
               "path": [
                 "Token"
               ],
-              "program": "test_usad_stablecoin"
+              "program": "test_usad_stablecoin.aleo"
             }
           },
           "mode": "None"
@@ -771,7 +495,7 @@
                     "path": [
                       "MerkleProof"
                     ],
-                    "program": "test_usad_stablecoin"
+                    "program": "test_usad_stablecoin.aleo"
                   }
                 },
                 "length": 2
@@ -788,7 +512,7 @@
               "path": [
                 "Token"
               ],
-              "program": "test_usad_stablecoin"
+              "program": "test_usad_stablecoin.aleo"
             }
           },
           "mode": "None"
@@ -799,7 +523,7 @@
               "path": [
                 "Token"
               ],
-              "program": "test_usad_stablecoin"
+              "program": "test_usad_stablecoin.aleo"
             }
           },
           "mode": "None"
@@ -810,7 +534,7 @@
               "path": [
                 "ComplianceRecord"
               ],
-              "program": "test_usad_stablecoin"
+              "program": "test_usad_stablecoin.aleo"
             }
           },
           "mode": "None"
@@ -821,20 +545,20 @@
               "path": [
                 "PaymentReceipt"
               ],
-              "program": "kloak_protocol_v6"
+              "program": "kloak_protocol_v8.aleo"
             }
           },
           "mode": "None"
         },
         {
-          "ty": "Future",
+          "ty": "Final",
           "mode": "None"
         }
       ]
     },
     {
       "name": "create_payment_request",
-      "is_async": true,
+      "is_final": true,
       "inputs": [
         {
           "name": "request_id",
@@ -879,14 +603,14 @@
       ],
       "outputs": [
         {
-          "ty": "Future",
+          "ty": "Final",
           "mode": "None"
         }
       ]
     },
     {
       "name": "pay_request_aleo",
-      "is_async": true,
+      "is_final": true,
       "inputs": [
         {
           "name": "credits",
@@ -895,7 +619,7 @@
               "path": [
                 "credits"
               ],
-              "program": "credits"
+              "program": "credits.aleo"
             }
           },
           "mode": "None"
@@ -910,12 +634,41 @@
           "mode": "None"
         },
         {
+          "name": "merchant",
+          "ty": {
+            "Plaintext": {
+              "Primitive": "Address"
+            }
+          },
+          "mode": "None"
+        },
+        {
           "name": "amount",
           "ty": {
             "Plaintext": {
               "Primitive": {
                 "UInt": "U64"
               }
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "name": "timestamp",
+          "ty": {
+            "Plaintext": {
+              "Primitive": {
+                "UInt": "U64"
+              }
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "name": "secret",
+          "ty": {
+            "Plaintext": {
+              "Primitive": "Field"
             }
           },
           "mode": "None"
@@ -928,7 +681,7 @@
               "path": [
                 "credits"
               ],
-              "program": "credits"
+              "program": "credits.aleo"
             }
           },
           "mode": "None"
@@ -939,20 +692,31 @@
               "path": [
                 "PaymentRequestReceipt"
               ],
-              "program": "kloak_protocol_v6"
+              "program": "kloak_protocol_v8.aleo"
             }
           },
           "mode": "None"
         },
         {
-          "ty": "Future",
+          "ty": {
+            "Record": {
+              "path": [
+                "PaymentRequestReceipt"
+              ],
+              "program": "kloak_protocol_v8.aleo"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "ty": "Final",
           "mode": "None"
         }
       ]
     },
     {
       "name": "pay_request_usdcx",
-      "is_async": true,
+      "is_final": true,
       "inputs": [
         {
           "name": "pay_record",
@@ -961,7 +725,7 @@
               "path": [
                 "Token"
               ],
-              "program": "test_usdcx_stablecoin"
+              "program": "test_usdcx_stablecoin.aleo"
             }
           },
           "mode": "None"
@@ -971,6 +735,15 @@
           "ty": {
             "Plaintext": {
               "Primitive": "Field"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "name": "merchant",
+          "ty": {
+            "Plaintext": {
+              "Primitive": "Address"
             }
           },
           "mode": "None"
@@ -996,7 +769,7 @@
                     "path": [
                       "MerkleProof"
                     ],
-                    "program": "test_usdcx_stablecoin"
+                    "program": "test_usdcx_stablecoin.aleo"
                   }
                 },
                 "length": 2
@@ -1004,206 +777,9 @@
             }
           },
           "mode": "None"
-        }
-      ],
-      "outputs": [
-        {
-          "ty": {
-            "Record": {
-              "path": [
-                "Token"
-              ],
-              "program": "test_usdcx_stablecoin"
-            }
-          },
-          "mode": "None"
         },
         {
-          "ty": {
-            "Record": {
-              "path": [
-                "Token"
-              ],
-              "program": "test_usdcx_stablecoin"
-            }
-          },
-          "mode": "None"
-        },
-        {
-          "ty": {
-            "Record": {
-              "path": [
-                "ComplianceRecord"
-              ],
-              "program": "test_usdcx_stablecoin"
-            }
-          },
-          "mode": "None"
-        },
-        {
-          "ty": {
-            "Record": {
-              "path": [
-                "PaymentRequestReceipt"
-              ],
-              "program": "kloak_protocol_v6"
-            }
-          },
-          "mode": "None"
-        },
-        {
-          "ty": "Future",
-          "mode": "None"
-        }
-      ]
-    },
-    {
-      "name": "pay_request_usad",
-      "is_async": true,
-      "inputs": [
-        {
-          "name": "pay_record",
-          "ty": {
-            "Record": {
-              "path": [
-                "Token"
-              ],
-              "program": "test_usad_stablecoin"
-            }
-          },
-          "mode": "None"
-        },
-        {
-          "name": "request_id",
-          "ty": {
-            "Plaintext": {
-              "Primitive": "Field"
-            }
-          },
-          "mode": "None"
-        },
-        {
-          "name": "amount",
-          "ty": {
-            "Plaintext": {
-              "Primitive": {
-                "UInt": "U128"
-              }
-            }
-          },
-          "mode": "None"
-        },
-        {
-          "name": "proofs",
-          "ty": {
-            "Plaintext": {
-              "Array": {
-                "element": {
-                  "Struct": {
-                    "path": [
-                      "MerkleProof"
-                    ],
-                    "program": "test_usad_stablecoin"
-                  }
-                },
-                "length": 2
-              }
-            }
-          },
-          "mode": "None"
-        }
-      ],
-      "outputs": [
-        {
-          "ty": {
-            "Record": {
-              "path": [
-                "Token"
-              ],
-              "program": "test_usad_stablecoin"
-            }
-          },
-          "mode": "None"
-        },
-        {
-          "ty": {
-            "Record": {
-              "path": [
-                "Token"
-              ],
-              "program": "test_usad_stablecoin"
-            }
-          },
-          "mode": "None"
-        },
-        {
-          "ty": {
-            "Record": {
-              "path": [
-                "ComplianceRecord"
-              ],
-              "program": "test_usad_stablecoin"
-            }
-          },
-          "mode": "None"
-        },
-        {
-          "ty": {
-            "Record": {
-              "path": [
-                "PaymentRequestReceipt"
-              ],
-              "program": "kloak_protocol_v6"
-            }
-          },
-          "mode": "None"
-        },
-        {
-          "ty": "Future",
-          "mode": "None"
-        }
-      ]
-    },
-    {
-      "name": "prove_payment",
-      "is_async": false,
-      "inputs": [
-        {
-          "name": "receipt_secret",
-          "ty": {
-            "Plaintext": {
-              "Primitive": "Field"
-            }
-          },
-          "mode": "None"
-        }
-      ],
-      "outputs": [
-        {
-          "ty": {
-            "Plaintext": {
-              "Primitive": "Field"
-            }
-          },
-          "mode": "None"
-        }
-      ]
-    },
-    {
-      "name": "test_merkle_alignment",
-      "is_async": false,
-      "inputs": [
-        {
-          "name": "secret",
-          "ty": {
-            "Plaintext": {
-              "Primitive": "Field"
-            }
-          },
-          "mode": "None"
-        },
-        {
-          "name": "payout",
+          "name": "timestamp",
           "ty": {
             "Plaintext": {
               "Primitive": {
@@ -1214,14 +790,278 @@
           "mode": "None"
         },
         {
-          "name": "proof",
+          "name": "secret",
           "ty": {
             "Plaintext": {
-              "Struct": {
-                "path": [
-                  "KloakMerkleProof"
-                ],
-                "program": "kloak_protocol_v6"
+              "Primitive": "Field"
+            }
+          },
+          "mode": "None"
+        }
+      ],
+      "outputs": [
+        {
+          "ty": {
+            "Record": {
+              "path": [
+                "Token"
+              ],
+              "program": "test_usdcx_stablecoin.aleo"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "ty": {
+            "Record": {
+              "path": [
+                "Token"
+              ],
+              "program": "test_usdcx_stablecoin.aleo"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "ty": {
+            "Record": {
+              "path": [
+                "ComplianceRecord"
+              ],
+              "program": "test_usdcx_stablecoin.aleo"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "ty": {
+            "Record": {
+              "path": [
+                "PaymentRequestReceipt"
+              ],
+              "program": "kloak_protocol_v8.aleo"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "ty": {
+            "Record": {
+              "path": [
+                "PaymentRequestReceipt"
+              ],
+              "program": "kloak_protocol_v8.aleo"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "ty": "Final",
+          "mode": "None"
+        }
+      ]
+    },
+    {
+      "name": "pay_request_usad",
+      "is_final": true,
+      "inputs": [
+        {
+          "name": "pay_record",
+          "ty": {
+            "Record": {
+              "path": [
+                "Token"
+              ],
+              "program": "test_usad_stablecoin.aleo"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "name": "request_id",
+          "ty": {
+            "Plaintext": {
+              "Primitive": "Field"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "name": "merchant",
+          "ty": {
+            "Plaintext": {
+              "Primitive": "Address"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "name": "amount",
+          "ty": {
+            "Plaintext": {
+              "Primitive": {
+                "UInt": "U128"
+              }
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "name": "proofs",
+          "ty": {
+            "Plaintext": {
+              "Array": {
+                "element": {
+                  "Struct": {
+                    "path": [
+                      "MerkleProof"
+                    ],
+                    "program": "test_usad_stablecoin.aleo"
+                  }
+                },
+                "length": 2
+              }
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "name": "timestamp",
+          "ty": {
+            "Plaintext": {
+              "Primitive": {
+                "UInt": "U64"
+              }
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "name": "secret",
+          "ty": {
+            "Plaintext": {
+              "Primitive": "Field"
+            }
+          },
+          "mode": "None"
+        }
+      ],
+      "outputs": [
+        {
+          "ty": {
+            "Record": {
+              "path": [
+                "Token"
+              ],
+              "program": "test_usad_stablecoin.aleo"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "ty": {
+            "Record": {
+              "path": [
+                "Token"
+              ],
+              "program": "test_usad_stablecoin.aleo"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "ty": {
+            "Record": {
+              "path": [
+                "ComplianceRecord"
+              ],
+              "program": "test_usad_stablecoin.aleo"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "ty": {
+            "Record": {
+              "path": [
+                "PaymentRequestReceipt"
+              ],
+              "program": "kloak_protocol_v8.aleo"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "ty": {
+            "Record": {
+              "path": [
+                "PaymentRequestReceipt"
+              ],
+              "program": "kloak_protocol_v8.aleo"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "ty": "Final",
+          "mode": "None"
+        }
+      ]
+    },
+    {
+      "name": "prove_payment_basic",
+      "is_final": true,
+      "inputs": [
+        {
+          "name": "receipt",
+          "ty": {
+            "Record": {
+              "path": [
+                "PaymentRequestReceipt"
+              ],
+              "program": "kloak_protocol_v8.aleo"
+            }
+          },
+          "mode": "None"
+        }
+      ],
+      "outputs": [
+        {
+          "ty": {
+            "Plaintext": {
+              "Primitive": "Boolean"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "ty": "Final",
+          "mode": "None"
+        }
+      ]
+    },
+    {
+      "name": "prove_payment_amount",
+      "is_final": true,
+      "inputs": [
+        {
+          "name": "receipt",
+          "ty": {
+            "Record": {
+              "path": [
+                "PaymentRequestReceipt"
+              ],
+              "program": "kloak_protocol_v8.aleo"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "name": "amount",
+          "ty": {
+            "Plaintext": {
+              "Primitive": {
+                "UInt": "U64"
               }
             }
           },
@@ -1232,9 +1072,282 @@
         {
           "ty": {
             "Plaintext": {
-              "Primitive": "Field"
+              "Primitive": "Boolean"
             }
           },
+          "mode": "None"
+        },
+        {
+          "ty": "Final",
+          "mode": "None"
+        }
+      ]
+    },
+    {
+      "name": "prove_payment_threshold",
+      "is_final": true,
+      "inputs": [
+        {
+          "name": "receipt",
+          "ty": {
+            "Record": {
+              "path": [
+                "PaymentRequestReceipt"
+              ],
+              "program": "kloak_protocol_v8.aleo"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "name": "minimum_amount",
+          "ty": {
+            "Plaintext": {
+              "Primitive": {
+                "UInt": "U64"
+              }
+            }
+          },
+          "mode": "None"
+        }
+      ],
+      "outputs": [
+        {
+          "ty": {
+            "Plaintext": {
+              "Primitive": "Boolean"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "ty": "Final",
+          "mode": "None"
+        }
+      ]
+    },
+    {
+      "name": "prove_receipt_basic",
+      "is_final": true,
+      "inputs": [
+        {
+          "name": "receipt",
+          "ty": {
+            "Record": {
+              "path": [
+                "PaymentRequestReceipt"
+              ],
+              "program": "kloak_protocol_v8.aleo"
+            }
+          },
+          "mode": "None"
+        }
+      ],
+      "outputs": [
+        {
+          "ty": {
+            "Plaintext": {
+              "Primitive": "Boolean"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "ty": "Final",
+          "mode": "None"
+        }
+      ]
+    },
+    {
+      "name": "prove_receipt_amount",
+      "is_final": true,
+      "inputs": [
+        {
+          "name": "receipt",
+          "ty": {
+            "Record": {
+              "path": [
+                "PaymentRequestReceipt"
+              ],
+              "program": "kloak_protocol_v8.aleo"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "name": "amount",
+          "ty": {
+            "Plaintext": {
+              "Primitive": {
+                "UInt": "U64"
+              }
+            }
+          },
+          "mode": "None"
+        }
+      ],
+      "outputs": [
+        {
+          "ty": {
+            "Plaintext": {
+              "Primitive": "Boolean"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "ty": "Final",
+          "mode": "None"
+        }
+      ]
+    },
+    {
+      "name": "prove_receipt_threshold",
+      "is_final": true,
+      "inputs": [
+        {
+          "name": "receipt",
+          "ty": {
+            "Record": {
+              "path": [
+                "PaymentRequestReceipt"
+              ],
+              "program": "kloak_protocol_v8.aleo"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "name": "minimum_amount",
+          "ty": {
+            "Plaintext": {
+              "Primitive": {
+                "UInt": "U64"
+              }
+            }
+          },
+          "mode": "None"
+        }
+      ],
+      "outputs": [
+        {
+          "ty": {
+            "Plaintext": {
+              "Primitive": "Boolean"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "ty": "Final",
+          "mode": "None"
+        }
+      ]
+    },
+    {
+      "name": "prove_payment_timebox",
+      "is_final": true,
+      "inputs": [
+        {
+          "name": "receipt",
+          "ty": {
+            "Record": {
+              "path": [
+                "PaymentRequestReceipt"
+              ],
+              "program": "kloak_protocol_v8.aleo"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "name": "timestamp_from",
+          "ty": {
+            "Plaintext": {
+              "Primitive": {
+                "UInt": "U64"
+              }
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "name": "timestamp_to",
+          "ty": {
+            "Plaintext": {
+              "Primitive": {
+                "UInt": "U64"
+              }
+            }
+          },
+          "mode": "None"
+        }
+      ],
+      "outputs": [
+        {
+          "ty": {
+            "Plaintext": {
+              "Primitive": "Boolean"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "ty": "Final",
+          "mode": "None"
+        }
+      ]
+    },
+    {
+      "name": "prove_receipt_timebox",
+      "is_final": true,
+      "inputs": [
+        {
+          "name": "receipt",
+          "ty": {
+            "Record": {
+              "path": [
+                "PaymentRequestReceipt"
+              ],
+              "program": "kloak_protocol_v8.aleo"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "name": "timestamp_from",
+          "ty": {
+            "Plaintext": {
+              "Primitive": {
+                "UInt": "U64"
+              }
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "name": "timestamp_to",
+          "ty": {
+            "Plaintext": {
+              "Primitive": {
+                "UInt": "U64"
+              }
+            }
+          },
+          "mode": "None"
+        }
+      ],
+      "outputs": [
+        {
+          "ty": {
+            "Plaintext": {
+              "Primitive": "Boolean"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "ty": "Final",
           "mode": "None"
         }
       ]

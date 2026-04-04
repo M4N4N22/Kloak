@@ -63,8 +63,9 @@ const sections: SidebarSection[] = [
   {
     heading: "Compliance",
     icon: ShieldCheck,
-    badge: "Coming Soon",
+    badge: "Featured",
     items: [
+      { name: "Selective Disclosure", href: "/compliance" },
       { name: "Salary proof", href: "/salary-proof", disabled: true },
       { name: "Tax reporting", href: "/tax-reporting", disabled: true },
       { name: "DAO auditing", href: "/dao-auditing", disabled: true },

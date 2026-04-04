@@ -84,7 +84,7 @@ export function useMerkleCampaignSimulator() {
       recipients.reduce((sum, r) => sum + r.payout, 0)
 
     const createTx = await executeTransaction({
-      program: "kloak_protocol_v6.aleo",
+      program: "kloak_protocol_v8.aleo",
       function: "create_campaign",
       inputs: [
         campaignId,
@@ -129,7 +129,7 @@ export function useMerkleCampaignSimulator() {
     console.log("Executing claim_distribution")
 
     const claimTx = await executeTransaction({
-      program: "kloak_protocol_v6.aleo",
+      program: "kloak_protocol_v8.aleo",
       function: "claim_distribution",
       inputs: [
         campaignId,

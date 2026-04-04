@@ -116,7 +116,7 @@ export function useClaimCampaign(campaign: any) {
       setStatus("signing")
 
       const resultPromise = executeTransaction({
-        program: "kloak_protocol_v6.aleo",
+        program: "kloak_protocol_v8.aleo",
         function: "claim_distribution",
         inputs,
         privateFee: false
