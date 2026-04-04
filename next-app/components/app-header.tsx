@@ -10,8 +10,6 @@ import {
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-  NavigationMenuTrigger,
-  NavigationMenuContent,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu"
 import { cn } from "@/lib/utils"
@@ -21,6 +19,7 @@ import { cn } from "@/lib/utils"
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Home" },
   { href: "/payment-links", label: "Payment Links" },
+  { href: "/compliance", label: "Compliance" },
   { href: "/bots", label: "Telegram Bot" },
   { href: "/webhooks", label: "Webhooks" },
   { href: "/automation", label: "Automation" },
@@ -91,36 +90,6 @@ export function AppHeader() {
                   pathname={pathname}
                 />
               ))}
-
-              {/* COMPLIANCE (DROPDOWN) */}
-              <NavigationMenuItem>
-                <NavigationMenuTrigger>
-                  Compliance
-                </NavigationMenuTrigger>
-
-                <NavigationMenuContent>
-                  <div className="grid w-[300px] gap-2 p-3">
-                    {[
-                      "Payment proof",
-                      "Tax reporting",
-                      "DAO auditing",
-                      "Grant verification",
-                    ].map((item) => (
-                      <div
-                        key={item}
-                        className="rounded-xl p-3 opacity-50"
-                      >
-                        <div className="text-sm font-medium">
-                          {item}
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          Coming soon
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </NavigationMenuContent>
-              </NavigationMenuItem>
 
             </NavigationMenuList>
           </NavigationMenu>

@@ -15,14 +15,6 @@ async function initSDK() {
   return { sdk, bhp: bhp256 };
 }
 
-/**
- * CORE HELPER: 253-bit Truncation
- * Hydrates the field to ensure prototype methods are attached.
- */
-/**
- * CORE HELPER: 253-bit Truncation
- * Hydrates the field safely and handles potential string parsing errors.
- */
 async function toLeoBits(field: any): Promise<boolean[]> {
   if (field instanceof Promise) {
     throw new Error("Logic Error: A Promise was passed to toLeoBits instead of a Field object. Ensure you are using 'await' before calling this function.");
@@ -30,28 +22,22 @@ async function toLeoBits(field: any): Promise<boolean[]> {
 
   if (!field) throw new Error("Field is undefined in toLeoBits");
 
-
   const { sdk } = await initSDK();
 
   let hydratedField: any;
 
-  // Try to determine if the object has the method, or needs hydration
   if (typeof field.toBitsLe === 'function') {
     hydratedField = field;
   } else if (typeof field.to_bits_le === 'function') {
     hydratedField = field;
   } else {
-    // 1. Convert to string and clean it up
     let fieldStr = typeof field === 'string' ? field : field.toString();
 
-    // Check if it's a valid Aleo Field string (ends in 'field')
-    // If it's "[object Object]", this is where it failed before
     if (fieldStr === "[object Object]" || !fieldStr || fieldStr.length < 5) {
       console.error("Invalid field detected:", field);
       throw new Error("Cannot hydrate field: Object is not a valid Aleo field representation.");
     }
 
-    // 2. Ensure the string is formatted for the parser
     if (!fieldStr.endsWith("field")) {
       fieldStr = `${fieldStr}field`;
     }
@@ -71,9 +57,14 @@ async function toLeoBits(field: any): Promise<boolean[]> {
   return bits.slice(0, 253);
 }
 
-/**
- * Convert arbitrary string -> Field
- */
+async function addressToLeoBits(address: string): Promise<boolean[]> {
+  const { sdk } = await initSDK();
+  const normalized = address.trim();
+  const addressObj = sdk.Address.from_string(normalized);
+  const bits = addressObj.toBitsLe();
+  return bits.slice(0, 253);
+}
+
 export async function stringToField(str: string): Promise<any> {
   const { bhp } = await initSDK();
   const bytes = new TextEncoder().encode(str);
@@ -86,31 +77,20 @@ export async function stringToField(str: string): Promise<any> {
   return bhp.hash(bits);
 }
 
-/**
- * Matches Leo: BHP256::hash_to_field_raw(a)
- */
 export async function computeCommitment(secret: any): Promise<any> {
   const { bhp } = await initSDK();
-  
-  // Resolve secret in case it was passed as a Promise
   const resolvedSecret = await secret;
-  
   const bits = await toLeoBits(resolvedSecret);
   return bhp.hash(bits);
 }
 
-/**
- * Matches Leo: BHP256::hash_to_field_raw([a, b])
- */
 export async function computeHash2(a: any, b: any): Promise<any> {
   const { bhp } = await initSDK();
-
-  // SECONDARY SAFETY: Resolve a and b in case they were passed as Promises
   const resolvedA = await a;
   const resolvedB = await b;
 
-  const bitsA = await toLeoBits(resolvedA); 
-  const bitsB = await toLeoBits(resolvedB); 
+  const bitsA = await toLeoBits(resolvedA);
+  const bitsB = await toLeoBits(resolvedB);
 
   return bhp.hash([
     ...bitsA,
@@ -118,9 +98,6 @@ export async function computeHash2(a: any, b: any): Promise<any> {
   ]);
 }
 
-/**
- * Deterministic Secret
- */
 export async function generateDeterministicSecret(address: string, campaignSalt: string): Promise<any> {
   const addressField = await stringToField(address);
   const saltField = await stringToField(campaignSalt);
@@ -128,40 +105,70 @@ export async function generateDeterministicSecret(address: string, campaignSalt:
   return computeHash2(addressField, saltField);
 }
 
-/**
- * leaf = hash2(commitment, payout)
- */
 export async function computeLeaf(commitment: any, payout: string): Promise<any> {
   const { sdk } = await initSDK();
-  // Ensure payout is treated as a clean integer string
   const cleanPayout = Math.floor(Number(payout)).toString();
   const payoutField = sdk.Field.fromString(`${cleanPayout}field`);
   return computeHash2(commitment, payoutField);
 }
 
-/**
- * Nullifier Generation
- * ALIGNED WITH LEO: nullifier = hash2(secret, campaign_id)
- */
 export async function computeNullifier(secret: any, campaignId: string): Promise<any> {
   const { sdk } = await initSDK();
-  // Clean up potential spaces or quotes from the ID
-  const cleanId = campaignId.trim().replace(/['"]/g, '');
+  const cleanId = campaignId.trim().replace(/["']/g, '');
   const idField = sdk.Field.fromString(cleanId.endsWith("field") ? cleanId : `${cleanId}field`);
   return computeHash2(secret, idField);
 }
 
-/**
- * Formats inputs specifically for the `claim_distribution` transition in Leo.
- */
+export async function computePaymentCommitment(
+  requestId: string,
+  amountMicro: string,
+  payer: string,
+  merchant: string,
+  timestamp: string | number,
+  secret: string,
+): Promise<string> {
+  const { sdk, bhp } = await initSDK();
+  const requestField = sdk.Field.fromString(requestId.endsWith("field") ? requestId : `${requestId}field`);
+  const amountField = sdk.Field.fromString(`${String(amountMicro).replace(/u64$|u128$|field$/g, "")}field`);
+  const requestAmountHash = await computeHash2(requestField, amountField);
+  const payerField = bhp.hash(await addressToLeoBits(payer));
+  const merchantField = bhp.hash(await addressToLeoBits(merchant));
+  const actorsHash = await computeHash2(payerField, merchantField);
+  const contextHash = await computeHash2(
+    sdk.Field.fromString(`${String(timestamp).replace(/u64$|u128$|field$/g, "")}field`),
+    sdk.Field.fromString(secret.endsWith("field") ? secret : `${secret}field`)
+  );
+  const requestActorsHash = await computeHash2(requestAmountHash, actorsHash);
+  const commitment = await computeHash2(requestActorsHash, contextHash);
+  return commitment.toString();
+}
+
+export async function computePaymentNullifier(secret: string, proofType: number, amountBound = 0, timestampFrom = 0, timestampTo = 0): Promise<string> {
+  const { sdk } = await initSDK();
+  const publicStatementHash = await computeHash2(
+    await computeHash2(
+      sdk.Field.fromString(`${String(proofType).replace(/u64$|u128$|field$/g, "")}field`),
+      sdk.Field.fromString(`${String(amountBound).replace(/u64$|u128$|field$/g, "")}field`),
+    ),
+    await computeHash2(
+      sdk.Field.fromString(`${String(timestampFrom).replace(/u64$|u128$|field$/g, "")}field`),
+      sdk.Field.fromString(`${String(timestampTo).replace(/u64$|u128$|field$/g, "")}field`),
+    ),
+  );
+  return computeHash2(
+    sdk.Field.fromString(secret.endsWith("field") ? secret : `${secret}field`),
+    publicStatementHash,
+  ).then((value) => value.toString());
+}
+
 export function formatClaimInputs(params: {
   campaignId: string;
   campaignRoot: string;
   payout: string;
-  secret: any; // Field
+  secret: any;
   proof: {
-    s: string[]; // Path siblings [s1...s10]
-    d: boolean[]; // Path directions [d1...d10]
+    s: string[];
+    d: boolean[];
   };
 }) {
   const inputs = [
