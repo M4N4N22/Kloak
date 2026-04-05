@@ -41,15 +41,15 @@ export function ComplianceProofsList({
   }
 
   return (
-    <Card className="border-white/10 bg-zinc-950 shadow-xl overflow-hidden">
-      <CardHeader className="border-b border-white/5 bg-zinc-900/30 p-8">
+    <Card className="border-foreground/10 bg-neutral-950 shadow-xl overflow-hidden">
+      <CardHeader className="border-b border-foreground/5 bg-neutral-900/30 p-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-1">
-            <CardTitle className="text-2xl font-medium text-white flex items-center gap-2">
-              <FileCheck className="h-6 w-6 text-emerald-500" />
+            <CardTitle className="text-2xl font-medium text-foreground flex items-center gap-2">
+              <FileCheck className="h-6 w-6 text-primary" />
               Operational Inventory
             </CardTitle>
-            <p className="text-sm text-zinc-400 max-w-2xl">
+            <p className="text-sm text-neutral-400 max-w-2xl">
               A cryptographically verifiable trail of all issued disclosures. Use these to satisfy compliance requests without exposing raw transaction data.
             </p>
           </div>
@@ -57,7 +57,7 @@ export function ComplianceProofsList({
             variant="outline" 
             size="sm" 
             onClick={onRefresh} 
-            className="border-white/10 bg-zinc-900 hover:bg-zinc-800 self-start lg:self-center"
+            className="border-foreground/10 bg-neutral-900 hover:bg-neutral-800 self-start lg:self-center"
             disabled={loading}
           >
             <RefreshCcw className={cn("mr-2 h-4 w-4", loading && "animate-spin")} />
@@ -68,17 +68,17 @@ export function ComplianceProofsList({
 
       <CardContent className="p-8 space-y-6">
         {/* Summary Stats Bar */}
-        <div className="flex flex-wrap items-center gap-6 py-4 px-6 rounded-2xl bg-white/5 border border-white/5 text-xs font-medium uppercase tracking-wider">
+        <div className="flex flex-wrap items-center gap-6 py-4 px-6 rounded-2xl bg-foreground/5 border border-foreground/5 text-xs font-medium uppercase tracking-wider">
           <div className="flex items-center gap-2">
-            <span className="text-zinc-500 text-[10px]">Total Vaulted</span>
-            <span className="text-white font-mono">{proofs.length}</span>
+            <span className="text-neutral-500 text-[10px]">Total Vaulted</span>
+            <span className="text-foreground font-mono">{proofs.length}</span>
           </div>
-          <div className="flex items-center gap-2 border-l border-white/10 pl-6">
-            <span className="text-zinc-500 text-[10px]">Currently Active</span>
+          <div className="flex items-center gap-2 border-l border-foreground/10 pl-6">
+            <span className="text-neutral-500 text-[10px]">Currently Active</span>
             <span className="text-emerald-400 font-mono">{activeProofCount}</span>
           </div>
-          <div className="flex items-center gap-2 border-l border-white/10 pl-6">
-            <span className="text-zinc-500 text-[10px]">Revoked/Expired</span>
+          <div className="flex items-center gap-2 border-l border-foreground/10 pl-6">
+            <span className="text-neutral-500 text-[10px]">Revoked/Expired</span>
             <span className="text-red-400 font-mono">{Math.max(proofs.length - activeProofCount, 0)}</span>
           </div>
         </div>
@@ -86,9 +86,9 @@ export function ComplianceProofsList({
         {listError && <p className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-400">{listError}</p>}
 
         {!loading && proofs.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 rounded-[2rem] border border-dashed border-white/10 bg-zinc-900/20 text-center">
-            <History className="h-10 w-10 text-zinc-700 mb-4" />
-            <p className="text-sm text-zinc-500 max-w-xs leading-relaxed">
+          <div className="flex flex-col items-center justify-center py-20 rounded-[2rem] border border-dashed border-foreground/10 bg-neutral-900/20 text-center">
+            <History className="h-10 w-10 text-neutral-700 mb-4" />
+            <p className="text-sm text-neutral-500 max-w-xs leading-relaxed">
               No proofs have been issued yet. Once generated, they will appear here for audit management.
             </p>
           </div>
@@ -130,25 +130,25 @@ function ProofCard({
     <div className={cn(
       "relative group rounded-[2rem] border transition-all duration-300 p-6",
       isRevoked 
-        ? "border-white/5 bg-zinc-950 opacity-60 grayscale-[0.5]" 
-        : "border-white/10 bg-zinc-900/40 hover:border-emerald-500/30 hover:bg-zinc-900/60"
+        ? "border-foreground/5 bg-neutral-950 opacity-60 grayscale-[0.5]" 
+        : "border-foreground/10 bg-neutral-900/40 hover:border-primary/30 hover:bg-neutral-900/60"
     )}>
       <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
         <div className="flex-1 space-y-6">
           {/* Top Line: Status & IDs */}
           <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-lg border border-white/5">
-              <Fingerprint className="h-3.5 w-3.5 text-zinc-500" />
-              <span className="font-mono text-xs text-white">{proof.proofId.slice(0, 16)}...</span>
+            <div className="flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-lg border border-foreground/5">
+              <Fingerprint className="h-3.5 w-3.5 text-neutral-500" />
+              <span className="font-mono text-xs text-foreground">{proof.proofId.slice(0, 16)}...</span>
             </div>
             <Badge className={cn(
               "font-semibold tracking-wide",
-              isRevoked ? "bg-zinc-800 text-zinc-500" : "bg-emerald-500/10 text-emerald-400"
+              isRevoked ? "bg-neutral-800 text-neutral-500" : "bg-primary/10 text-emerald-400"
             )}>
               {proof.status}
             </Badge>
-            <Badge variant="outline" className="border-white/10 text-zinc-400 capitalize">{proof.actorRole}</Badge>
-            <Badge variant="outline" className="border-white/10 text-emerald-500/70 capitalize">{proof.proofType} Proof</Badge>
+            <Badge variant="outline" className="border-foreground/10 text-neutral-400 capitalize">{proof.actorRole}</Badge>
+            <Badge variant="outline" className="border-foreground/10 text-primary/70 capitalize">{proof.proofType} Proof</Badge>
           </div>
 
           {/* Data Grid */}
@@ -162,16 +162,16 @@ function ProofCard({
           </div>
 
           {/* Sub-container for JSON data */}
-          <div className="rounded-xl border border-white/5 bg-black/40 p-4 font-mono text-[10px] text-zinc-500 overflow-hidden text-ellipsis whitespace-nowrap">
-            <span className="text-emerald-500/50 mr-2">CONSTRAINTS:</span>
+          <div className="rounded-xl border border-foreground/5 bg-black/40 p-4 font-mono text-[10px] text-neutral-500 overflow-hidden text-ellipsis foregroundspace-nowrap">
+            <span className="text-primary/50 mr-2">CONSTRAINTS:</span>
             {formatJson(proof.constraints)}
           </div>
         </div>
 
         {/* Action Sidebar */}
-        <div className="flex flex-row xl:flex-col shrink-0 gap-2 border-t xl:border-t-0 xl:border-l border-white/5 pt-6 xl:pt-0 xl:pl-6">
+        <div className="flex flex-row xl:flex-col shrink-0 gap-2 border-t xl:border-t-0 xl:border-l border-foreground/5 pt-6 xl:pt-0 xl:pl-6">
           <Button 
-            className="flex-1 xl:w-32 bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-lg shadow-emerald-900/20" 
+            className="flex-1 xl:w-32 bg-emerald-600 hover:bg-primary text-foreground transition-all shadow-lg shadow-emerald-900/20" 
             size="sm" 
             onClick={() => onLoad(formatJson(proof))}
           >
@@ -179,7 +179,7 @@ function ProofCard({
           </Button>
           <Button 
             variant="outline" 
-            className="flex-1 xl:w-32 border-white/10 bg-zinc-900 hover:bg-zinc-800 text-zinc-300" 
+            className="flex-1 xl:w-32 border-foreground/10 bg-neutral-900 hover:bg-neutral-800 text-neutral-300" 
             size="sm" 
             onClick={() => onCopy(formatJson(proof))}
           >
@@ -187,7 +187,7 @@ function ProofCard({
           </Button>
           <Button
             variant="ghost"
-            className="flex-1 xl:w-32 text-zinc-500 hover:text-red-400 hover:bg-red-400/10 transition-colors"
+            className="flex-1 xl:w-32 text-neutral-500 hover:text-red-400 hover:bg-red-400/10 transition-colors"
             size="sm"
             disabled={isRevoked || busyAction !== null}
             onClick={() => onRevoke(proof.proofId)}
@@ -204,10 +204,10 @@ function ProofCard({
 function DataPoint({ label, value, isMono }: { label: string, value: string, isMono?: boolean }) {
   return (
     <div className="space-y-1">
-      <div className="text-[10px] uppercase tracking-wider text-zinc-600 font-semibold">{label}</div>
+      <div className="text-[10px] uppercase tracking-wider text-neutral-600 font-semibold">{label}</div>
       <div className={cn(
-        "text-zinc-300 truncate",
-        isMono ? "font-mono text-[11px] text-zinc-400" : "font-medium"
+        "text-neutral-300 truncate",
+        isMono ? "font-mono text-[11px] text-neutral-400" : "font-medium"
       )}>
         {value}
       </div>

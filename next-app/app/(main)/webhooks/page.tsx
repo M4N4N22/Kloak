@@ -174,7 +174,7 @@ export default function WebhooksPage() {
 
   if (!connected) {
     return (
-      <div className="rounded-[2.5rem] border-2 border-dashed border-white/5 bg-white/2 p-20 text-center flex flex-col items-center">
+      <div className="rounded-[2.5rem] border-2 border-dashed border-foreground/5 bg-foreground/2 p-20 text-center flex flex-col items-center">
         <h1 className="text-3xl font-bold text-foreground mb-4">
           Connect Shield Wallet
         </h1>
@@ -296,7 +296,7 @@ export default function WebhooksPage() {
                       Your server should verify the signature using:
                     </p>
 
-                    <div className="bg-black/50 rounded-md px-3 py-2 font-mono text-[11px] text-primary border border-white/10">
+                    <div className="bg-black/50 rounded-md px-3 py-2 font-mono text-[11px] text-primary border border-foreground/10">
                       HMAC_SHA256(secret, {`"${"{timestamp}.{body}"}"`})
                     </div>
 
@@ -371,7 +371,7 @@ export default function WebhooksPage() {
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 space-y-3">
                     <div className="flex flex-wrap items-center gap-3">
-                      <code className="flex-1 bg-black/50 rounded-full px-4 py-3 text-sm font-mono border border-white/10 break-all">
+                      <code className="flex-1 bg-black/50 rounded-full px-4 py-3 text-sm font-mono border border-foreground/10 break-all">
                         {webhook.url}
                       </code>
 
@@ -389,7 +389,7 @@ export default function WebhooksPage() {
                         <Label className="text-xs text-muted-foreground">Secret</Label>
 
                         <div className="flex items-center gap-3">
-                          <code className="flex-1 bg-black/50 rounded-full px-4 py-3 text-sm font-mono border border-white/10">
+                          <code className="flex-1 bg-black/50 rounded-full px-4 py-3 text-sm font-mono border border-foreground/10">
                             {showSecret[webhook.id]
                               ? webhook.secret
                               : "•".repeat(webhook.secret.length)}
@@ -418,7 +418,7 @@ export default function WebhooksPage() {
                       )}
 
                       {webhook.deliveryStatus === "success" && (
-                        <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-400/30">
+                        <Badge className="bg-primary/20 text-emerald-400 border-emerald-400/30">
                           Success
                         </Badge>
                       )}
@@ -452,7 +452,7 @@ export default function WebhooksPage() {
 
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-1">
-              <div className="p-6 rounded-3xl bg-white/5 space-y-2">
+              <div className="p-6 rounded-3xl bg-foreground/5 space-y-2">
                 <div className="flex items-center gap-2">
                   <Zap className="h-4 w-4 text-primary" />
                   <span className="font-semibold">Real-time</span>
@@ -462,7 +462,7 @@ export default function WebhooksPage() {
                 </p>
               </div>
 
-              <div className="p-6 rounded-3xl bg-white/5 space-y-2">
+              <div className="p-6 rounded-3xl bg-foreground/5 space-y-2">
                 <div className="flex items-center gap-2">
                   <Shield className="h-4 w-4 text-primary" />
                   <span className="font-semibold">Secure</span>
@@ -472,7 +472,7 @@ export default function WebhooksPage() {
                 </p>
               </div>
 
-              <div className="p-6 rounded-3xl bg-white/5 space-y-2">
+              <div className="p-6 rounded-3xl bg-foreground/5 space-y-2">
                 <div className="flex items-center gap-2">
                   <Repeat className="h-4 w-4 text-primary" />
                   <span className="font-semibold">Delivery Logs</span>

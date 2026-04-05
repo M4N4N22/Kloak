@@ -58,7 +58,7 @@ const integrations = [
     {
         name: "Payload",
         description: "Modern headless CMS with workflow capabilities",
-        logo: "https://cdn.simpleicons.org/payloadcms/000000/white", // Payload brand color (inverted for dark mode)
+        logo: "https://cdn.simpleicons.org/payloadcms/000000/foreground", // Payload brand color (inverted for dark mode)
         features: [
             "Content management",
             "Custom workflows",

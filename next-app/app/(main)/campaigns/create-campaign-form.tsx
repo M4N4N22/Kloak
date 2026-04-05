@@ -269,7 +269,7 @@ export default function CreateCampaignForm() {
               </div>
             </div>
 
-            <div className="p-4 rounded-xl bg-zinc-500/10 space-y-4">
+            <div className="p-4 rounded-xl bg-neutral-500/10 space-y-4">
               <Label className="text-muted-foreground uppercase text-[10px] tracking-widest">
                 Reward Asset
               </Label>
@@ -285,7 +285,7 @@ export default function CreateCampaignForm() {
             </div>
 
             {/* CSV Section with Pattern A & C */}
-            <div className="p-4 rounded-xl bg-zinc-500/10 space-y-4">
+            <div className="p-4 rounded-xl bg-neutral-500/10 space-y-4">
               <div className="flex justify-between items-end">
                 <Label className="text-muted-foreground uppercase text-[10px] tracking-widest">
                   Distribution CSV
@@ -313,9 +313,9 @@ export default function CreateCampaignForm() {
               {/* UX Pattern C: Visual Validation Table */}
               {csvRows.length > 0 && (
                 <div className="space-y-3">
-                  <div className="max-h-40 overflow-y-auto rounded-lg border border-white/5 bg-background/60">
+                  <div className="max-h-40 overflow-y-auto rounded-lg border border-foreground/5 bg-background/60">
                     <table className="w-full text-[10px] text-left">
-                      <thead className="bg-white/5 sticky top-0">
+                      <thead className="bg-foreground/5 sticky top-0">
                         <tr>
                           <th className="p-2">Address</th>
                           <th className="p-2 text-right">Amount</th>
@@ -323,7 +323,7 @@ export default function CreateCampaignForm() {
                       </thead>
                       <tbody>
                         {csvRows.slice(0, 5).map((row, i) => (
-                          <tr key={i} className={`border-t border-white/5 ${!row.isValid ? "bg-red-500/10 text-red-400" : ""}`}>
+                          <tr key={i} className={`border-t border-foreground/5 ${!row.isValid ? "bg-red-500/10 text-red-400" : ""}`}>
                             <td className="p-2 font-mono truncate max-w-[120px]">
                               {row.address || "EMPTY"}
                             </td>
@@ -398,7 +398,7 @@ export default function CreateCampaignForm() {
 
                 </div>
 
-                <div className="border-t border-dashed border-white/10 pt-3 space-y-2 text-xs text-muted-foreground">
+                <div className="border-t border-dashed border-foreground/10 pt-3 space-y-2 text-xs text-muted-foreground">
 
                   <div className="flex items-start gap-2">
                     <AlertCircle className="h-3 w-3 mt-[2px]" />
@@ -490,7 +490,7 @@ export default function CreateCampaignForm() {
 
           {/* Campaign Info */}
 
-          <div className="space-y-3 bg-white/5 rounded-xl p-4 mt-4">
+          <div className="space-y-3 bg-foreground/5 rounded-xl p-4 mt-4">
 
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Campaign</span>
@@ -533,7 +533,7 @@ export default function CreateCampaignForm() {
 
                 <button
                   onClick={() => navigator.clipboard.writeText(createTxId)}
-                  className="text-xs px-2 py-1 rounded bg-white/10 hover:bg-white/20"
+                  className="text-xs px-2 py-1 rounded bg-foreground/10 hover:bg-foreground/20"
                 >
                   Copy
                 </button>
@@ -561,7 +561,7 @@ export default function CreateCampaignForm() {
 
                 <button
                   onClick={() => navigator.clipboard.writeText(fundTxId)}
-                  className="text-xs px-2 py-1 rounded bg-white/10 hover:bg-white/20"
+                  className="text-xs px-2 py-1 rounded bg-foreground/10 hover:bg-foreground/20"
                 >
                   Copy
                 </button>

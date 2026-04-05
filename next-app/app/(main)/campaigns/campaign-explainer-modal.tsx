@@ -50,10 +50,10 @@ export default function CampaignExplainerModal({
                                     alt="Kloak"
                                     height={28}
                                     width={28}
-                                    className="relative rounded-full border border-white/10"
+                                    className="relative rounded-full border border-foreground/10"
                                   />
                                 </div>
-                                <span className="font-bold tracking-tight   text-white">
+                                <span className="font-bold tracking-tight   text-foreground">
                                   loak
                                 </span>
                               </div> Campaigns Stay Private

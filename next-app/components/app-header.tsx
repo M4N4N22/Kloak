@@ -17,9 +17,9 @@ import { cn } from "@/lib/utils"
 /* ------------------ NAV CONFIG ------------------ */
 
 const NAV_ITEMS = [
-  { href: "/dashboard", label: "Home" },
   { href: "/payment-links", label: "Payment Links" },
-  { href: "/compliance", label: "Compliance" },
+  { href: "/compliance", label: "Compliance Ledger" },
+  { href: "/dashboard", label: "Dashboard" },
   { href: "/bots", label: "Telegram Bot" },
   { href: "/webhooks", label: "Webhooks" },
   { href: "/automation", label: "Automation" },
@@ -37,13 +37,15 @@ function NavItem({
   label: string
   pathname: string
 }) {
+  const active = href === "/dashboard" ? pathname === href : pathname === href || pathname.startsWith(`${href}/`)
+
   return (
     <NavigationMenuItem>
       <NavigationMenuLink
         asChild
         className={cn(
           navigationMenuTriggerStyle(),
-          pathname === href && ""
+          active && "bg-primary/10 text-primary"
         )}
       >
         <Link className="" href={href}>{label}</Link>
@@ -58,8 +60,8 @@ export function AppHeader() {
   const pathname = usePathname()
 
   return (
-    <header className="fixed top-4 inset-x-0 z-50 px-4">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 rounded-full border border-white/10 bg-black/55 px-4 py-3 shadow-2xl backdrop-blur-2xl">
+    <header className="fixed top-0 inset-x-0 z-50 ">
+      <div className="mx-auto flex  items-center justify-between gap-4   bg-background/55 px-4 py-3 shadow-2xl backdrop-blur-2xl">
 
         {/* LOGO */}
         <Link href="/" className="flex items-center shrink-0">
@@ -70,7 +72,7 @@ export function AppHeader() {
               alt="Kloak"
               height={36}
               width={36}
-              className="relative rounded-full border border-white/10"
+              className="relative rounded-full border border-foreground/10"
             />
           </div>
           <span className="text-3xl font-bold tracking-tight">loak</span>

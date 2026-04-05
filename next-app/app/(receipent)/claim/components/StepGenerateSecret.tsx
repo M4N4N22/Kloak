@@ -42,7 +42,7 @@ export default function StepGenerateSecret({
   const secretReady = Boolean(secret && commitment);
 
   return (
-    <div className="border border-[#eeeeee] bg-white p-8 space-y-8 shadow-sm rounded-sm">
+    <div className="border border-[#eeeeee] bg-foreground p-8 space-y-8 shadow-sm rounded-sm">
       {/* Header aligned with Claim UI */}
       <div className="flex justify-between items-start">
         <div className="space-y-1">
@@ -53,7 +53,7 @@ export default function StepGenerateSecret({
             Derive a private claim key from your public wallet address.
           </p>
         </div>
-        <span className="text-[9px] bg-black text-white px-2 py-1 rounded uppercase font-bold tracking-tighter">
+        <span className="text-[9px] bg-black text-foreground px-2 py-1 rounded uppercase font-bold tracking-tighter">
           Transparency Mode
         </span>
       </div>
@@ -87,7 +87,7 @@ export default function StepGenerateSecret({
           !connected ? "bg-gray-100 text-gray-400 cursor-not-allowed" :
           loading ? "bg-gray-50 text-gray-400 cursor-wait" :
           secretReady ? "bg-green-50 text-green-700 border border-green-200" : 
-          "bg-[#015FFD] text-white hover:bg-[#0052db]"
+          "bg-[#015FFD] text-foreground hover:bg-[#0052db]"
         }`}
       >
         {!connected ? "CONNECT WALLET TO START" : 

@@ -77,7 +77,7 @@ export default function CampaignsPage() {
       <div className="">
         <Breadcrumbs view={view} setView={setView} />
 
-        <div className="rounded-[2.5rem] border-2 border-dashed border-white/5 bg-white/2 p-20 text-center backdrop-blur-md justify-center flex flex-col items-center">
+        <div className="rounded-[2.5rem] border-2 border-dashed border-foreground/5 bg-foreground/2 p-20 text-center backdrop-blur-md justify-center flex flex-col items-center">
           <h1 className="text-3xl font-bold text-foreground mb-4">
             Connect Shield Wallet
           </h1>
@@ -320,19 +320,19 @@ function QuickStatSkeleton() {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <div className="h-4 w-24 bg-zinc-50/10 animate-pulse rounded-3xl" />
-        <div className="h-5 w-5 bg-zinc-50/10 animate-pulse rounded-full" />
+        <div className="h-4 w-24 bg-neutral-50/10 animate-pulse rounded-3xl" />
+        <div className="h-5 w-5 bg-neutral-50/10 animate-pulse rounded-full" />
       </CardHeader>
 
       <CardContent>
         <div className="flex items-baseline gap-2">
-          <div className="h-8 w-20 bg-zinc-50/10 animate-pulse rounded-3xl" />
-          <div className="h-4 w-10 bg-zinc-50/10 animate-pulse rounded-3xl" />
+          <div className="h-8 w-20 bg-neutral-50/10 animate-pulse rounded-3xl" />
+          <div className="h-4 w-10 bg-neutral-50/10 animate-pulse rounded-3xl" />
         </div>
       </CardContent>
 
       <CardFooter>
-        <div className="h-3 w-32 bg-zinc-50/10 animate-pulse rounded-3xl" />
+        <div className="h-3 w-32 bg-neutral-50/10 animate-pulse rounded-3xl" />
       </CardFooter>
     </Card>
   )

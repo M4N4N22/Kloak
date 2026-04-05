@@ -38,7 +38,7 @@ export default function AleoTxDebug() {
 
       <button
         onClick={testTx}
-        className="px-6 py-2 bg-black text-white rounded"
+        className="px-6 py-2 bg-black text-foreground rounded"
       >
         Fetch Transaction
       </button>

@@ -18,7 +18,7 @@ export default function EmbedDemoPage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-white text-black">
+    <div className="min-h-screen bg-foreground text-black">
 
       {/* HERO SECTION */}
       <section className="max-w-5xl mx-auto px-6 py-20 text-center">
@@ -33,7 +33,7 @@ export default function EmbedDemoPage() {
         {/* PRIMARY CTA */}
         <button
           data-kloak-id="cmmmqzjft0000ecgqtld6n7ma"
-          className="px-6 py-3 rounded-xl bg-black text-white font-semibold hover:opacity-80 transition"
+          className="px-6 py-3 rounded-xl bg-black text-foreground font-semibold hover:opacity-80 transition"
         >
           Buy Access 1 Aleo
         </button>
@@ -52,7 +52,7 @@ export default function EmbedDemoPage() {
           <button
             data-kloak-id="demo-link-id-2"
             data-kloak-amount="100"
-            className="w-full py-2 rounded-lg bg-black text-white"
+            className="w-full py-2 rounded-lg bg-black text-foreground"
           >
             Pay ₹100
           </button>
@@ -68,7 +68,7 @@ export default function EmbedDemoPage() {
           <button
             data-kloak-id="demo-link-id-3"
             data-kloak-amount="500"
-            className="w-full py-2 rounded-lg bg-black text-white"
+            className="w-full py-2 rounded-lg bg-black text-foreground"
           >
             Pay ₹500
           </button>
@@ -83,7 +83,7 @@ export default function EmbedDemoPage() {
 
           <button
             data-kloak-id="demo-link-id-4"
-            className="w-full py-2 rounded-lg bg-black text-white"
+            className="w-full py-2 rounded-lg bg-black text-foreground"
           >
             Pay Custom Amount
           </button>
@@ -103,7 +103,7 @@ export default function EmbedDemoPage() {
 
         <button
           data-kloak-id="demo-link-id-5"
-          className="px-6 py-3 rounded-full bg-black text-white"
+          className="px-6 py-3 rounded-full bg-black text-foreground"
         >
           Donate
         </button>

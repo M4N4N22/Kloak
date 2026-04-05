@@ -45,7 +45,7 @@ export default function RootLayout({
           <BalanceProvider>
             <div className="relative min-h-screen">
               <AppHeader />
-              <div className="pt-28">
+              <div className="pt-16">
                 {children}
               </div>
             </div>

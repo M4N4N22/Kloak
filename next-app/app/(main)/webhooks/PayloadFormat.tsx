@@ -74,8 +74,8 @@ export default function PayloadFormat() {
                         <pre className="text-sm font-mono leading-relaxed">
                             {jsonPayload.split('\n').map((line, i) => (
                                 <div key={i} className="table-row">
-                                    <span className="table-cell pr-4 text-zinc-600 text-right select-none w-8">{i + 1}</span>
-                                    <span className={line.includes(':') ? "text-zinc-100" : "text-zinc-400"}>
+                                    <span className="table-cell pr-4 text-neutral-600 text-right select-none w-8">{i + 1}</span>
+                                    <span className={line.includes(':') ? "text-neutral-100" : "text-neutral-400"}>
                                         {line.includes('"') ? (
                                             line.split('"').map((part, j) => (
                                                 j % 2 === 1 ? <span key={j} className={j === 1 ? "text-emerald-400" : "text-sky-300"}>"{part}"</span> : part
@@ -88,7 +88,7 @@ export default function PayloadFormat() {
                     </div>
 
                     {/* Property Reference View */}
-                    <div className="lg:col-span-2 p-6 space-y-6 bg-white/5 rounded-3xl mr-4">
+                    <div className="lg:col-span-2 p-6 space-y-6 bg-foreground/5 rounded-3xl mr-4">
                         <div className="space-y-4">
                             <h3 className="text-xs uppercase font-bold text-muted-foreground tracking-widest">HTTP Headers</h3>
                             <div className="space-y-1">
