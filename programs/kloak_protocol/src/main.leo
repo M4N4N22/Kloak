@@ -5,7 +5,7 @@ import test_usad_stablecoin.aleo;
 program kloak_protocol_v8.aleo {
 
     @noupgrade
-    constructor() {}
+    async constructor() {}
 
     // --------------------------------------
     // MAPPINGS
