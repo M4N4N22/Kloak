@@ -46,7 +46,7 @@ aleo1l5ukuke6t3wzg8fzuvkk8yxjnqye8vslyx87zxjl6fwaupaujcpq2uvuh4,0.2`)
 
   return (
 
-    <div className="min-h-screen bg-black text-white p-10 font-mono">
+    <div className="min-h-screen bg-black text-foreground p-10 font-mono">
 
       <h1 className="text-2xl font-bold text-yellow-400 mb-8">
         Merkle Campaign Simulator

@@ -31,7 +31,7 @@ export default async function EmbedPage({ params }: { params: Promise<{ id: stri
       })
 
       return (
-        <div className="text-white text-sm p-4">
+        <div className="text-foreground text-sm p-4">
           Failed to load payment link <br />
           Status: {res.status}
         </div>
@@ -44,7 +44,7 @@ export default async function EmbedPage({ params }: { params: Promise<{ id: stri
       console.error("❌ [EMBED] Empty response body")
 
       return (
-        <div className="text-white text-sm p-4">
+        <div className="text-foreground text-sm p-4">
           Empty response from server
         </div>
       )
@@ -60,7 +60,7 @@ export default async function EmbedPage({ params }: { params: Promise<{ id: stri
       })
 
       return (
-        <div className="text-white text-sm p-4">
+        <div className="text-foreground text-sm p-4">
           Invalid JSON response
         </div>
       )
@@ -78,7 +78,7 @@ export default async function EmbedPage({ params }: { params: Promise<{ id: stri
     console.error("❌ [EMBED] Unexpected error", err)
 
     return (
-      <div className="text-white text-sm p-4">
+      <div className="text-foreground text-sm p-4">
         Unexpected error while loading
       </div>
     )

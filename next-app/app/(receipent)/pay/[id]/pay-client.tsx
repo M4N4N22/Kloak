@@ -130,7 +130,7 @@ export default function PayClient({ link }: any) {
 
               </div>
 
-              <div className="border-t border-dashed border-white/20" />
+              <div className="border-t border-dashed border-foreground/20" />
 
               {/* AMOUNT */}
 
@@ -207,7 +207,7 @@ export default function PayClient({ link }: any) {
                           "text-[10px] px-2 py-1 rounded transition-all duration-200 uppercase font-bold",
                           copied
                             ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                            : "bg-white/10 hover:bg-white/20 text-muted-foreground"
+                            : "bg-foreground/10 hover:bg-foreground/20 text-muted-foreground"
                         )}
                       >
                         {copied ? "Copied" : "Copy"}

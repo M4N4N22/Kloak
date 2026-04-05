@@ -243,10 +243,10 @@ export default function CreateLinkForm() {
     }
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
+        <div className="flex gap-6 min-w-6xl">
 
             {/* FORM */}
-            <Card className="lg:col-span-3">
+            <Card className="w-full">
                 <CardHeader>
                     <CardDescription className="text-xs">
                         Configure your payment details and share the link with your clients.
@@ -416,10 +416,10 @@ export default function CreateLinkForm() {
                 </CardContent>
             </Card>
 
-            <div className="lg:col-span-2 relative">
+            <div className="lg:col-span-2 relative min-w-md">
                 <div className="sticky top-32 space-y-1 flex flex-col justify-center items-center">
                     <Label className="text-xs font-bold uppercase tracking-tighter text-muted-foreground">Live Preview</Label>
-                    <div className=" w-full  mx-auto bg-zinc-500/10 border rounded-[2.5rem] p-6 flex flex-col justify-between overflow-hidden relative backdrop-blur-xl">
+                    <div className=" w-full  mx-auto bg-neutral-500/10 border rounded-[2.5rem] p-6 flex flex-col justify-between overflow-hidden relative backdrop-blur-xl">
                         <div className="space-y-6"> {/* Fake Mobile Header */}
                             <div className="flex justify-between items-center ">
                                 <div className="flex gap-3 items-center">
@@ -432,7 +432,7 @@ export default function CreateLinkForm() {
                             </div> <div className="mt-12">
                                 <h3 className="text-xl font-bold truncate leading-tight"> {title || "Untitled"} </h3>
                                 <p className="text-sm text-muted-foreground mt-2 line-clamp-3"> {description || "No description provided."} </p>
-                            </div> <div className="border-t border-dashed border-white/30 "></div>
+                            </div> <div className="border-t border-dashed border-foreground/30 "></div>
                             <div className=""> <div className=""> <span className="text-xs text-muted-foreground block mb-1">Amount to pay</span>
                                 <div className="text-3xl font-bold tracking-tight"> {allowCustomAmount ? "Enter Amount" : amount || "0.00"}
                                     <span className="text-sm ml-2 font-medium text-muted-foreground uppercase">{token}</span> </div>
@@ -482,7 +482,7 @@ export default function CreateLinkForm() {
 
                                 <button
                                     onClick={() => navigator.clipboard.writeText(txId)}
-                                    className="text-xs px-2 py-1 rounded bg-white/10 hover:bg-white/20"
+                                    className="text-xs px-2 py-1 rounded bg-foreground/10 hover:bg-foreground/20"
                                 >
                                     Copy
                                 </button>

@@ -75,7 +75,7 @@ export default function Home() {
             <h2 className="text-sm uppercase tracking-[0.2em] text-primary mb-2">
               Core Infrastructure
             </h2>
-            <h3 className="text-4xl tracking-tight text-white">
+            <h3 className="text-4xl tracking-tight text-foreground">
               Everything you need to go private.
             </h3>
           </div>
@@ -98,7 +98,7 @@ export default function Home() {
 
               {/* Hover CTA */}
               <div className="absolute bottom-8 right-8 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all">
-                <span className="text-sm text-white flex items-center gap-2">
+                <span className="text-sm text-foreground flex items-center gap-2">
                   Create Payment Link
                   <span className="text-lg">↗</span>
                 </span>
@@ -122,7 +122,7 @@ export default function Home() {
 
               {/* Hover CTA */}
               <div className="absolute bottom-8 right-8 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all">
-                <span className="text-sm text-white flex items-center gap-2">
+                <span className="text-sm text-foreground flex items-center gap-2">
                   Open Telegram Bot
                   <span className="text-lg">↗</span>
                 </span>
@@ -201,7 +201,7 @@ export default function Home() {
             <FooterGroup title="Legal" links={["Privacy", "Terms"]} />
           </div>
         </div>
-        <div className="max-w-7xl mx-auto mt-20 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-medium text-muted-foreground">
+        <div className="max-w-7xl mx-auto mt-20 pt-8 border-t border-foreground/5 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-medium text-muted-foreground">
           <p>© 2026 KLOAK LABS INC. ALL RIGHTS RESERVED.</p>
           <p className="flex items-center gap-2 italic">
             <span className="h-1 w-1 rounded-full bg-primary" />
@@ -216,7 +216,7 @@ export default function Home() {
 function FooterGroup({ title, links }: { title: string, links: string[] }) {
   return (
     <div className="space-y-4">
-      <h4 className="text-[10px] uppercase tracking-[0.2em] font-bold text-white">{title}</h4>
+      <h4 className="text-[10px] uppercase tracking-[0.2em] font-bold text-foreground">{title}</h4>
       <div className="flex flex-col space-y-2 text-sm text-muted-foreground">
         {links.map(l => <Link key={l} href="#" className="hover:text-primary transition-colors">{l}</Link>)}
       </div>

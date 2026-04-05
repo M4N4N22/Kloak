@@ -13,7 +13,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         />
       </div>
 
-      <main className="relative mx-auto flex max-w-6xl flex-col gap-8 rounded-[2.5rem] border border-white/10 bg-black/15 px-6 py-8 backdrop-blur-xl md:px-10 md:py-12">
+      <main className="relative mx-auto flex max-w-6xl flex-col gap-8 rounded-[2.5rem] border border-foreground/10 bg-black/15 px-6 py-8 backdrop-blur-xl md:px-10 md:py-12">
         {children}
       </main>
     </div>

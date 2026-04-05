@@ -248,7 +248,7 @@ export default function ZKDebugPage() {
 
     return (
 
-        <div className="min-h-screen bg-black text-white p-10 font-mono">
+        <div className="min-h-screen bg-black text-foreground p-10 font-mono">
 
             <h1 className="text-2xl font-bold mb-8 text-yellow-400">
                 ZK Campaign Debugger

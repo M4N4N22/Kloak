@@ -174,7 +174,7 @@ function FlowSection({
   const accentColor =
     accent === "primary"
       ? "bg-primary/20 border-primary/30 text-primary"
-      : "bg-emerald-500/20 border-emerald-500/30 text-emerald-400"
+      : "bg-primary/20 border-primary/30 text-emerald-400"
 
   return (
     <div className="space-y-6 ">

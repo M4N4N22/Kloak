@@ -147,7 +147,7 @@ export default function PricingPage() {
 
   if (!connected) {
     return (
-      <div className="rounded-[2.5rem] border-2 border-dashed border-white/5 bg-white/2 p-20 text-center flex flex-col items-center">
+      <div className="rounded-[2.5rem] border-2 border-dashed border-foreground/5 bg-foreground/2 p-20 text-center flex flex-col items-center">
         <h1 className="text-3xl font-bold text-foreground mb-4">
           Connect Shield Wallet
         </h1>
@@ -181,7 +181,7 @@ export default function PricingPage() {
           </div>
         </div>
 
-        <Card className="p-6 min-w-[320px] bg-white/5 border-white/10">
+        <Card className="p-6 min-w-[320px] bg-foreground/5 border-foreground/10">
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               {isProUser ? (
@@ -228,7 +228,7 @@ export default function PricingPage() {
       )}
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <Card className="p-8 rounded-[2rem] border-white/10 bg-white/5">
+        <Card className="p-8 rounded-[2rem] border-foreground/10 bg-foreground/5">
           <div className="space-y-6">
             <div className="space-y-3">
               <div className="flex items-center gap-3">
@@ -270,7 +270,7 @@ export default function PricingPage() {
           </div>
         </Card>
 
-        <Card className="p-8 rounded-[2rem] border-primary/30 bg-linear-to-br from-primary/10 via-white/5 to-white/5 relative overflow-hidden">
+        <Card className="p-8 rounded-[2rem] border-primary/30 bg-linear-to-br from-primary/10 via-foreground/5 to-foreground/5 relative overflow-hidden">
           <div className="absolute top-0 right-0 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
           <div className="relative space-y-6">
             <div className="space-y-3">
@@ -331,7 +331,7 @@ export default function PricingPage() {
         </Card>
       </div>
 
-      <Card className="p-8 rounded-[2rem] border-white/10 bg-black/20">
+      <Card className="p-8 rounded-[2rem] border-foreground/10 bg-black/20">
         <div className="space-y-6">
           <div className="space-y-2">
             <h2 className="text-2xl font-bold">Feature Breakdown</h2>
@@ -342,7 +342,7 @@ export default function PricingPage() {
 
           <div className="overflow-x-auto">
             <div className="min-w-[720px]">
-              <div className="grid grid-cols-[1.6fr_1fr_1fr] gap-3 text-xs uppercase tracking-[0.2em] text-muted-foreground border-b border-white/10 pb-3">
+              <div className="grid grid-cols-[1.6fr_1fr_1fr] gap-3 text-xs uppercase tracking-[0.2em] text-muted-foreground border-b border-foreground/10 pb-3">
                 <div>Feature</div>
                 <div>Free</div>
                 <div>Pro</div>
@@ -352,7 +352,7 @@ export default function PricingPage() {
                 {comparisonRows.map((row) => (
                   <div
                     key={row.label}
-                    className="grid grid-cols-[1.6fr_1fr_1fr] gap-3 items-start rounded-2xl bg-white/5 p-4"
+                    className="grid grid-cols-[1.6fr_1fr_1fr] gap-3 items-start rounded-2xl bg-foreground/5 p-4"
                   >
                     <div className="font-medium">{row.label}</div>
                     <div className="text-sm text-muted-foreground">{row.free}</div>
@@ -366,7 +366,7 @@ export default function PricingPage() {
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="p-6 rounded-[1.75rem] bg-white/5 border-white/10 space-y-3">
+        <Card className="p-6 rounded-[1.75rem] bg-foreground/5 border-foreground/10 space-y-3">
           <Bot className="h-5 w-5 text-primary" />
           <h3 className="font-semibold text-lg">Telegram-first operators</h3>
           <p className="text-sm text-muted-foreground">
@@ -374,7 +374,7 @@ export default function PricingPage() {
           </p>
         </Card>
 
-        <Card className="p-6 rounded-[1.75rem] bg-white/5 border-white/10 space-y-3">
+        <Card className="p-6 rounded-[1.75rem] bg-foreground/5 border-foreground/10 space-y-3">
           <Webhook className="h-5 w-5 text-primary" />
           <h3 className="font-semibold text-lg">Automation-heavy builders</h3>
           <p className="text-sm text-muted-foreground">
@@ -382,7 +382,7 @@ export default function PricingPage() {
           </p>
         </Card>
 
-        <Card className="p-6 rounded-[1.75rem] bg-white/5 border-white/10 space-y-3">
+        <Card className="p-6 rounded-[1.75rem] bg-foreground/5 border-foreground/10 space-y-3">
           <Rocket className="h-5 w-5 text-primary" />
           <h3 className="font-semibold text-lg">Testing now, gating later</h3>
           <p className="text-sm text-muted-foreground">

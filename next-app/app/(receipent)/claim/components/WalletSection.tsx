@@ -56,7 +56,7 @@ export default function WalletSection() {
   }, [wallet, shouldConnectShield, connected, connecting, connect]);
 
   return (
-    <section className={`py-12 px-6 border-b transition-all duration-500 ${connected ? 'bg-white' : 'bg-[#fafafa]'}`}>
+    <section className={`py-12 px-6 border-b transition-all duration-500 ${connected ? 'bg-foreground' : 'bg-[#fafafa]'}`}>
       <div className="max-w-4xl mx-auto">
         <div className="flex flex-col items-center text-center space-y-6">
           
@@ -81,7 +81,7 @@ export default function WalletSection() {
               <button
                 onClick={handleConnectShield}
                 disabled={connecting}
-                className="group relative bg-black text-white px-10 py-4 text-xs font-bold uppercase tracking-widest hover:bg-[#015FFD] transition-all disabled:opacity-50"
+                className="group relative bg-black text-foreground px-10 py-4 text-xs font-bold uppercase tracking-widest hover:bg-[#015FFD] transition-all disabled:opacity-50"
               >
                 <span className="relative z-10">
                   {connecting ? "Initializing..." : "Connect Shield Wallet"}
@@ -100,7 +100,7 @@ export default function WalletSection() {
           ) : (
             /* Connected Account Dashboard */
             <div className="flex flex-col md:flex-row items-center gap-4 bg-gray-50 border border-gray-100 p-2 rounded-full animate-in zoom-in-95">
-              <div className="flex items-center gap-3 px-4 py-2 bg-white rounded-full shadow-sm border border-gray-100">
+              <div className="flex items-center gap-3 px-4 py-2 bg-foreground rounded-full shadow-sm border border-gray-100">
                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                 <span className="text-xs font-mono font-medium text-gray-600">
                   {getShortAddress(address || "")}

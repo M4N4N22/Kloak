@@ -101,7 +101,7 @@ export default async function PayPage({
   if (link.expiresAt && new Date(link.expiresAt) < new Date()) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6">
-        <div className="max-w-sm w-full rounded-[2.5rem] border bg-zinc-500/10 p-8 text-center space-y-3">
+        <div className="max-w-sm w-full rounded-[2.5rem] border bg-neutral-500/10 p-8 text-center space-y-3">
           <h2 className="text-xl font-bold">Link Expired</h2>
           <p className="text-sm text-muted-foreground">
             This payment link has expired and can no longer accept payments.
@@ -118,7 +118,7 @@ export default async function PayPage({
   ) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6">
-        <div className="max-w-sm w-full rounded-[2.5rem] border bg-zinc-500/10 p-8 text-center space-y-3">
+        <div className="max-w-sm w-full rounded-[2.5rem] border bg-neutral-500/10 p-8 text-center space-y-3">
           <h2 className="text-xl font-bold">Payment Limit Reached</h2>
           <p className="text-sm text-muted-foreground">
             This payment link has reached its maximum number of payments.
@@ -132,7 +132,7 @@ export default async function PayPage({
   if (!link.active) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6">
-        <div className="max-w-sm w-full rounded-[2.5rem] border bg-zinc-500/10 p-8 text-center space-y-3">
+        <div className="max-w-sm w-full rounded-[2.5rem] border bg-neutral-500/10 p-8 text-center space-y-3">
           <h2 className="text-xl font-bold">Link Disabled</h2>
           <p className="text-sm text-muted-foreground">
             This payment link is no longer active.

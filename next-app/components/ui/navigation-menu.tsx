@@ -61,7 +61,7 @@ function NavigationMenuItem({
 }
 
 const navigationMenuTriggerStyle = cva(
-  "group inline-flex h-10 w-max items-center justify-center rounded-full bg-transparent px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-white/15  focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[state=open]:bg-white/5 data-[state=open]:text-primary-foreground"
+  "group inline-flex h-10 w-max items-center justify-center rounded-full bg-transparent px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-foreground/15  focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[state=open]:bg-foreground/5 data-[state=open]:text-primary-foreground"
 )
 
 function NavigationMenuTrigger({
@@ -108,7 +108,7 @@ function NavigationMenuLink({
     <NavigationMenuPrimitive.Link
       data-slot="navigation-menu-link"
       className={cn(
-        "text-foreground bg-primary  data-[state=open]:text-foreground focus:text-foreground block rounded-xl p-3 leading-none no-underline outline-none transition-colors select-none hover:bg-white/5",
+        "text-foreground bg-primary  data-[state=open]:text-foreground focus:text-primary block rounded-xl p-3 leading-none no-underline outline-none transition-colors select-none hover:bg-foreground/5",
         className
       )}
       {...props}
@@ -125,7 +125,7 @@ function NavigationMenuViewport({
       <NavigationMenuPrimitive.Viewport
         data-slot="navigation-menu-viewport"
         className={cn(
-          "origin-top-center bg-black text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-90 relative mt-3 h-[var(--radix-navigation-menu-viewport-height)] w-full overflow-hidden rounded-3xl border border-white/10  shadow-2xl backdrop-blur-xl md:w-[var(--radix-navigation-menu-viewport-width)]",
+          "origin-top-center bg-black text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-90 relative mt-3 h-[var(--radix-navigation-menu-viewport-height)] w-full overflow-hidden rounded-3xl border border-foreground/10  shadow-2xl backdrop-blur-xl md:w-[var(--radix-navigation-menu-viewport-width)]",
           className
         )}
         {...props}

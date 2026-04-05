@@ -162,7 +162,7 @@ export function WalletConnect() {
     /* ------------------------------------------------ */
 
     return (
-        <div className="flex items-center gap-3 bg-zinc-500/10  rounded-full p-1 pl-6 shadow-xl">
+        <div className="flex items-center gap-3 bg-neutral-500/10  rounded-full p-1 pl-6 shadow-xl">
             <span className="text-sm text-primary">
                 {address ? getShortAddress(address) : "Connected"}
             </span>

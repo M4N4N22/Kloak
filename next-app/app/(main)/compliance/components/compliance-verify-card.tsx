@@ -40,7 +40,7 @@ export function ComplianceVerifyCard({
   lastVerified,
 }: ComplianceVerifyCardProps) {
   return (
-    <Card className="border-white/10 bg-black/20 hidden">
+    <Card className="border-foreground/10 bg-black/20 hidden">
       <CardHeader className="space-y-3">
         <div className="flex items-center justify-between gap-3">
           <div>
@@ -49,25 +49,25 @@ export function ComplianceVerifyCard({
               Review or paste a proof payload the way a partner, auditor, or compliance operator would receive it.
             </p>
           </div>
-          <div className="rounded-2xl bg-white/8 p-3 text-primary">
+          <div className="rounded-2xl bg-foreground/8 p-3 text-primary">
             <SearchCheck className="h-5 w-5" />
           </div>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-4">
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-muted-foreground">
+        <div className="rounded-2xl border border-foreground/10 bg-foreground/5 p-4 text-sm text-muted-foreground">
           Production apps typically hand out a compact proof JSON, not raw wallet state. Verification checks that
           the proof metadata matches stored payment linkage and that the disclosure transaction was finalized.
         </div>
 
         <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm font-medium text-white">
+          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
             <FileJson2 className="h-4 w-4 text-primary" />
             Proof payload
           </div>
           <Textarea
-            className="min-h-80 border-white/10 bg-black/30 font-mono text-xs"
+            className="min-h-80 border-foreground/10 bg-black/30 font-mono text-xs"
             value={proofPayload}
             onChange={(e) => onPayloadChange(e.target.value)}
             placeholder={`{
@@ -91,8 +91,8 @@ export function ComplianceVerifyCard({
           {busy ? "Verifying proof..." : "Verify Proof"}
         </Button>
 
-        <div className="rounded-2xl border border-white/10 bg-black/30 p-4 text-sm">
-          <div className="flex items-center gap-2 font-medium text-white">
+        <div className="rounded-2xl border border-foreground/10 bg-black/30 p-4 text-sm">
+          <div className="flex items-center gap-2 font-medium text-foreground">
             {lastVerified?.valid ? (
               <CheckCircle2 className="h-4 w-4 text-emerald-400" />
             ) : (

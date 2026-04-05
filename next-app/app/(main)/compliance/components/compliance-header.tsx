@@ -17,7 +17,7 @@ const summaryItems = [
     description: "Secrets stay client-side. Wallet-owned receipts power all disclosures.",
     icon: ShieldCheck,
     color: "text-emerald-400",
-    bg: "bg-emerald-500/10",
+    bg: "bg-primary/10",
   },
   {
     title: "Role-aware workflows",
@@ -43,28 +43,28 @@ export function ComplianceHeader({
   return (
     <div className="space-y-8">
       {/* Main Hero Section */}
-      <div className="relative overflow-hidden rounded-[2.5rem]  bg-zinc-950 p-8 md:p-12">
+      <div className="relative overflow-hidden rounded-[2.5rem]  bg-neutral-950 p-8 md:p-12">
         {/* Animated Gradient Orbs */}
-        <div className="absolute -right-20 -top-20 h-64 w-64 bg-emerald-500/10 blur-[100px]" />
+        <div className="absolute -right-20 -top-20 h-64 w-64 bg-primary/10 blur-[100px]" />
         <div className="absolute -bottom-20 -left-20 h-64 w-64 bg-blue-500/10 blur-[100px]" />
 
         <div className="relative z-10 flex flex-col gap-8">
           <div className="flex flex-wrap items-center gap-3">
-            <Badge className="bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/20 border-emerald-500/20 px-3 py-1">
+            <Badge className="bg-primary/15 text-emerald-400 hover:bg-primary/20 border-primary/20 px-3 py-1">
               <Fingerprint className="mr-1 h-3 w-3" /> Compliance Console
             </Badge>
-            <Badge variant="outline" className="border-white/10 text-white/60">
+            <Badge variant="outline" className="border-foreground/10 text-foreground/60">
               Selective Disclosure v2
             </Badge>
           </div>
 
           <div className="grid gap-8 lg:grid-cols-2 lg:items-end">
             <div className="space-y-4">
-              <h1 className="text-4xl font-medium tracking-tight text-white sm:text-5xl lg:leading-[1.1]">
+              <h1 className="text-4xl font-medium tracking-tight text-foreground sm:text-5xl lg:leading-[1.1]">
                 Private payments. <br />
-                <span className="text-zinc-500">Publicly auditable.</span>
+                <span className="text-neutral-500">Publicly auditable.</span>
               </h1>
-              <p className="max-w-md text-lg leading-relaxed text-zinc-400">
+              <p className="max-w-md text-lg leading-relaxed text-neutral-400">
                 Generate auditable ZK-proofs from private records. You choose what to disclose; we keep the verification flows production-ready.
               </p>
             </div>
@@ -87,16 +87,16 @@ export function ComplianceHeader({
               <div className={cn("mb-4 inline-flex rounded-xl p-3", item.bg, item.color)}>
                 <item.icon className="h-6 w-6" />
               </div>
-              <h3 className="mb-2 font-semibold text-white">{item.title}</h3>
-              <p className="text-sm leading-relaxed text-zinc-400">{item.description}</p>
+              <h3 className="mb-2 font-semibold text-foreground">{item.title}</h3>
+              <p className="text-sm leading-relaxed text-neutral-400">{item.description}</p>
             </CardContent>
           </Card>
         ))}
       </div>
 
       {/* Process Stepper */}
-      <div className="rounded-3xl border border-white/5 bg-zinc-900/30 p-1">
-        <div className="grid grid-cols-1 divide-y divide-white/5 md:grid-cols-4 md:divide-x md:divide-y-0">
+      <div className="rounded-3xl border border-foreground/5 bg-neutral-900/30 p-1">
+        <div className="grid grid-cols-1 divide-y divide-foreground/5 md:grid-cols-4 md:divide-x md:divide-y-0">
           <Step number="01" title="Policy" desc="Select disclosure rule" />
           <Step number="02" title="Locate" desc="Scan wallet receipts" />
           <Step number="03" title="Prove" desc="Generate ZK-Proof" />
@@ -110,13 +110,13 @@ export function ComplianceHeader({
 function StatCard({ label, value, isAddress, isHighlight }: { label: string, value: string | number, isAddress?: boolean, isHighlight?: boolean }) {
   return (
     <div className={cn(
-      "flex flex-col justify-between rounded-2xl border border-white/5 p-4 transition-all",
-      isHighlight ? "bg-emerald-500/5 border-emerald-500/20" : "bg-white/5"
+      "flex flex-col justify-between rounded-2xl border border-foreground/5 p-4 transition-all",
+      isHighlight ? "bg-primary/5 border-primary/20" : "bg-foreground/5"
     )}>
-      <span className="text-[10px] uppercase tracking-wider text-zinc-500">{label}</span>
+      <span className="text-[10px] uppercase tracking-wider text-neutral-500">{label}</span>
       <span className={cn(
         "mt-2 block truncate font-medium",
-        isAddress ? "font-mono text-xs text-emerald-400" : "text-white",
+        isAddress ? "font-mono text-xs text-emerald-400" : "text-foreground",
         isHighlight && "text-emerald-400"
       )}>
         {isAddress ? `${value.toString().slice(0, 6)}...${value.toString().slice(-4)}` : value}
@@ -129,11 +129,11 @@ function Step({ number, title, desc, isLast }: { number: string, title: string, 
   return (
     <div className="relative p-6">
       <div className="mb-3 flex items-center justify-between">
-        <span className="font-mono text-xs text-zinc-600">{number}</span>
-        {!isLast && <ArrowRight className="hidden h-4 w-4 text-zinc-800 md:block" />}
+        <span className="font-mono text-xs text-neutral-600">{number}</span>
+        {!isLast && <ArrowRight className="hidden h-4 w-4 text-neutral-800 md:block" />}
       </div>
-      <h4 className="text-sm font-medium text-white">{title}</h4>
-      <p className="mt-1 text-xs text-zinc-500">{desc}</p>
+      <h4 className="text-sm font-medium text-foreground">{title}</h4>
+      <p className="mt-1 text-xs text-neutral-500">{desc}</p>
     </div>
   )
 }

@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
           flexDirection: "column",
           justifyContent: "space-between",
           background: "black",
-          color: "white",
+          color: "foreground",
           padding: "60px",
           fontFamily: "sans-serif",
         }}

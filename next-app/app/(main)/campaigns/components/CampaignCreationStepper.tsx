@@ -85,12 +85,12 @@ export default function CampaignCreationStepper({
                                 className={cn(
                                     "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-500",
                                     status === "error" && currentStep === s.n
-                                        ? "bg-red-500 text-white"
+                                        ? "bg-red-500 text-foreground"
                                         : currentStep === s.n
                                             ? "bg-flagship-gradient text-primary-foreground ring-4 ring-primary/20 animate-in fade-in zoom-in "
                                             : s.done
                                                 ? "bg-flagship-gradient text-primary-foreground "
-                                                : "bg-white/10 text-foreground/50 "
+                                                : "bg-foreground/10 text-foreground/50 "
                                 )}
                             >
                                 {s.done ? "✓" : s.n}
@@ -102,7 +102,7 @@ export default function CampaignCreationStepper({
                                         "w-0.5 h-10 my-1 transition-colors duration-500",
                                         s.done
                                             ? "bg-flagship-gradient"
-                                            : "bg-zinc-800"
+                                            : "bg-neutral-800"
                                     )}
                                 />
                             )}

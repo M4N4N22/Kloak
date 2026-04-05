@@ -8,7 +8,6 @@ import Image from "next/image"
 import { useState } from "react"
 
 import {
-  LayoutDashboard,
   Link2,
   ShieldCheck,
   Wallet,
@@ -36,18 +35,13 @@ type SidebarSection = {
 
 const sections: SidebarSection[] = [
   {
-    heading: "Overview",
-    icon: LayoutDashboard,
-    items: [
-      { name: "Dashboard", href: "/dashboard" },
-    ],
-  },
-  {
-    heading: "Private Payments",
+    heading: "Core",
     icon: Link2,
-    badge: "Featured",
+    badge: "Flagship",
     items: [
       { name: "Payment Links", href: "/payment-links" },
+      { name: "Compliance Ledger", href: "/compliance" },
+      { name: "Dashboard", href: "/dashboard" },
     ],
   },
   {
@@ -61,11 +55,10 @@ const sections: SidebarSection[] = [
     ],
   },
   {
-    heading: "Compliance",
+    heading: "Advanced Compliance",
     icon: ShieldCheck,
-    badge: "Featured",
+    badge: "Soon",
     items: [
-      { name: "Selective Disclosure", href: "/compliance" },
       { name: "Salary proof", href: "/salary-proof", disabled: true },
       { name: "Tax reporting", href: "/tax-reporting", disabled: true },
       { name: "DAO auditing", href: "/dao-auditing", disabled: true },
@@ -98,10 +91,10 @@ export function Sidebar() {
               alt="Kloak"
               height={32}
               width={32}
-              className="relative rounded-full border border-white/10"
+              className="relative rounded-full border border-foreground/10"
             />
           </div>
-          <span className="font-bold tracking-tight text-3xl  text-white">
+          <span className="font-bold tracking-tight text-3xl  text-foreground">
             loak
           </span>
         </div></Link>
@@ -119,7 +112,7 @@ export function Sidebar() {
 
       {/* Dynamic Footer Status */}
       <div className="p-6">
-        <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-white/5 ">
+        <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-foreground/5 ">
           <div className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-linear-to-br from-primary via-green-400 to-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-linear-to-br from-primary via-green-400 to-emerald-400"></span>
@@ -134,7 +127,10 @@ export function Sidebar() {
 }
 
 function SidebarGroup({ section, pathname }: { section: SidebarSection, pathname: string }) {
-  const hasActive = section.items.some(item => item.href === pathname)
+  const isItemActive = (href: string) =>
+    href === "/dashboard" ? pathname === href : pathname === href || pathname.startsWith(`${href}/`)
+
+  const hasActive = section.items.some(item => isItemActive(item.href))
   const [open, setOpen] = useState(hasActive)
   const Icon = section.icon
   const badgeStyles: Record<string, string> = {
@@ -184,9 +180,9 @@ function SidebarGroup({ section, pathname }: { section: SidebarSection, pathname
       </CollapsibleTrigger>
 
       <CollapsibleContent className="overflow-hidden transition-all duration-300 ease-in-out data-[state=closed]:animate-collapse-up data-[state=open]:animate-collapse-down">
-        <div className="ml-4.5 mt-1 space-y-1 relative border-l-2 border-white/10 px-6">
+        <div className="ml-4.5 mt-1 space-y-1 relative border-l-2 border-foreground/10 px-6">
           {section.items.map((item) => {
-            const active = pathname === item.href
+            const active = isItemActive(item.href)
             return (
               <Link
                 key={item.name}
@@ -196,7 +192,7 @@ function SidebarGroup({ section, pathname }: { section: SidebarSection, pathname
                   item.disabled ? "opacity-30 cursor-not-allowed" : "hover:translate-x-1",
                   active
                     ? "text-primary-foreground font-medium bg-linear-to-br from-primary via-green-400 to-emerald-400 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]"
-                    : "text-muted-foreground hover:text-white"
+                    : "text-muted-foreground hover:text-foreground"
                 )}
               >
 
