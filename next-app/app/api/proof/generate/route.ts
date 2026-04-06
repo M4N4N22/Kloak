@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     console.error("Proof generate error:", error)
 
     if (isSelectiveDisclosureError(error)) {
-      return NextResponse.json({ error: error.message }, { status: error.status })
+      return NextResponse.json({ error: error.message, ...(error.details || {}) }, { status: error.status })
     }
 
     return NextResponse.json({ error: "Failed to generate proof" }, { status: 500 })

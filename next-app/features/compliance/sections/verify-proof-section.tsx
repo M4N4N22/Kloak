@@ -41,18 +41,7 @@ export function VerifyProofSection() {
         const parsed = JSON.parse(trimmed)
 
         await verifyProof({
-          proof: {
-            proofId: parsed.proofId,
-            paymentTxHash: parsed.paymentTxHash,
-            disclosureTxHash: parsed.disclosureTxHash,
-            requestId: parsed.requestId,
-            ownerAddress: parsed.ownerAddress,
-            commitment: parsed.commitment,
-            nullifier: parsed.nullifier,
-            actorRole: parsed.actorRole,
-            proofType: parsed.proofType,
-            proofDigest: parsed.proofDigest,
-          },
+          proof: parsed,
           verifier: address || undefined,
         })
 

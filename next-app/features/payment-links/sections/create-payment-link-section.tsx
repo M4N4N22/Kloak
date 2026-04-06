@@ -14,8 +14,8 @@ export function CreatePaymentLinkSection() {
       <div className="space-y-8  mx-auto max-w-7xl ">
         <PaymentLinksSectionHeader
           eyebrow="Create Link"
-          title="Issue a new private payment request"
-          description="Define the request terms on web, then distribute the link through your preferred channels, including the Telegram bot."
+          title="Create a new payment link"
+          description="Set the amount, expiry, and payment details, then share the link anywhere you like. The payer stays private by default."
         />
 
         <CreateLinkForm />

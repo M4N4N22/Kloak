@@ -12,7 +12,6 @@ type LinkPayment = {
   token: "ALEO" | "USDCX" | "USAD"
   status: string
   createdAt: string
-  payerAddress: string | null
   proofCount: number
 }
 
@@ -44,7 +43,7 @@ export function PaymentLinkPaymentsTable({
                 <tr className="border-b border-foreground/5 bg-foreground/[0.02] text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">
                   <th className="px-6 py-4">Payment</th>
                   <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4">Payer</th>
+                  <th className="px-6 py-4">Privacy</th>
                   <th className="px-6 py-4">Proofs</th>
                   <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
@@ -62,7 +61,8 @@ export function PaymentLinkPaymentsTable({
                       <Badge className="border-primary/20 bg-primary/10 text-primary">{payment.status}</Badge>
                     </td>
                     <td className="px-6 py-5">
-                      <div className="text-sm text-foreground">{payment.payerAddress ? shortHash(payment.payerAddress, 8, 6) : "Unknown payer"}</div>
+                      <div className="text-sm text-foreground">Payer kept private</div>
+                      <div className="mt-1 text-xs text-neutral-500">Identity stays outside merchant analytics</div>
                     </td>
                     <td className="px-6 py-5">
                       <div className="font-mono text-sm text-foreground">{payment.proofCount}</div>

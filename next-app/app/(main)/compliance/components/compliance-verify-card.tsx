@@ -21,7 +21,11 @@ type VerifyResult = {
   disclosedAmount?: string | null
   thresholdAmount?: string | null
   message: string
-  paymentTimestamp: string
+  paymentTimestamp?: string | null
+  constraints?: {
+    timestampFrom?: string
+    timestampTo?: string
+  }
 }
 
 type ComplianceVerifyCardProps = {
@@ -58,7 +62,7 @@ export function ComplianceVerifyCard({
       <CardContent className="space-y-4">
         <div className="rounded-2xl border border-foreground/10 bg-foreground/5 p-4 text-sm text-muted-foreground">
           Production apps typically hand out a compact proof JSON, not raw wallet state. Verification checks that
-          the proof metadata matches stored payment linkage and that the disclosure transaction was finalized.
+          the proof metadata matches the disclosed payment statement and that the disclosure transaction was finalized.
         </div>
 
         <div className="space-y-2">
@@ -81,7 +85,6 @@ export function ComplianceVerifyCard({
   "proofType": "amount",
   "disclosedAmount": "25000000",
   "commitment": "123field",
-  "nullifier": "456field",
   "proofDigest": "..."
 }`}
           />
@@ -96,7 +99,7 @@ export function ComplianceVerifyCard({
             {lastVerified?.valid ? (
               <CheckCircle2 className="h-4 w-4 text-emerald-400" />
             ) : (
-              <ShieldAlert className="h-4 w-4 text-amber-400" />
+              <ShieldAlert className="h-4 w-4 text-orange-400" />
             )}
             Latest verification
           </div>
@@ -114,7 +117,7 @@ export function ComplianceVerifyCard({
               <p>Disclosure TX: {lastVerified.disclosureTxHash || "-"}</p>
               <p>Disclosed amount: {lastVerified.disclosedAmount || "-"}</p>
               <p>Threshold amount: {lastVerified.thresholdAmount || "-"}</p>
-              <p>Payment timestamp: {prettyDate(lastVerified.paymentTimestamp)}</p>
+              <p>Payment timestamp: {lastVerified.paymentTimestamp ? prettyDate(lastVerified.paymentTimestamp) : "Exact date stayed hidden"}</p>
               <p className="sm:col-span-2">Message: {lastVerified.message}</p>
             </div>
           ) : (

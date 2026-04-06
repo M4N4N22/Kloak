@@ -1,10 +1,22 @@
 import { prisma } from "@/lib/prisma"
-import { Prisma } from "@prisma/client"
+import { Prisma, Token } from "@prisma/client"
 
-export async function createPaymentLink(data: any) {
+type CreatePaymentLinkInput = {
+  creatorAddress?: string | null
+  requestId: string
+  title: string
+  description?: string | null
+  amount?: number | string | null
+  token: Token
+  allowCustomAmount?: boolean
+  maxPayments?: number | null
+  expiresAt?: Date | string | null
+}
+
+export async function createPaymentLink(data: CreatePaymentLinkInput) {
   return prisma.paymentLink.create({
     data: {
-      creatorAddress: data.creatorAddress,
+      creatorAddress: data.creatorAddress ?? null,
 
       // on-chain request identifier
       requestId: data.requestId,
@@ -18,7 +30,7 @@ export async function createPaymentLink(data: any) {
       allowCustomAmount: data.allowCustomAmount ?? false,
 
       maxPayments: data.maxPayments ?? null,
-      expiresAt: data.expiresAt ?? null,
+      expiresAt: data.expiresAt ? new Date(data.expiresAt) : null,
     }
   })
 }

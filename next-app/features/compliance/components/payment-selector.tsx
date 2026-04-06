@@ -1,15 +1,13 @@
 "use client"
 
-import { ArrowDownLeft, ArrowUpRight, Clock3, RefreshCw, CheckCircle2, ListFilter } from "lucide-react"
+import { AlertCircle, ArrowDownLeft, ArrowUpRight, RefreshCw, ListFilter } from "lucide-react"
 
-import type { CompliancePayment } from "@/hooks/use-compliance-payments"
+import type { CompliancePayment, CompliancePaymentDiagnostic } from "@/hooks/use-compliance-payments"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { formatDateTime, formatMoney, shortHash } from "@/features/compliance/lib/presentation"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
 
 
@@ -18,12 +16,24 @@ type PaymentSelectorProps = {
   payments: {
     sent: CompliancePayment[]
     received: CompliancePayment[]
+    diagnostics: {
+      sent: CompliancePaymentDiagnostic[]
+      received: CompliancePaymentDiagnostic[]
+    }
   }
   selectedTxHash: string
   loading: boolean
   error: string | null
   onRefresh: () => void
   onSelect: (payment: CompliancePayment) => void
+}
+
+type PaymentGridProps = {
+  items: CompliancePayment[]
+  diagnostics: CompliancePaymentDiagnostic[]
+  selectedTxHash: string
+  onSelect: (payment: CompliancePayment) => void
+  emptyText: string
 }
 
 export function PaymentSelector({
@@ -34,6 +44,7 @@ export function PaymentSelector({
   onRefresh,
   onSelect,
 }: PaymentSelectorProps) {
+ 
   return (
     <div className="space-y-6">
       {/* Header Area */}
@@ -54,7 +65,7 @@ export function PaymentSelector({
           disabled={loading}
 
         >
-          <RefreshCw className={cn("mr-2 h-4 w-4", loading && "animate-spin")} />
+          <RefreshCw className={cn("mr-2 h-3 w-3", loading && "animate-spin")} />
           Sync Ledger
         </Button>
       </div>
@@ -79,6 +90,7 @@ export function PaymentSelector({
         <TabsContent value="sent" className="outline-none">
           <PaymentGrid
             items={payments.sent}
+            diagnostics={payments.diagnostics.sent}
             selectedTxHash={selectedTxHash}
             onSelect={onSelect}
             emptyText="No outbound payments found."
@@ -87,6 +99,7 @@ export function PaymentSelector({
         <TabsContent value="received" className="outline-none">
           <PaymentGrid
             items={payments.received}
+            diagnostics={payments.diagnostics.received}
             selectedTxHash={selectedTxHash}
             onSelect={onSelect}
             emptyText="No inbound payments found."
@@ -97,8 +110,8 @@ export function PaymentSelector({
   )
 }
 
-function PaymentGrid({ items, selectedTxHash, onSelect, emptyText }: any) {
-  if (items.length === 0) {
+function PaymentGrid({ items, diagnostics, selectedTxHash, onSelect, emptyText }: PaymentGridProps) {
+  if (items.length === 0 && diagnostics.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 rounded-[2.5rem] border border-dashed border-foreground/10 bg-neutral-950/40">
         <p className="text-sm text-neutral-500 italic">{emptyText}</p>
@@ -107,101 +120,134 @@ function PaymentGrid({ items, selectedTxHash, onSelect, emptyText }: any) {
   }
 
   return (
-    <div className="w-full overflow-hidden rounded-3xl border border-foreground/5 bg-neutral-900/40">
-      {/* Table Header - Matching the Proofs Ledger */}
-      <div className="grid grid-cols-[64px_1fr_120px_160px_140px] gap-4 border-b border-foreground/5 bg-foreground/[0.02] px-6 py-6 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">
-        <div className="text-center">Select</div>
-        <div>Transaction / Request</div>
-        <div className="text-right">Amount</div>
-        <div>Date & Time</div>
-        <div className="text-right">Hash</div>
-      </div>
+    <div className="space-y-4">
+      {items.length > 0 ? (
+        <div className="w-full overflow-hidden rounded-3xl border">
+          {/* Table Header - Matching the Proofs Ledger */}
+          <div className="grid grid-cols-[64px_1fr_120px_160px_140px] gap-4 border-b  px-6 py-6 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">
+            <div className="text-center">Select</div>
+            <div>Transaction / Request</div>
+            <div className="text-right">Amount</div>
+            <div>Date & Time</div>
+            <div className="text-right">Hash</div>
+          </div>
 
-      <RadioGroup
-        value={selectedTxHash}
-        onValueChange={(hash) => {
-          const item = items.find((i: any) => i.txHash === hash)
-          if (item) onSelect(item)
-        }}
-        className="gap-0" // Remove gap to make it a continuous list
-      >
-        {items.map((payment: any) => {
-          const isSelected = payment.txHash === selectedTxHash
+        <RadioGroup
+          value={selectedTxHash}
+          onValueChange={(hash) => {
+            const item = items.find((candidate) => candidate.txHash === hash)
+            if (item) onSelect(item)
+          }}
+          className="gap-0"
+        >
+          {items.map((payment) => {
+            const isSelected = payment.txHash === selectedTxHash
 
-          return (
-            <div
-              key={payment.id}
-              onClick={() => onSelect(payment)}
-              className={cn(
-                "relative grid grid-cols-[64px_1fr_120px_160px_140px] items-center gap-4 px-6 py-5 cursor-pointer group transition-all duration-200",
-                "border-b border-foreground/4 last:border-0",
-                isSelected
-                  ? "bg-primary/3"
-                  : "hover:bg-foreground/2"
-              )}
-            >
-              {/* Active Selection Indicator Bar */}
-              {isSelected && (
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary shadow-[0_0_10px_rgba(var(--primary-rgb),0.5)]" />
-              )}
-
-              {/* Column 1: Selection Target */}
-              <div className="flex justify-center">
-                <RadioGroupItem
-                  value={payment.txHash}
-                  id={payment.txHash}
-                  className={cn(
-                    "transition-all",
-                    isSelected ? "border-primary text-primary" : "border-neutral-700"
-                  )}
-                />
-              </div>
-
-              {/* Column 2: Contextual Info */}
-              <div className="flex flex-col min-w-0">
-                <span className={cn(
-                  "text-sm font-semibold truncate transition-colors",
-                  isSelected ? "text-primary" : " group-hover:text-primary/80"
-                )}>
-                  {payment.title}
-                </span>
-                <div className="flex items-center gap-1.5 mt-1">
-                  <span className="text-[10px] font-bold text-neutral-600 uppercase tracking-tighter">Req:</span>
-                  <code className="text-[11px] font-mono text-neutral-500">{shortHash(payment.requestId, 6, 4)}</code>
-                </div>
-              </div>
-
-              {/* Column 3: Amount - Bold Monospace */}
-              <div className={cn(
-                "text-right font-mono text-base font-bold tabular-nums tracking-tight transition-colors",
-                isSelected ? "" : "text-neutral-300"
-              )}>
-                {formatMoney(payment.amount, payment.token)}
-              </div>
-
-              {/* Column 4: Timestamp */}
-              <div className="flex flex-col text-[11px] font-medium text-neutral-500 px-2">
-                <div className="flex items-center gap-1.5">
-
-                  {formatDateTime(payment.createdAt)}
-                </div>
-              </div>
-
-              {/* Column 5: Immutable Hash Badge */}
-              <div className="text-right">
-                <div className={cn(
-                  "inline-block px-2.5 py-1 rounded-lg  font-mono text-[10px] transition-all",
+            return (
+              <div
+                key={payment.id}
+                onClick={() => onSelect(payment)}
+                className={cn(
+                  "relative grid grid-cols-[64px_1fr_120px_160px_140px] items-center gap-4 px-6 py-5 cursor-pointer group transition-all duration-200",
+                  "border-b border-foreground/4 last:border-0",
                   isSelected
-                    ? "bg-primary/10 border-primary/20 text-primary"
-                    : "bg-black/40 border-foreground/5 text-neutral-500 group-hover:text-neutral-300"
+                    ? "bg-primary/3"
+                    : "hover:bg-foreground/2"
+                )}
+              >
+                {isSelected && (
+                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary shadow-[0_0_10px_rgba(var(--primary-rgb),0.5)]" />
+                )}
+
+                <div className="flex justify-center">
+                  <RadioGroupItem
+                    value={payment.txHash}
+                    id={payment.txHash}
+                    className={cn(
+                      "transition-all",
+                      isSelected ? "border-primary text-primary" : "border-neutral-700"
+                    )}
+                  />
+                </div>
+
+                <div className="flex flex-col min-w-0">
+                  <span className={cn(
+                    "text-sm font-semibold truncate transition-colors",
+                    isSelected ? "text-primary" : " group-hover:text-primary/80"
+                  )}>
+                    {payment.title}
+                  </span>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <span className="text-[10px] font-bold text-neutral-600 uppercase tracking-tighter">Req:</span>
+                    <code className="text-[11px] font-mono text-neutral-500">{shortHash(payment.requestId, 6, 4)}</code>
+                  </div>
+                </div>
+
+                <div className={cn(
+                  "text-right font-mono text-base font-bold tabular-nums tracking-tight transition-colors",
+                  isSelected ? "" : "text-neutral-300"
                 )}>
-                  {shortHash(payment.txHash, 6, 4)}
+                  {formatMoney(payment.amount, payment.token)}
+                </div>
+
+                <div className="flex flex-col text-[11px] font-medium text-neutral-500 px-2">
+                  <div className="flex items-center gap-1.5">
+                    {formatDateTime(payment.createdAt)}
+                  </div>
+                </div>
+
+                <div className="text-right">
+                  <div className={cn(
+                    "inline-block px-2.5 py-1 rounded-lg font-mono text-[10px] transition-all",
+                    isSelected
+                      ? "bg-primary/10 border-primary/20 text-primary"
+                      : "bg-black/40 border-foreground/5 text-neutral-500 group-hover:text-neutral-300"
+                  )}>
+                    {payment.paymentSource === "wallet" ? "Wallet receipt" : shortHash(payment.txHash, 6, 4)}
+                  </div>
                 </div>
               </div>
+            )
+          })}
+        </RadioGroup>
+      </div>
+      ) : null}
+
+      {diagnostics.length > 0 ? (
+        <div className="rounded-[2rem] border border-orange-500/15 bg-orange-500/5 p-5">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 rounded-xl bg-orange-500/10 p-2 text-orange-300">
+              <AlertCircle className="h-4 w-4" />
             </div>
-          )
-        })}
-      </RadioGroup>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-orange-100">Some wallet receipts are not ready for proofs yet</p>
+              <p className="text-xs leading-relaxed text-orange-100/75">
+                These receipts are real, but Kloak could not safely match them to a proof-ready payment record yet. Use the notes below to understand why.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 space-y-3">
+            {diagnostics.map((item) => (
+              <div key={item.id} className="rounded-2xl border border-foreground/5 bg-black/20 p-4">
+                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                  <div className="space-y-1.5">
+                    <p className="text-sm font-semibold text-foreground">{item.title}</p>
+                    <p className="text-xs leading-relaxed text-neutral-400">{item.message}</p>
+                    <p className="text-xs text-orange-100/80">{item.actionLabel}</p>
+                  </div>
+                  <div className="space-y-1 text-[11px] text-neutral-500 md:text-right">
+                    <p>Req: <code className="font-mono">{shortHash(item.requestId, 6, 4)}</code></p>
+                    <p>Receipt: <code className="font-mono">{shortHash(item.commitment, 6, 4)}</code></p>
+                    <p>Amount: {item.amount}</p>
+                    <p>Seen at: {formatDateTime(item.paymentTimestamp)}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }

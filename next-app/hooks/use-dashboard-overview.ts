@@ -22,9 +22,6 @@ export type DashboardOverview = {
     totalPayments: number
     totalViews: number
     conversionRate: number
-    disclosureRate: number
-    disclosedPayments: number
-    botActivity: number
     chart: Array<{
       date: string
       label: string
@@ -57,15 +54,6 @@ export type DashboardOverview = {
       sourceType: string
       createdAt: string
       txHash: string | null
-    }>
-    proofs: Array<{
-      proofId: string
-      paymentTxHash: string
-      createdAt: string
-      proofType: "existence" | "amount" | "threshold"
-      actorRole: "payer" | "receiver"
-      status: string
-      verificationCount: number
     }>
   }
 }

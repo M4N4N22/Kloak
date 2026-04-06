@@ -58,7 +58,7 @@ function EmptyState({
         <p className="text-sm leading-6 text-neutral-500">{description}</p>
       </div>
       <Link href={href} className="mt-5">
-        <Button className="rounded-2xl bg-[#F1F66A] text-black hover:bg-[#FAFF8B]">{cta}</Button>
+        <Button>{cta}</Button>
       </Link>
     </div>
   )
@@ -73,16 +73,15 @@ export function BotsActivityLedger({
 }) {
   return (
     <div className="grid gap-4 xl:grid-cols-2">
-      <Card className="rounded-[2.5rem] border border-foreground/5 bg-neutral-900/40 text-foreground">
+      <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">Recent Payments</div>
+            <div className="text-sm text-neutral-500">Recent Payments</div>
             <CardTitle className="mt-2 text-lg">Payment Alert Feed</CardTitle>
           </div>
           <a href="https://t.me/kloak_private_payments_bot" target="_blank" rel="noopener noreferrer">
-            <Button variant="outline" size="sm">
+            <Button variant="outline">
               Open Bot
-              <ArrowUpRight className="h-4 w-4" />
             </Button>
           </a>
         </CardHeader>
@@ -90,7 +89,7 @@ export function BotsActivityLedger({
           {payments.length === 0 ? (
             <EmptyState
               title="No payment alerts yet"
-              description="When one of your tracked payment links gets paid, the latest Telegram-visible alerts will appear here."
+              description="When someone pays through one of your links, the latest bot alerts will appear here."
               href="/payment-links"
               cta="Open payment links"
               icon={MessageCircle}
@@ -99,7 +98,7 @@ export function BotsActivityLedger({
             <div className="overflow-hidden rounded-[2rem] border border-foreground/5">
               <table className="w-full border-collapse text-left">
                 <thead>
-                  <tr className="border-b border-foreground/5 bg-foreground/[0.02] text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">
+                  <tr className="border-b border-foreground/5 bg-foreground/[0.02] text-sm text-neutral-500">
                     <th className="px-5 py-4">Amount</th>
                     <th className="px-5 py-4">Status</th>
                     <th className="px-5 py-4">Source</th>
@@ -113,7 +112,7 @@ export function BotsActivityLedger({
                         <div className="mt-1 text-xs text-neutral-500">{formatDateTime(payment.createdAt)}</div>
                       </td>
                       <td className="px-5 py-4">
-                        <span className="rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
+                        <span className="rounded-full  bg-primary/10 px-2.5 py-1 text-xs text-primary">
                           {payment.status}
                         </span>
                       </td>
@@ -132,16 +131,15 @@ export function BotsActivityLedger({
         </CardContent>
       </Card>
 
-      <Card className="rounded-[2.5rem] border border-foreground/5 bg-neutral-900/40 text-foreground">
+      <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">Recent Links</div>
+            <div className="text-sm text-neutral-500">Recent Links</div>
             <CardTitle className="mt-2 text-lg">Tracked Links</CardTitle>
           </div>
           <Link href="/payment-links">
-            <Button variant="outline" size="sm">
+            <Button variant="outline">
               Open Links
-              <ArrowUpRight className="h-4 w-4" />
             </Button>
           </Link>
         </CardHeader>
@@ -149,7 +147,7 @@ export function BotsActivityLedger({
           {links.length === 0 ? (
             <EmptyState
               title="No tracked links yet"
-              description="Payment links created in the web app will show up here once they are available for Telegram sharing and monitoring."
+              description="Links you create on the web app will appear here once they are ready to share and track in Telegram."
               href="/payment-links"
               cta="Open payment links"
               icon={Link2}
@@ -158,7 +156,7 @@ export function BotsActivityLedger({
             <div className="overflow-hidden rounded-[2rem] border border-foreground/5">
               <table className="w-full border-collapse text-left">
                 <thead>
-                  <tr className="border-b border-foreground/5 bg-foreground/[0.02] text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">
+                  <tr className="border-b border-foreground/5 bg-foreground/[0.02] text-sm text-neutral-500">
                     <th className="px-5 py-4">Link</th>
                     <th className="px-5 py-4">Status</th>
                     <th className="px-5 py-4">Performance</th>
@@ -172,7 +170,7 @@ export function BotsActivityLedger({
                         <div className="mt-1 font-mono text-xs text-neutral-500">{shortHash(link.requestId, 8, 6)}</div>
                       </td>
                       <td className="px-5 py-4">
-                        <span className="rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
+                        <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs text-primary">
                           {link.active ? "Active" : "Inactive"}
                         </span>
                         <div className="mt-1 text-xs text-neutral-500">{formatDateTime(link.createdAt)}</div>

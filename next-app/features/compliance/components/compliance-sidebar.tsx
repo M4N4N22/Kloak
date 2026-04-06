@@ -16,12 +16,12 @@ export function ComplianceSidebar() {
   const pathname = usePathname()
 
   return (
-    <aside className="flex h-full w-full flex-col p-4 ">
+    <aside className="flex h-full w-full flex-col p-4">
      
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1">
-        <p className="px-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-600 mb-4">
+        <p className="px-4 text-sm text-neutral-500 mb-4">
       Menu
         </p>
         {items.map((item) => {
@@ -35,7 +35,7 @@ export function ComplianceSidebar() {
               className={cn(
                 "group relative flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200",
                 active
-                  ? "bg-primary/10 text-primary shadow-[inset_0_0_20px_rgba(16,185,129,0.05)]"
+                  ? "bg-gradient-to-l from-transparent to-primary/10 text-primary shadow-[inset_0_0_20px_rgba(16,185,129,0.05)]"
                   : "text-neutral-500 hover:bg-foreground/5 hover:text-neutral-200"
               )}
             >

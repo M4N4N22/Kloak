@@ -1,17 +1,14 @@
 import credits.aleo;
 import test_usdcx_stablecoin.aleo;
 import test_usad_stablecoin.aleo;
-
-program kloak_protocol_v8.aleo {
+program kloak_protocol_v10.aleo {
 
     @noupgrade
-    async constructor() {}
+    constructor() {}
 
     // --------------------------------------
     // MAPPINGS
     // --------------------------------------
-
-    mapping nullifiers: field => bool;
 
     mapping payment_commitments: field => bool;
 
@@ -411,7 +408,7 @@ program kloak_protocol_v8.aleo {
 
     fn prove_payment_basic(
         receipt: PaymentRequestReceipt,
-    ) -> (bool, Final) {
+    ) -> (PaymentRequestReceipt, bool, Final) {
         let commitment: field = assert_valid_receipt_fields(
             receipt.owner,
             receipt.role,
@@ -424,14 +421,24 @@ program kloak_protocol_v8.aleo {
             receipt.commitment,
             0u8,
         );
-        let nullifier: field = proof_nullifier(receipt.secret, 0u8, 0u64, 0u64, 0u64);
+        let refreshed_receipt: PaymentRequestReceipt = PaymentRequestReceipt {
+            owner: receipt.owner,
+            counterparty: receipt.counterparty,
+            role: receipt.role,
+            payer: receipt.payer,
+            merchant: receipt.merchant,
+            request_id: receipt.request_id,
+            amount: receipt.amount,
+            timestamp: receipt.timestamp,
+            secret: receipt.secret,
+            commitment: receipt.commitment,
+        };
 
         return (
+            refreshed_receipt,
             true,
             final {
                 assert(payment_commitments.get_or_use(commitment, false));
-                assert(!nullifiers.get_or_use(nullifier, false));
-                nullifiers.set(nullifier, true);
             },
         );
     }
@@ -439,7 +446,7 @@ program kloak_protocol_v8.aleo {
     fn prove_payment_amount(
         receipt: PaymentRequestReceipt,
         amount: u64,
-    ) -> (bool, Final) {
+    ) -> (PaymentRequestReceipt, bool, Final) {
         let commitment: field = assert_valid_receipt_fields(
             receipt.owner,
             receipt.role,
@@ -452,16 +459,26 @@ program kloak_protocol_v8.aleo {
             receipt.commitment,
             0u8,
         );
-        let nullifier: field = proof_nullifier(receipt.secret, 1u8, amount, 0u64, 0u64);
+        let refreshed_receipt: PaymentRequestReceipt = PaymentRequestReceipt {
+            owner: receipt.owner,
+            counterparty: receipt.counterparty,
+            role: receipt.role,
+            payer: receipt.payer,
+            merchant: receipt.merchant,
+            request_id: receipt.request_id,
+            amount: receipt.amount,
+            timestamp: receipt.timestamp,
+            secret: receipt.secret,
+            commitment: receipt.commitment,
+        };
 
         assert_eq(receipt.amount, amount);
 
         return (
+            refreshed_receipt,
             true,
             final {
                 assert(payment_commitments.get_or_use(commitment, false));
-                assert(!nullifiers.get_or_use(nullifier, false));
-                nullifiers.set(nullifier, true);
             },
         );
     }
@@ -469,7 +486,7 @@ program kloak_protocol_v8.aleo {
     fn prove_payment_threshold(
         receipt: PaymentRequestReceipt,
         minimum_amount: u64,
-    ) -> (bool, Final) {
+    ) -> (PaymentRequestReceipt, bool, Final) {
         let commitment: field = assert_valid_receipt_fields(
             receipt.owner,
             receipt.role,
@@ -482,23 +499,33 @@ program kloak_protocol_v8.aleo {
             receipt.commitment,
             0u8,
         );
-        let nullifier: field = proof_nullifier(receipt.secret, 2u8, minimum_amount, 0u64, 0u64);
+        let refreshed_receipt: PaymentRequestReceipt = PaymentRequestReceipt {
+            owner: receipt.owner,
+            counterparty: receipt.counterparty,
+            role: receipt.role,
+            payer: receipt.payer,
+            merchant: receipt.merchant,
+            request_id: receipt.request_id,
+            amount: receipt.amount,
+            timestamp: receipt.timestamp,
+            secret: receipt.secret,
+            commitment: receipt.commitment,
+        };
 
         assert(receipt.amount >= minimum_amount);
 
         return (
+            refreshed_receipt,
             true,
             final {
                 assert(payment_commitments.get_or_use(commitment, false));
-                assert(!nullifiers.get_or_use(nullifier, false));
-                nullifiers.set(nullifier, true);
             },
         );
     }
 
     fn prove_receipt_basic(
         receipt: PaymentRequestReceipt,
-    ) -> (bool, Final) {
+    ) -> (PaymentRequestReceipt, bool, Final) {
         let commitment: field = assert_valid_receipt_fields(
             receipt.owner,
             receipt.role,
@@ -511,14 +538,24 @@ program kloak_protocol_v8.aleo {
             receipt.commitment,
             1u8,
         );
-        let nullifier: field = proof_nullifier(receipt.secret, 3u8, 0u64, 0u64, 0u64);
+        let refreshed_receipt: PaymentRequestReceipt = PaymentRequestReceipt {
+            owner: receipt.owner,
+            counterparty: receipt.counterparty,
+            role: receipt.role,
+            payer: receipt.payer,
+            merchant: receipt.merchant,
+            request_id: receipt.request_id,
+            amount: receipt.amount,
+            timestamp: receipt.timestamp,
+            secret: receipt.secret,
+            commitment: receipt.commitment,
+        };
 
         return (
+            refreshed_receipt,
             true,
             final {
                 assert(payment_commitments.get_or_use(commitment, false));
-                assert(!nullifiers.get_or_use(nullifier, false));
-                nullifiers.set(nullifier, true);
             },
         );
     }
@@ -526,7 +563,7 @@ program kloak_protocol_v8.aleo {
     fn prove_receipt_amount(
         receipt: PaymentRequestReceipt,
         amount: u64,
-    ) -> (bool, Final) {
+    ) -> (PaymentRequestReceipt, bool, Final) {
         let commitment: field = assert_valid_receipt_fields(
             receipt.owner,
             receipt.role,
@@ -539,16 +576,26 @@ program kloak_protocol_v8.aleo {
             receipt.commitment,
             1u8,
         );
-        let nullifier: field = proof_nullifier(receipt.secret, 4u8, amount, 0u64, 0u64);
+        let refreshed_receipt: PaymentRequestReceipt = PaymentRequestReceipt {
+            owner: receipt.owner,
+            counterparty: receipt.counterparty,
+            role: receipt.role,
+            payer: receipt.payer,
+            merchant: receipt.merchant,
+            request_id: receipt.request_id,
+            amount: receipt.amount,
+            timestamp: receipt.timestamp,
+            secret: receipt.secret,
+            commitment: receipt.commitment,
+        };
 
         assert_eq(receipt.amount, amount);
 
         return (
+            refreshed_receipt,
             true,
             final {
                 assert(payment_commitments.get_or_use(commitment, false));
-                assert(!nullifiers.get_or_use(nullifier, false));
-                nullifiers.set(nullifier, true);
             },
         );
     }
@@ -556,7 +603,7 @@ program kloak_protocol_v8.aleo {
     fn prove_receipt_threshold(
         receipt: PaymentRequestReceipt,
         minimum_amount: u64,
-    ) -> (bool, Final) {
+    ) -> (PaymentRequestReceipt, bool, Final) {
         let commitment: field = assert_valid_receipt_fields(
             receipt.owner,
             receipt.role,
@@ -569,16 +616,26 @@ program kloak_protocol_v8.aleo {
             receipt.commitment,
             1u8,
         );
-        let nullifier: field = proof_nullifier(receipt.secret, 5u8, minimum_amount, 0u64, 0u64);
+        let refreshed_receipt: PaymentRequestReceipt = PaymentRequestReceipt {
+            owner: receipt.owner,
+            counterparty: receipt.counterparty,
+            role: receipt.role,
+            payer: receipt.payer,
+            merchant: receipt.merchant,
+            request_id: receipt.request_id,
+            amount: receipt.amount,
+            timestamp: receipt.timestamp,
+            secret: receipt.secret,
+            commitment: receipt.commitment,
+        };
 
         assert(receipt.amount >= minimum_amount);
 
         return (
+            refreshed_receipt,
             true,
             final {
                 assert(payment_commitments.get_or_use(commitment, false));
-                assert(!nullifiers.get_or_use(nullifier, false));
-                nullifiers.set(nullifier, true);
             },
         );
     }
@@ -587,7 +644,7 @@ program kloak_protocol_v8.aleo {
         receipt: PaymentRequestReceipt,
         timestamp_from: u64,
         timestamp_to: u64,
-    ) -> (bool, Final) {
+    ) -> (PaymentRequestReceipt, bool, Final) {
         let commitment: field = assert_valid_receipt_fields(
             receipt.owner,
             receipt.role,
@@ -600,17 +657,27 @@ program kloak_protocol_v8.aleo {
             receipt.commitment,
             0u8,
         );
-        let nullifier: field = proof_nullifier(receipt.secret, 6u8, 0u64, timestamp_from, timestamp_to);
+        let refreshed_receipt: PaymentRequestReceipt = PaymentRequestReceipt {
+            owner: receipt.owner,
+            counterparty: receipt.counterparty,
+            role: receipt.role,
+            payer: receipt.payer,
+            merchant: receipt.merchant,
+            request_id: receipt.request_id,
+            amount: receipt.amount,
+            timestamp: receipt.timestamp,
+            secret: receipt.secret,
+            commitment: receipt.commitment,
+        };
 
         assert(receipt.timestamp >= timestamp_from);
         assert(receipt.timestamp <= timestamp_to);
 
         return (
+            refreshed_receipt,
             true,
             final {
                 assert(payment_commitments.get_or_use(commitment, false));
-                assert(!nullifiers.get_or_use(nullifier, false));
-                nullifiers.set(nullifier, true);
             },
         );
     }
@@ -619,7 +686,7 @@ program kloak_protocol_v8.aleo {
         receipt: PaymentRequestReceipt,
         timestamp_from: u64,
         timestamp_to: u64,
-    ) -> (bool, Final) {
+    ) -> (PaymentRequestReceipt, bool, Final) {
         let commitment: field = assert_valid_receipt_fields(
             receipt.owner,
             receipt.role,
@@ -632,17 +699,27 @@ program kloak_protocol_v8.aleo {
             receipt.commitment,
             1u8,
         );
-        let nullifier: field = proof_nullifier(receipt.secret, 7u8, 0u64, timestamp_from, timestamp_to);
+        let refreshed_receipt: PaymentRequestReceipt = PaymentRequestReceipt {
+            owner: receipt.owner,
+            counterparty: receipt.counterparty,
+            role: receipt.role,
+            payer: receipt.payer,
+            merchant: receipt.merchant,
+            request_id: receipt.request_id,
+            amount: receipt.amount,
+            timestamp: receipt.timestamp,
+            secret: receipt.secret,
+            commitment: receipt.commitment,
+        };
 
         assert(receipt.timestamp >= timestamp_from);
         assert(receipt.timestamp <= timestamp_to);
 
         return (
+            refreshed_receipt,
             true,
             final {
                 assert(payment_commitments.get_or_use(commitment, false));
-                assert(!nullifiers.get_or_use(nullifier, false));
-                nullifiers.set(nullifier, true);
             },
         );
     }
@@ -696,25 +773,6 @@ fn assert_valid_receipt_fields(
     assert_eq(commitment, expected_commitment);
 
     return expected_commitment;
-}
-
-fn proof_nullifier(
-    secret: field,
-    proof_type: u8,
-    amount_bound: u64,
-    timestamp_from: u64,
-    timestamp_to: u64,
-) -> field {
-    let proof_type_field: field = proof_type as field;
-    let amount_bound_field: field = amount_bound as field;
-    let timestamp_from_field: field = timestamp_from as field;
-    let timestamp_to_field: field = timestamp_to as field;
-    let public_statement_hash: field = hash2(
-        hash2(proof_type_field, amount_bound_field),
-        hash2(timestamp_from_field, timestamp_to_field),
-    );
-
-    return hash2(secret, public_statement_hash);
 }
 
 fn hash1(a: field) -> field {

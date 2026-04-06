@@ -38,7 +38,7 @@ export function useFundCampaign() {
             setStatus("signing")
 
             const result = await executeTransaction({
-                program: "kloak_protocol_v8.aleo",
+                program: "kloak_protocol_v10.aleo",
                 function: "deposit_campaign_funds",
                 inputs: [
                     campaignId,

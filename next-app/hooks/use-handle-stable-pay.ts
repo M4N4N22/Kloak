@@ -21,6 +21,12 @@ type StableRecord = {
   originalIndex?: number
 }
 
+type DisclosureReceiptRecord = {
+  plaintext?: string
+  recordPlaintext?: string
+  spent?: boolean
+}
+
 const TOKEN_CONFIG: Record<
   StableToken,
   {
@@ -51,6 +57,79 @@ function parseStableAmount(record: StableRecord) {
   }
 
   return BigInt(match[1])
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+function normalizeLeoValue(value: string | null) {
+  if (!value) return null
+
+  return value
+    .trim()
+    .replace(/^"+|"+$/g, "")
+    .replace(/\.(private|public|constant)$/, "")
+}
+
+function extractFieldValue(text: string, name: string) {
+  const match = text.match(new RegExp(`${name}:\\s*([^,\\n}]+)`))
+  return normalizeLeoValue(match?.[1] || null)
+}
+
+async function findWalletReceiptCommitment(input: {
+  requestRecords: ReturnType<typeof useWallet>["requestRecords"]
+  ownerAddress: string
+  merchantAddress: string
+  requestId: string
+  amountMicro: bigint
+  timestamp: number
+}) {
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const receipts = await (
+      input.requestRecords as unknown as (
+        program: string,
+        includePlaintext?: boolean,
+        filter?: "all" | "unspent" | "spent",
+      ) => Promise<DisclosureReceiptRecord[]>
+    )("kloak_protocol_v10.aleo", true, "unspent")
+
+    const matchingReceipt = receipts.find((record) => {
+      if (record.spent) return false
+
+      const plaintext = record.recordPlaintext || record.plaintext || ""
+      const role = extractFieldValue(plaintext, "role")
+      const owner = extractFieldValue(plaintext, "owner")
+      const counterparty = extractFieldValue(plaintext, "counterparty")
+      const requestId = extractFieldValue(plaintext, "request_id")
+      const amount = extractFieldValue(plaintext, "amount")?.replace("u64", "")
+      const timestamp = extractFieldValue(plaintext, "timestamp")?.replace("u64", "")
+      const commitment = extractFieldValue(plaintext, "commitment")
+
+      return Boolean(
+        commitment &&
+        role === "0u8" &&
+        owner === normalizeLeoValue(input.ownerAddress) &&
+        counterparty === normalizeLeoValue(input.merchantAddress) &&
+        requestId === normalizeLeoValue(input.requestId) &&
+        amount === input.amountMicro.toString() &&
+        timestamp === String(input.timestamp),
+      )
+    })
+
+    const commitment = extractFieldValue(
+      matchingReceipt?.recordPlaintext || matchingReceipt?.plaintext || "",
+      "commitment",
+    )
+
+    if (commitment) {
+      return commitment
+    }
+
+    await sleep(1000)
+  }
+
+  return null
 }
 
 function formatFieldValue(value: unknown) {
@@ -215,7 +294,7 @@ export function useHandleStablePay(link: StablePaymentLink, amount: string) {
       const { Field } = await import("@provablehq/sdk")
       const receiptSecret = Field.random().toString()
       const receiptTimestamp = Math.floor(Date.now() / 1000)
-      const commitment = await computePaymentCommitment(
+      const predictedCommitment = await computePaymentCommitment(
         requestIdFormatted,
         requiredAmount.toString(),
         address,
@@ -225,7 +304,7 @@ export function useHandleStablePay(link: StablePaymentLink, amount: string) {
       )
 
       const resultPromise = executeTransaction({
-        program: "kloak_protocol_v8.aleo",
+        program: "kloak_protocol_v10.aleo",
         function: tokenConfig.payFunction,
         inputs: [
           recordPlaintext,
@@ -273,18 +352,25 @@ export function useHandleStablePay(link: StablePaymentLink, amount: string) {
             const finalId = realTxId || optimisticTxId
 
             try {
+              const actualReceiptCommitment =
+                await findWalletReceiptCommitment({
+                  requestRecords,
+                  ownerAddress: address,
+                  merchantAddress,
+                  requestId: requestIdFormatted,
+                  amountMicro: requiredAmount,
+                  timestamp: receiptTimestamp,
+                }) || predictedCommitment
+
               const dbResponse = await fetch(`/api/payment-links/${link.id}/pay`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                  payer: address,
-                  payerAddress: address,
                   merchantAddress,
                   amount,
                   token: link.token,
                   txHash: finalId,
-                  receiptCommitment: commitment,
-                  receiptOwner: address,
+                  receiptCommitment: actualReceiptCommitment,
                 }),
               })
 

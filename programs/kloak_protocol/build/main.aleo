@@ -6,7 +6,7 @@ import test_usdcx_multisig_core.aleo;
 import test_usdcx_freezelist.aleo;
 import test_usdcx_stablecoin.aleo;
 import credits.aleo;
-program kloak_protocol_v8.aleo;
+program kloak_protocol_v10.aleo;
 
 record PaymentReceipt:
     owner as address.private;
@@ -38,10 +38,6 @@ struct PaymentRequest:
     amount as u64;
     open_amount as boolean;
     active as boolean;
-
-mapping nullifiers:
-    key as field.public;
-    value as boolean.public;
 
 mapping payment_commitments:
     key as field.public;
@@ -89,7 +85,7 @@ function send_private_payment_usdcx:
     output r6 as test_usdcx_stablecoin.aleo/Token.record;
     output r4 as test_usdcx_stablecoin.aleo/ComplianceRecord.record;
     output r9 as PaymentReceipt.record;
-    output r10 as kloak_protocol_v8.aleo/send_private_payment_usdcx.future;
+    output r10 as kloak_protocol_v10.aleo/send_private_payment_usdcx.future;
 
 finalize send_private_payment_usdcx:
     input r0 as test_usdcx_stablecoin.aleo/transfer_private.future;
@@ -108,7 +104,7 @@ function send_private_payment_usad:
     output r6 as test_usad_stablecoin.aleo/Token.record;
     output r4 as test_usad_stablecoin.aleo/ComplianceRecord.record;
     output r9 as PaymentReceipt.record;
-    output r10 as kloak_protocol_v8.aleo/send_private_payment_usad.future;
+    output r10 as kloak_protocol_v10.aleo/send_private_payment_usad.future;
 
 finalize send_private_payment_usad:
     input r0 as test_usad_stablecoin.aleo/transfer_private.future;
@@ -120,7 +116,7 @@ function create_payment_request:
     input r2 as u64.private;
     input r3 as boolean.private;
     async create_payment_request r1 self.caller r2 r3 r0 into r4;
-    output r4 as kloak_protocol_v8.aleo/create_payment_request.future;
+    output r4 as kloak_protocol_v10.aleo/create_payment_request.future;
 
 finalize create_payment_request:
     input r0 as u8.public;
@@ -165,7 +161,7 @@ function pay_request_aleo:
     output r20 as credits.aleo/credits.record;
     output r22 as PaymentRequestReceipt.record;
     output r23 as PaymentRequestReceipt.record;
-    output r24 as kloak_protocol_v8.aleo/pay_request_aleo.future;
+    output r24 as kloak_protocol_v10.aleo/pay_request_aleo.future;
 
 finalize pay_request_aleo:
     input r0 as field.public;
@@ -216,7 +212,7 @@ function pay_request_usdcx:
     output r22 as test_usdcx_stablecoin.aleo/ComplianceRecord.record;
     output r26 as PaymentRequestReceipt.record;
     output r27 as PaymentRequestReceipt.record;
-    output r28 as kloak_protocol_v8.aleo/pay_request_usdcx.future;
+    output r28 as kloak_protocol_v10.aleo/pay_request_usdcx.future;
 
 finalize pay_request_usdcx:
     input r0 as test_usdcx_stablecoin.aleo/transfer_private.future;
@@ -269,7 +265,7 @@ function pay_request_usad:
     output r22 as test_usad_stablecoin.aleo/ComplianceRecord.record;
     output r26 as PaymentRequestReceipt.record;
     output r27 as PaymentRequestReceipt.record;
-    output r28 as kloak_protocol_v8.aleo/pay_request_usad.future;
+    output r28 as kloak_protocol_v10.aleo/pay_request_usad.future;
 
 finalize pay_request_usad:
     input r0 as test_usad_stablecoin.aleo/transfer_private.future;
@@ -320,191 +316,139 @@ closure assert_valid_receipt_fields:
     assert.eq r8 r23;
     output r23 as field;
 
-closure proof_nullifier:
-    input r0 as field;
-    input r1 as u8;
-    input r2 as u64;
-    input r3 as u64;
-    input r4 as u64;
-    cast r1 into r5 as field;
-    cast r2 into r6 as field;
-    cast r3 into r7 as field;
-    cast r4 into r8 as field;
-    cast r5 r6 into r9 as [field; 2u32];
-    hash.bhp256.raw r9 into r10 as field;
-    cast r7 r8 into r11 as [field; 2u32];
-    hash.bhp256.raw r11 into r12 as field;
-    cast r10 r12 into r13 as [field; 2u32];
-    hash.bhp256.raw r13 into r14 as field;
-    cast r0 r14 into r15 as [field; 2u32];
-    hash.bhp256.raw r15 into r16 as field;
-    output r16 as field;
-
 function prove_payment_basic:
     input r0 as PaymentRequestReceipt.record;
     call assert_valid_receipt_fields r0.owner r0.role r0.payer r0.merchant r0.request_id r0.amount r0.timestamp r0.secret r0.commitment 0u8 into r1;
-    call proof_nullifier r0.secret 0u8 0u64 0u64 0u64 into r2;
-    async prove_payment_basic r1 r2 into r3;
+    cast r0.owner r0.counterparty r0.role r0.payer r0.merchant r0.request_id r0.amount r0.timestamp r0.secret r0.commitment into r2 as PaymentRequestReceipt.record;
+    async prove_payment_basic r1 into r3;
+    output r2 as PaymentRequestReceipt.record;
     output true as boolean.private;
-    output r3 as kloak_protocol_v8.aleo/prove_payment_basic.future;
+    output r3 as kloak_protocol_v10.aleo/prove_payment_basic.future;
 
 finalize prove_payment_basic:
     input r0 as field.public;
-    input r1 as field.public;
-    get.or_use payment_commitments[r0] false into r2;
-    assert.eq r2 true;
-    get.or_use nullifiers[r1] false into r3;
-    not r3 into r4;
-    assert.eq r4 true;
-    set true into nullifiers[r1];
+    get.or_use payment_commitments[r0] false into r1;
+    assert.eq r1 true;
 
 function prove_payment_amount:
     input r0 as PaymentRequestReceipt.record;
     input r1 as u64.private;
     call assert_valid_receipt_fields r0.owner r0.role r0.payer r0.merchant r0.request_id r0.amount r0.timestamp r0.secret r0.commitment 0u8 into r2;
-    call proof_nullifier r0.secret 1u8 r1 0u64 0u64 into r3;
+    cast r0.owner r0.counterparty r0.role r0.payer r0.merchant r0.request_id r0.amount r0.timestamp r0.secret r0.commitment into r3 as PaymentRequestReceipt.record;
     assert.eq r0.amount r1;
-    async prove_payment_amount r2 r3 into r4;
+    async prove_payment_amount r2 into r4;
+    output r3 as PaymentRequestReceipt.record;
     output true as boolean.private;
-    output r4 as kloak_protocol_v8.aleo/prove_payment_amount.future;
+    output r4 as kloak_protocol_v10.aleo/prove_payment_amount.future;
 
 finalize prove_payment_amount:
     input r0 as field.public;
-    input r1 as field.public;
-    get.or_use payment_commitments[r0] false into r2;
-    assert.eq r2 true;
-    get.or_use nullifiers[r1] false into r3;
-    not r3 into r4;
-    assert.eq r4 true;
-    set true into nullifiers[r1];
+    get.or_use payment_commitments[r0] false into r1;
+    assert.eq r1 true;
 
 function prove_payment_threshold:
     input r0 as PaymentRequestReceipt.record;
     input r1 as u64.private;
     call assert_valid_receipt_fields r0.owner r0.role r0.payer r0.merchant r0.request_id r0.amount r0.timestamp r0.secret r0.commitment 0u8 into r2;
-    call proof_nullifier r0.secret 2u8 r1 0u64 0u64 into r3;
+    cast r0.owner r0.counterparty r0.role r0.payer r0.merchant r0.request_id r0.amount r0.timestamp r0.secret r0.commitment into r3 as PaymentRequestReceipt.record;
     gte r0.amount r1 into r4;
     assert.eq r4 true;
-    async prove_payment_threshold r2 r3 into r5;
+    async prove_payment_threshold r2 into r5;
+    output r3 as PaymentRequestReceipt.record;
     output true as boolean.private;
-    output r5 as kloak_protocol_v8.aleo/prove_payment_threshold.future;
+    output r5 as kloak_protocol_v10.aleo/prove_payment_threshold.future;
 
 finalize prove_payment_threshold:
     input r0 as field.public;
-    input r1 as field.public;
-    get.or_use payment_commitments[r0] false into r2;
-    assert.eq r2 true;
-    get.or_use nullifiers[r1] false into r3;
-    not r3 into r4;
-    assert.eq r4 true;
-    set true into nullifiers[r1];
+    get.or_use payment_commitments[r0] false into r1;
+    assert.eq r1 true;
 
 function prove_receipt_basic:
     input r0 as PaymentRequestReceipt.record;
     call assert_valid_receipt_fields r0.owner r0.role r0.payer r0.merchant r0.request_id r0.amount r0.timestamp r0.secret r0.commitment 1u8 into r1;
-    call proof_nullifier r0.secret 3u8 0u64 0u64 0u64 into r2;
-    async prove_receipt_basic r1 r2 into r3;
+    cast r0.owner r0.counterparty r0.role r0.payer r0.merchant r0.request_id r0.amount r0.timestamp r0.secret r0.commitment into r2 as PaymentRequestReceipt.record;
+    async prove_receipt_basic r1 into r3;
+    output r2 as PaymentRequestReceipt.record;
     output true as boolean.private;
-    output r3 as kloak_protocol_v8.aleo/prove_receipt_basic.future;
+    output r3 as kloak_protocol_v10.aleo/prove_receipt_basic.future;
 
 finalize prove_receipt_basic:
     input r0 as field.public;
-    input r1 as field.public;
-    get.or_use payment_commitments[r0] false into r2;
-    assert.eq r2 true;
-    get.or_use nullifiers[r1] false into r3;
-    not r3 into r4;
-    assert.eq r4 true;
-    set true into nullifiers[r1];
+    get.or_use payment_commitments[r0] false into r1;
+    assert.eq r1 true;
 
 function prove_receipt_amount:
     input r0 as PaymentRequestReceipt.record;
     input r1 as u64.private;
     call assert_valid_receipt_fields r0.owner r0.role r0.payer r0.merchant r0.request_id r0.amount r0.timestamp r0.secret r0.commitment 1u8 into r2;
-    call proof_nullifier r0.secret 4u8 r1 0u64 0u64 into r3;
+    cast r0.owner r0.counterparty r0.role r0.payer r0.merchant r0.request_id r0.amount r0.timestamp r0.secret r0.commitment into r3 as PaymentRequestReceipt.record;
     assert.eq r0.amount r1;
-    async prove_receipt_amount r2 r3 into r4;
+    async prove_receipt_amount r2 into r4;
+    output r3 as PaymentRequestReceipt.record;
     output true as boolean.private;
-    output r4 as kloak_protocol_v8.aleo/prove_receipt_amount.future;
+    output r4 as kloak_protocol_v10.aleo/prove_receipt_amount.future;
 
 finalize prove_receipt_amount:
     input r0 as field.public;
-    input r1 as field.public;
-    get.or_use payment_commitments[r0] false into r2;
-    assert.eq r2 true;
-    get.or_use nullifiers[r1] false into r3;
-    not r3 into r4;
-    assert.eq r4 true;
-    set true into nullifiers[r1];
+    get.or_use payment_commitments[r0] false into r1;
+    assert.eq r1 true;
 
 function prove_receipt_threshold:
     input r0 as PaymentRequestReceipt.record;
     input r1 as u64.private;
     call assert_valid_receipt_fields r0.owner r0.role r0.payer r0.merchant r0.request_id r0.amount r0.timestamp r0.secret r0.commitment 1u8 into r2;
-    call proof_nullifier r0.secret 5u8 r1 0u64 0u64 into r3;
+    cast r0.owner r0.counterparty r0.role r0.payer r0.merchant r0.request_id r0.amount r0.timestamp r0.secret r0.commitment into r3 as PaymentRequestReceipt.record;
     gte r0.amount r1 into r4;
     assert.eq r4 true;
-    async prove_receipt_threshold r2 r3 into r5;
+    async prove_receipt_threshold r2 into r5;
+    output r3 as PaymentRequestReceipt.record;
     output true as boolean.private;
-    output r5 as kloak_protocol_v8.aleo/prove_receipt_threshold.future;
+    output r5 as kloak_protocol_v10.aleo/prove_receipt_threshold.future;
 
 finalize prove_receipt_threshold:
     input r0 as field.public;
-    input r1 as field.public;
-    get.or_use payment_commitments[r0] false into r2;
-    assert.eq r2 true;
-    get.or_use nullifiers[r1] false into r3;
-    not r3 into r4;
-    assert.eq r4 true;
-    set true into nullifiers[r1];
+    get.or_use payment_commitments[r0] false into r1;
+    assert.eq r1 true;
 
 function prove_payment_timebox:
     input r0 as PaymentRequestReceipt.record;
     input r1 as u64.private;
     input r2 as u64.private;
     call assert_valid_receipt_fields r0.owner r0.role r0.payer r0.merchant r0.request_id r0.amount r0.timestamp r0.secret r0.commitment 0u8 into r3;
-    call proof_nullifier r0.secret 6u8 0u64 r1 r2 into r4;
+    cast r0.owner r0.counterparty r0.role r0.payer r0.merchant r0.request_id r0.amount r0.timestamp r0.secret r0.commitment into r4 as PaymentRequestReceipt.record;
     gte r0.timestamp r1 into r5;
     assert.eq r5 true;
     lte r0.timestamp r2 into r6;
     assert.eq r6 true;
-    async prove_payment_timebox r3 r4 into r7;
+    async prove_payment_timebox r3 into r7;
+    output r4 as PaymentRequestReceipt.record;
     output true as boolean.private;
-    output r7 as kloak_protocol_v8.aleo/prove_payment_timebox.future;
+    output r7 as kloak_protocol_v10.aleo/prove_payment_timebox.future;
 
 finalize prove_payment_timebox:
     input r0 as field.public;
-    input r1 as field.public;
-    get.or_use payment_commitments[r0] false into r2;
-    assert.eq r2 true;
-    get.or_use nullifiers[r1] false into r3;
-    not r3 into r4;
-    assert.eq r4 true;
-    set true into nullifiers[r1];
+    get.or_use payment_commitments[r0] false into r1;
+    assert.eq r1 true;
 
 function prove_receipt_timebox:
     input r0 as PaymentRequestReceipt.record;
     input r1 as u64.private;
     input r2 as u64.private;
     call assert_valid_receipt_fields r0.owner r0.role r0.payer r0.merchant r0.request_id r0.amount r0.timestamp r0.secret r0.commitment 1u8 into r3;
-    call proof_nullifier r0.secret 7u8 0u64 r1 r2 into r4;
+    cast r0.owner r0.counterparty r0.role r0.payer r0.merchant r0.request_id r0.amount r0.timestamp r0.secret r0.commitment into r4 as PaymentRequestReceipt.record;
     gte r0.timestamp r1 into r5;
     assert.eq r5 true;
     lte r0.timestamp r2 into r6;
     assert.eq r6 true;
-    async prove_receipt_timebox r3 r4 into r7;
+    async prove_receipt_timebox r3 into r7;
+    output r4 as PaymentRequestReceipt.record;
     output true as boolean.private;
-    output r7 as kloak_protocol_v8.aleo/prove_receipt_timebox.future;
+    output r7 as kloak_protocol_v10.aleo/prove_receipt_timebox.future;
 
 finalize prove_receipt_timebox:
     input r0 as field.public;
-    input r1 as field.public;
-    get.or_use payment_commitments[r0] false into r2;
-    assert.eq r2 true;
-    get.or_use nullifiers[r1] false into r3;
-    not r3 into r4;
-    assert.eq r4 true;
-    set true into nullifiers[r1];
+    get.or_use payment_commitments[r0] false into r1;
+    assert.eq r1 true;
 
 constructor:
     assert.eq edition 0u16;

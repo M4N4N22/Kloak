@@ -1,6 +1,11 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import {
+  clearCachedComplianceAccessPayload,
+  COMPLIANCE_READ_SCOPE,
+  getCachedComplianceAccessPayload,
+} from "@/lib/compliance-access"
 
 export type SelectiveDisclosureProof = {
   proofId: string
@@ -8,7 +13,7 @@ export type SelectiveDisclosureProof = {
   disclosureTxHash?: string | null
   requestId: string
   ownerAddress: string
-  counterpartyAddress: string
+  counterpartyAddress: string | null
   actorRole: "payer" | "receiver"
   proofType: "existence" | "amount" | "threshold"
   disclosedAmount?: string | null
@@ -41,7 +46,9 @@ export function useSelectiveDisclosureProofs(viewerAddress?: string | null) {
     err instanceof Error ? err.message : "Failed to load selective disclosure proofs"
 
   const refresh = useCallback(async () => {
-    if (!viewerAddress) {
+    const viewer = viewerAddress?.trim()
+
+    if (!viewer) {
       setProofs([])
       return
     }
@@ -50,11 +57,27 @@ export function useSelectiveDisclosureProofs(viewerAddress?: string | null) {
       setLoading(true)
       setError(null)
 
-      const res = await fetch(`/api/proof?viewer=${encodeURIComponent(viewerAddress)}`)
+      const accessPayload = getCachedComplianceAccessPayload(COMPLIANCE_READ_SCOPE, viewer)
+
+      if (!accessPayload) {
+        setProofs([])
+        return
+      }
+
+      const res = await fetch("/api/proof", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(accessPayload),
+      })
       const data = await res.json()
 
       if (!res.ok) {
-        throw new Error(data.error || "Failed to load selective disclosure proofs")
+        if (res.status === 401 || res.status === 403) {
+          clearCachedComplianceAccessPayload(COMPLIANCE_READ_SCOPE, viewer)
+          throw new Error("Your wallet confirmation expired or could not be checked. Please unlock your compliance records again.")
+        }
+
+        throw new Error(data.error || "We couldn't load your issued proofs right now.")
       }
 
       setProofs(data.proofs || [])

@@ -1,5 +1,5 @@
 import credits.aleo;
-import kloak_protocol_v8.aleo;
+import kloak_protocol_v10.aleo;
 
 program test_kloak_protocol.aleo {
     @noupgrade
@@ -13,7 +13,7 @@ program test_kloak_protocol.aleo {
         let timestamp: u64 = 1_710_000_000u64;
         let secret: field = 999field;
 
-        let create_result: Final = kloak_protocol_v8.aleo::create_payment_request(
+        let create_result: Final = kloak_protocol_v10.aleo::create_payment_request(
             request_id,
             0u8,
             amount,
@@ -28,10 +28,10 @@ program test_kloak_protocol.aleo {
 
         let (change_after_payment, payer_receipt, merchant_receipt, payment_final): (
             credits.aleo::credits,
-            kloak_protocol_v8.aleo::PaymentRequestReceipt,
-            kloak_protocol_v8.aleo::PaymentRequestReceipt,
+            kloak_protocol_v10.aleo::PaymentRequestReceipt,
+            kloak_protocol_v10.aleo::PaymentRequestReceipt,
             Final,
-        ) = kloak_protocol_v8.aleo::pay_request_aleo(payment_record, request_id, merchant, amount, timestamp, secret);
+        ) = kloak_protocol_v10.aleo::pay_request_aleo(payment_record, request_id, merchant, amount, timestamp, secret);
 
         assert_eq(payer_receipt.request_id, request_id);
         assert_eq(payer_receipt.amount, amount);
@@ -41,7 +41,7 @@ program test_kloak_protocol.aleo {
         assert_eq(merchant_receipt.role, 1u8);
 
         let (verified, disclose_final): (bool, Final) =
-            kloak_protocol_v8.aleo::prove_payment_basic(payer_receipt);
+            kloak_protocol_v10.aleo::prove_payment_basic(payer_receipt);
 
         assert(verified);
 
@@ -67,7 +67,7 @@ program test_kloak_protocol.aleo {
         let timestamp: u64 = 1_710_000_001u64;
         let secret: field = 1001field;
 
-        let create_result: Final = kloak_protocol_v8.aleo::create_payment_request(
+        let create_result: Final = kloak_protocol_v10.aleo::create_payment_request(
             request_id,
             0u8,
             25_000u64,
@@ -82,10 +82,10 @@ program test_kloak_protocol.aleo {
 
         let (change_after_payment, payer_receipt, merchant_receipt, payment_final): (
             credits.aleo::credits,
-            kloak_protocol_v8.aleo::PaymentRequestReceipt,
-            kloak_protocol_v8.aleo::PaymentRequestReceipt,
+            kloak_protocol_v10.aleo::PaymentRequestReceipt,
+            kloak_protocol_v10.aleo::PaymentRequestReceipt,
             Final,
-        ) = kloak_protocol_v8.aleo::pay_request_aleo(payment_record, request_id, merchant, 24_999u64, timestamp, secret);
+        ) = kloak_protocol_v10.aleo::pay_request_aleo(payment_record, request_id, merchant, 24_999u64, timestamp, secret);
 
         return final {
             create_result.run();
@@ -103,7 +103,7 @@ program test_kloak_protocol.aleo {
         let timestamp: u64 = 1_710_000_002u64;
         let secret: field = 1002field;
 
-        let create_result: Final = kloak_protocol_v8.aleo::create_payment_request(
+        let create_result: Final = kloak_protocol_v10.aleo::create_payment_request(
             request_id,
             0u8,
             25_000u64,
@@ -120,10 +120,10 @@ program test_kloak_protocol.aleo {
 
         let (change_after_payment, payer_receipt, merchant_receipt, payment_final): (
             credits.aleo::credits,
-            kloak_protocol_v8.aleo::PaymentRequestReceipt,
-            kloak_protocol_v8.aleo::PaymentRequestReceipt,
+            kloak_protocol_v10.aleo::PaymentRequestReceipt,
+            kloak_protocol_v10.aleo::PaymentRequestReceipt,
             Final,
-        ) = kloak_protocol_v8.aleo::pay_request_aleo(payment_record, request_id, wrong_merchant, 25_000u64, timestamp, secret);
+        ) = kloak_protocol_v10.aleo::pay_request_aleo(payment_record, request_id, wrong_merchant, 25_000u64, timestamp, secret);
 
         return final {
             create_result.run();
@@ -141,7 +141,7 @@ program test_kloak_protocol.aleo {
         let timestamp: u64 = 1_710_000_003u64;
         let secret: field = 1003field;
 
-        let create_result: Final = kloak_protocol_v8.aleo::create_payment_request(
+        let create_result: Final = kloak_protocol_v10.aleo::create_payment_request(
             request_id,
             0u8,
             amount,
@@ -156,19 +156,19 @@ program test_kloak_protocol.aleo {
 
         let (change_after_payment, payer_receipt, merchant_receipt, payment_final): (
             credits.aleo::credits,
-            kloak_protocol_v8.aleo::PaymentRequestReceipt,
-            kloak_protocol_v8.aleo::PaymentRequestReceipt,
+            kloak_protocol_v10.aleo::PaymentRequestReceipt,
+            kloak_protocol_v10.aleo::PaymentRequestReceipt,
             Final,
-        ) = kloak_protocol_v8.aleo::pay_request_aleo(payment_record, request_id, merchant, amount, timestamp, secret);
+        ) = kloak_protocol_v10.aleo::pay_request_aleo(payment_record, request_id, merchant, amount, timestamp, secret);
 
         let (verified_one, disclose_final_one): (bool, Final) =
-            kloak_protocol_v8.aleo::prove_payment_basic(payer_receipt);
+            kloak_protocol_v10.aleo::prove_payment_basic(payer_receipt);
 
         assert(verified_one);
         assert_eq(payer_receipt.commitment, payment_commitment(request_id, amount, self.caller, merchant, timestamp, secret));
 
         let (verified_two, disclose_final_two): (bool, Final) =
-            kloak_protocol_v8.aleo::prove_payment_basic(payer_receipt);
+            kloak_protocol_v10.aleo::prove_payment_basic(payer_receipt);
 
         return final {
             create_result.run();

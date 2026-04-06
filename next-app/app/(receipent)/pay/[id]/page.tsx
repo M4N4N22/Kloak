@@ -21,7 +21,7 @@ export async function generateMetadata({
   if (!link) {
     return {
       title: "Kloak Payment",
-      description: "Secure private payment via Kloak",
+      description: "Secure payment via Kloak",
     }
   }
 
@@ -33,7 +33,7 @@ export async function generateMetadata({
   const description =
     link.description ||
     link.title ||
-    "Secure private payment via Kloak"
+    "Secure payment via Kloak"
 
   const url = `${process.env.APP_URL}/pay/${link.id}`
 

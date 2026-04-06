@@ -29,12 +29,12 @@ export function PaymentLinksAnalyticsSection() {
       <div className="space-y-8">
         <PaymentLinksSectionHeader
           eyebrow="Analytics"
-          title="Revenue and conversion intelligence"
-          description="Free accounts can monitor the operational baseline. Pro unlocks deeper link-level analytics, top-performer insight, and weekly revenue intelligence."
+          title="See how your payment links are performing"
+          description="Free gives you the basics. Pro gives you a closer look at top links, weekly trends, and stronger performance insights."
           action={
             !profile?.isProUser ? (
               <Link href="/pricing">
-                <Button className="rounded-2xl bg-[#F1F66A] text-black hover:bg-[#FAFF8B]">
+                <Button variant="default">
                   Upgrade to Pro
                   <ArrowUpRight className="h-4 w-4" />
                 </Button>
@@ -55,10 +55,10 @@ export function PaymentLinksAnalyticsSection() {
             <Card className="rounded-[2.5rem] border border-foreground/5 bg-neutral-900/40 text-foreground">
               <CardHeader className="border-b border-foreground/5">
                 <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">Free Plan</div>
-                <CardTitle className="mt-2 text-lg">Baseline analytics unlocked</CardTitle>
+                <CardTitle className="mt-2 text-lg">Basic analytics included</CardTitle>
               </CardHeader>
               <CardContent className="pt-6 text-sm leading-7 text-neutral-400">
-                Free gives you the essentials: total volume, payments, views, and collection-wide conversion. Upgrade when you need per-link revenue comparisons, weekly performance charts, and sharper growth decisions.
+                Free gives you the essentials: total volume, payments, views, and overall conversion. Upgrade when you want deeper link-by-link insights and weekly performance trends.
               </CardContent>
             </Card>
 
@@ -68,20 +68,20 @@ export function PaymentLinksAnalyticsSection() {
                   <Lock className="h-3.5 w-3.5" />
                   Pro Preview
                 </div>
-                <CardTitle className="mt-2 text-lg">Advanced link intelligence</CardTitle>
+                <CardTitle className="mt-2 text-lg">What Pro unlocks</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4 pt-6">
-                <LockedFeature title="Weekly top-performer chart" body="Revenue distribution across your best links for the last 7 days." />
-                <LockedFeature title="Best revenue performer" body="See which link is compounding fastest without manual spreadsheet work." />
-                <LockedFeature title="Highest conversion link" body="Spot the request that turns traffic into paid settlements most efficiently." />
+                <LockedFeature title="Weekly top links" body="See which links earned the most over the last 7 days." />
+                <LockedFeature title="Best earner" body="Quickly spot the link bringing in the most revenue." />
+                <LockedFeature title="Best converter" body="See which link turns visits into payments most effectively." />
               </CardContent>
             </Card>
           </div>
         ) : (
           <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
-            <Card className="rounded-[2.5rem] border border-foreground/5 bg-neutral-900/40 text-foreground">
-              <CardHeader className="border-b border-foreground/5">
-                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2 text-sm text-neutral-500">
                   <TrendingUp className="h-3.5 w-3.5 text-primary" />
                   Weekly Performance
                 </div>
@@ -102,7 +102,7 @@ export function PaymentLinksAnalyticsSection() {
                           fontSize: 12,
                         }}
                       />
-                      <Bar dataKey="revenue" fill="#F1F66A" radius={[8, 8, 0, 0]} />
+                      <Bar dataKey="revenue" fill="#9CE37D" radius={[8, 8, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -111,24 +111,24 @@ export function PaymentLinksAnalyticsSection() {
 
             <div className="grid gap-4">
               <InsightCard
-                title="Best performer"
+                title="Top earner"
                 body={
                   overview?.insights.highestRevenueLink
                     ? `${overview.insights.highestRevenueLink.title} generated ${overview.insights.highestRevenueLink.revenue.toFixed(4)} ALEO.`
-                    : "Waiting for meaningful revenue to identify a top performer."
+                    : "We need a bit more payment activity before we can show a top earner."
                 }
               />
               <InsightCard
-                title="Top conversion"
+                title="Best conversion"
                 body={
                   overview?.insights.highestConversionLink
                     ? `${overview.insights.highestConversionLink.title} is converting at ${(overview.insights.highestConversionLink.conversion * 100).toFixed(1)}%.`
-                    : "Waiting for enough traffic to calculate a stable conversion leader."
+                    : "We need a bit more traffic before we can show a reliable conversion leader."
                 }
               />
               <InsightCard
                 title="Plan status"
-                body="This wallet is on Pro, so advanced payment-link analytics are unlocked for deeper operating insight."
+                body="This wallet is on Pro, so advanced payment link analytics are already unlocked."
                 accent
               />
             </div>
@@ -141,9 +141,9 @@ export function PaymentLinksAnalyticsSection() {
 
 function AnalyticsMetric({ label, value }: { label: string; value: string }) {
   return (
-    <Card className="rounded-[2.5rem] border border-foreground/5 bg-neutral-900/40 text-foreground">
-      <CardHeader className="border-b border-foreground/5 pb-4">
-        <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">{label}</div>
+    <Card>
+      <CardHeader>
+        <div className="text-sm text-neutral-500">{label}</div>
       </CardHeader>
       <CardContent className="pt-5">
         <div className="font-mono text-3xl font-semibold tracking-tight text-foreground">{value}</div>
@@ -166,9 +166,9 @@ function LockedFeature({ title, body }: { title: string; body: string }) {
 
 function InsightCard({ title, body, accent = false }: { title: string; body: string; accent?: boolean }) {
   return (
-    <Card className="rounded-[2.5rem] border border-foreground/5 bg-neutral-900/40 text-foreground">
-      <CardHeader className="border-b border-foreground/5">
-        <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">{title}</div>
+    <Card>
+      <CardHeader>
+        <div className="text-sm text-neutral-500">{title}</div>
       </CardHeader>
       <CardContent className="pt-6">
         <p className={accent ? "text-sm leading-7 text-primary" : "text-sm leading-7 text-neutral-400"}>{body}</p>

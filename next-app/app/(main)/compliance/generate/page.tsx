@@ -3,7 +3,7 @@ import { GenerateProofSection } from "@/features/compliance/sections/generate-pr
 
 export default function ComplianceGeneratePage() {
   return (
-    <ComplianceAccessGate>
+    <ComplianceAccessGate requiresSignedAccess>
       <GenerateProofSection />
     </ComplianceAccessGate>
   )

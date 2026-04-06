@@ -105,7 +105,7 @@ export function ProofForm({
               disabled
               value={form.actorRole}
               onValueChange={(v) => onFieldChange("actorRole", v as any)}
-              className="grid gap-3 bg-neutral-900/50 p-6 rounded-3xl"
+              className="grid gap-3 border p-6 rounded-3xl"
             >
               {roles.map((role) => (
                 <Label
@@ -150,7 +150,7 @@ export function ProofForm({
 
               value={form.proofType}
               onValueChange={(value) => onFieldChange("proofType", value as GenerateFormState["proofType"])}
-              className="grid gap-3 bg-neutral-900/50 p-6 rounded-3xl"
+              className="grid gap-3 border p-6 rounded-3xl"
             >
               {proofTypes.map((type) => {
                 const Icon = type.icon
@@ -211,7 +211,7 @@ export function ProofForm({
               <h3 className="text-sm font-bold uppercase tracking-wider text-neutral-300">Constraints</h3>
             </div>
 
-            <div className="space-y-5 bg-neutral-900/50 p-6 rounded-3xl">
+            <div className="space-y-5 border p-6 rounded-3xl">
               {/* Amount Inputs with Logic Highlighting */}
               <div className="space-y-3">
                 <Label className="text-xs text-neutral-500 uppercase tracking-widest font-bold">Value Bounds</Label>

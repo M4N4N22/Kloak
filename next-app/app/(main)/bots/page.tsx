@@ -24,9 +24,9 @@ function BotsDisconnectedState() {
           <Bot className="h-8 w-8" />
         </div>
         <div className="space-y-3">
-          <h1 className="text-4xl font-bold tracking-tight text-foreground">Connect your wallet to operate the Telegram bot</h1>
+          <h1 className="text-4xl font-bold tracking-tight text-foreground">Connect your wallet to use the Telegram bot</h1>
           <p className="text-sm leading-7 text-neutral-400">
-            Link Telegram to monitor existing payment links, get paid alerts, share links into chats, and check analytics without leaving the bot.
+            Link your wallet to Telegram so you can share payment links, get paid alerts, and keep an eye on activity without leaving the chat.
           </p>
         </div>
         <WalletConnect />
@@ -78,7 +78,7 @@ export default function BotsPage() {
   }
 
   return (
-    <div className="space-y-5 bg-neutral-950 text-foreground">
+    <div className="space-y-5 max-w-7xl mx-auto text-foreground">
       <BotsPulseHeader
         online={overview.pulse.online}
         linked={overview.pulse.linked}
@@ -104,18 +104,17 @@ export default function BotsPage() {
 
       <BotsActivityLedger payments={overview.feeds.payments} links={overview.feeds.links} />
 
-      <Card className="rounded-[2.5rem] border border-foreground/5 bg-neutral-900/40 text-foreground">
+      <Card>
         <CardContent className="flex flex-col gap-4 p-6 md:flex-row md:items-center md:justify-between">
           <div>
-            <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">Linking Flow</div>
-            <div className="mt-2 text-lg font-medium text-foreground">Complete wallet linking from Telegram</div>
+            <div className="text-sm text-neutral-500">Get Connected</div>
+            <div className="mt-2 text-lg font-medium text-foreground">Link your wallet from Telegram</div>
             <p className="mt-2 text-sm leading-6 text-neutral-400">
-              Start in Telegram, approve wallet linking in Kloak, then use the bot to track your links, share them faster, and receive payment alerts.
+              Open the bot in Telegram, approve the wallet link in Kloak, and come back once the connection is done.
             </p>
           </div>
           <a href={TELEGRAM_BOT_LINK} target="_blank" rel="noopener noreferrer">
-            <Button className="rounded-2xl bg-[#F1F66A] text-black hover:bg-[#FAFF8B]">
-              <Link2 className="h-4 w-4" />
+            <Button>
               Open linking flow
             </Button>
           </a>

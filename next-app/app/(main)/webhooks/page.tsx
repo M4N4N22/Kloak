@@ -309,7 +309,7 @@ export default function WebhooksPage() {
                   </div>
 
                   {/* WARNING */}
-                  <div className="flex items-center gap-1 text-[11px] text-amber-500 bg-amber-500/10 p-3 rounded-3xl ">
+                  <div className="flex items-center gap-1 text-[11px] text-orange-500 bg-orange-500/10 p-3 rounded-3xl ">
                     <AlertTriangle size={14} className=" shrink-0" />
                     <p>
                       Without a secret, webhook requests are not verified. Recommended for production use.

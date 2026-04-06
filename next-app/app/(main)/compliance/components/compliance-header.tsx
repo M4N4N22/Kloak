@@ -1,6 +1,6 @@
 "use client"
 
-import { ReceiptText, ScanSearch, ShieldCheck, Wallet, ArrowRight, Fingerprint } from "lucide-react"
+import { ReceiptText, ShieldCheck, Wallet, ArrowRight, Fingerprint, type LucideIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
@@ -11,7 +11,15 @@ type ComplianceHeaderProps = {
   activeProofCount: number
 }
 
-const summaryItems = [
+type SummaryItem = {
+  title: string
+  description: string
+  icon: LucideIcon
+  color: string
+  bg: string
+}
+
+const summaryItems: SummaryItem[] = [
   {
     title: "Receipt-based proofs",
     description: "Secrets stay client-side. Wallet-owned receipts power all disclosures.",
@@ -30,8 +38,8 @@ const summaryItems = [
     title: "Compliance-ready modes",
     description: "Threshold and exact amount proofs for rapid operational audits.",
     icon: ReceiptText,
-    color: "text-amber-400",
-    bg: "bg-amber-500/10",
+    color: "text-orange-400",
+    bg: "bg-orange-500/10",
   },
 ]
 
@@ -61,11 +69,11 @@ export function ComplianceHeader({
           <div className="grid gap-8 lg:grid-cols-2 lg:items-end">
             <div className="space-y-4">
               <h1 className="text-4xl font-medium tracking-tight text-foreground sm:text-5xl lg:leading-[1.1]">
-                Private payments. <br />
-                <span className="text-neutral-500">Publicly auditable.</span>
+                Private settlement. <br />
+                <span className="text-neutral-500">Selective disclosure.</span>
               </h1>
               <p className="max-w-md text-lg leading-relaxed text-neutral-400">
-                Generate auditable ZK-proofs from private records. You choose what to disclose; we keep the verification flows production-ready.
+                Generate auditable proofs from wallet-held receipts. You choose what to disclose, while payer identity and unrelated wallet activity stay out of the proof flow.
               </p>
             </div>
 

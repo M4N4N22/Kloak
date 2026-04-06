@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import Image from "next/image"
 import { useWallet } from "@provablehq/aleo-wallet-adaptor-react"
 import {
@@ -48,6 +49,7 @@ export default function CreateLinkForm() {
     const { address, connected, executeTransaction, transactionStatus } = useWallet()
     const [txId, setTxId] = useState<string | null>(null)
     const [successOpen, setSuccessOpen] = useState(false)
+    const [formError, setFormError] = useState<string | null>(null)
     const [generatedLink, setGeneratedLink] = useState("")
     const [status, setStatus] = useState<CreateStatus>("idle");
     const [title, setTitle] = useState("")
@@ -141,6 +143,7 @@ export default function CreateLinkForm() {
         if (!isFormValid || loading || !connected) return
 
         setLoading(true)
+        setFormError(null)
 
         try {
             /* 1️⃣ generate request id */
@@ -152,7 +155,7 @@ export default function CreateLinkForm() {
 
             /* 2️⃣ Execution & Proving */
             const txPromise = executeTransaction({
-                program: "kloak_protocol_v8.aleo",
+                program: "kloak_protocol_v10.aleo",
                 function: "create_payment_request",
                 inputs: [
                     requestId,
@@ -228,6 +231,14 @@ export default function CreateLinkForm() {
 
             const data = await res.json()
 
+            if (!res.ok) {
+                throw new Error(data.error || "We couldn't save this request after the wallet transaction finished.")
+            }
+
+            if (!data?.id) {
+                throw new Error("The request was created on-chain, but Kloak did not return a usable link yet.")
+            }
+
             const link = `${window.location.origin}/pay/${data.id}`
 
             setGeneratedLink(link);
@@ -236,7 +247,7 @@ export default function CreateLinkForm() {
 
         } catch (err) {
             console.error(err)
-            alert("Failed to create payment link")
+            setFormError(err instanceof Error ? err.message : "We couldn't create this request. Please try again.")
         } finally {
             setLoading(false)
         }
@@ -254,6 +265,13 @@ export default function CreateLinkForm() {
                 </CardHeader>
 
                 <CardContent className="space-y-6">
+                    {formError && (
+                        <Alert variant="destructive">
+                            <AlertDescription className="text-sm leading-6">
+                                {formError}
+                            </AlertDescription>
+                        </Alert>
+                    )}
 
                     {/* Title */}
                     <div className="space-y-1">

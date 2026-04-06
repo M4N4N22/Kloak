@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { useWallet } from "@provablehq/aleo-wallet-adaptor-react"
-import { computePaymentNullifier } from "@/core/zk"
 import type { SelectiveDisclosureProof } from "@/hooks/use-selective-disclosure-proofs"
 
 type DisclosureConstraints = {
@@ -15,6 +14,22 @@ type DisclosureConstraints = {
 
 type DisclosureProofType = "existence" | "amount" | "threshold"
 type DisclosureActorRole = "payer" | "receiver"
+type WalletReceiptSummary = {
+  actorRole?: DisclosureActorRole
+  ownerAddress: string
+  counterpartyAddress: string
+  commitment: string
+  paymentTimestamp: string
+  amountMicro: string
+}
+
+type DuplicateProofInfo = {
+  proofId: string
+  proofType: DisclosureProofType
+  actorRole: DisclosureActorRole
+  createdAt: string
+  disclosureTxHash: string | null
+}
 
 type VerifyResponse = {
   valid: boolean
@@ -33,7 +48,7 @@ type VerifyResponse = {
   nullifier?: string | null
   revoked: boolean
   verifiedAt: string
-  paymentTimestamp: string
+  paymentTimestamp?: string | null
   constraints: DisclosureConstraints
   message: string
 }
@@ -90,19 +105,6 @@ function normalizeTimestampRange(constraints: DisclosureConstraints) {
   return [from, to]
 }
 
-function resolveProofTypeCode(proofFunction: string, proofType: DisclosureProofType) {
-  if (proofFunction === "prove_payment_basic") return 0
-  if (proofFunction === "prove_payment_amount") return 1
-  if (proofFunction === "prove_payment_threshold") return 2
-  if (proofFunction === "prove_receipt_basic") return 3
-  if (proofFunction === "prove_receipt_amount") return 4
-  if (proofFunction === "prove_receipt_threshold") return 5
-  if (proofFunction === "prove_payment_timebox") return 6
-  if (proofFunction === "prove_receipt_timebox") return 7
-
-  return proofType === "threshold" ? 2 : proofType === "amount" ? 1 : 0
-}
-
 function buildDisclosureInputs(prepared: PreparedDisclosure, receiptPlaintext: string) {
   if (prepared.proofFunction.endsWith("_amount")) {
     return [receiptPlaintext, `${prepared.amountMicro}u64`]
@@ -147,6 +149,8 @@ export function useSelectiveDisclosure() {
   const [busyAction, setBusyAction] = useState<"generate" | "verify" | "revoke" | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [lastVerified, setLastVerified] = useState<VerifyResponse | null>(null)
+  const [duplicateProof, setDuplicateProof] = useState<DuplicateProofInfo | null>(null)
+  const [availableProofTypes, setAvailableProofTypes] = useState<DisclosureProofType[]>([])
 
   const getErrorMessage = (err: unknown, fallback: string) =>
     err instanceof Error ? err.message : fallback
@@ -157,6 +161,7 @@ export function useSelectiveDisclosure() {
     actorRole: DisclosureActorRole
     proofType: DisclosureProofType
     constraints?: DisclosureConstraints
+    walletReceipt?: WalletReceiptSummary
   }): Promise<SelectiveDisclosureProof> => {
     if (!connected || !address) {
       throw new Error("Connect your wallet to generate a disclosure proof")
@@ -165,6 +170,8 @@ export function useSelectiveDisclosure() {
     try {
       setBusyAction("generate")
       setError(null)
+      setDuplicateProof(null)
+      setAvailableProofTypes([])
 
       const prepareRes = await fetch("/api/proof/generate", {
         method: "POST",
@@ -182,12 +189,17 @@ export function useSelectiveDisclosure() {
               ? `${Math.floor(input.constraints.minAmount * 1_000_000)}`
               : undefined,
           constraints: input.constraints,
+          walletReceipt: input.walletReceipt,
         }),
       })
 
       const preparedData = await prepareRes.json()
 
       if (!prepareRes.ok) {
+        if (preparedData.code === "DUPLICATE_PROOF_STATEMENT") {
+          setDuplicateProof(preparedData.existingProof || null)
+          setAvailableProofTypes(preparedData.availableProofTypes || [])
+        }
         throw new Error(preparedData.error || "Failed to prepare proof")
       }
 
@@ -199,7 +211,7 @@ export function useSelectiveDisclosure() {
           includePlaintext?: boolean,
           filter?: "all" | "unspent" | "spent",
         ) => Promise<DisclosureReceiptRecord[]>
-      )("kloak_protocol_v8.aleo", true, "unspent")
+      )("kloak_protocol_v10.aleo", true, "unspent")
 
       const receiptCandidates = rawRecords
         .filter((record) => !record.spent)
@@ -236,12 +248,11 @@ export function useSelectiveDisclosure() {
         throw new Error("No matching disclosure receipt record was found in this wallet")
       }
 
-      const receiptSecret = extractFieldValue(receiptPlaintext, "secret")
       const commitment = extractFieldValue(receiptPlaintext, "commitment")
       const paymentTimestamp = extractFieldValue(receiptPlaintext, "timestamp")?.replace("u64", "") || prepared.paymentTimestamp
 
-      if (!receiptSecret || !commitment) {
-        throw new Error("Disclosure receipt is missing secret or commitment data")
+      if (!commitment) {
+        throw new Error("Disclosure receipt is missing commitment data")
       }
 
       const txResult = await executeTransaction({
@@ -286,10 +297,6 @@ export function useSelectiveDisclosure() {
         throw new Error("Disclosure transaction confirmation timeout")
       }
 
-      const proofTypeCode = resolveProofTypeCode(prepared.proofFunction, prepared.proofType)
-      const amountBound =
-        prepared.proofType === "threshold" && prepared.thresholdAmount ? Number(prepared.thresholdAmount) : 0
-      const [timestampFrom, timestampTo] = normalizeTimestampRange(prepared.constraints)
       const finalizeRes = await fetch("/api/proof/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -306,21 +313,19 @@ export function useSelectiveDisclosure() {
           thresholdAmount: prepared.proofType === "threshold" ? prepared.thresholdAmount : null,
           paymentTimestamp,
           commitment,
-          nullifier: await computePaymentNullifier(
-            receiptSecret,
-            proofTypeCode,
-            amountBound,
-            timestampFrom.replace("u64", ""),
-            timestampTo.replace("u64", ""),
-          ),
           disclosureTxHash: txId,
           constraints: input.constraints,
+          walletReceipt: input.walletReceipt,
         }),
       })
 
       const proof = await finalizeRes.json()
 
       if (!finalizeRes.ok) {
+        if (proof.code === "DUPLICATE_PROOF_STATEMENT") {
+          setDuplicateProof(proof.existingProof || null)
+          setAvailableProofTypes(proof.availableProofTypes || [])
+        }
         throw new Error(proof.error || "Failed to store proof")
       }
 
@@ -336,18 +341,7 @@ export function useSelectiveDisclosure() {
   const verifyProof = async (input: {
     proofId?: string
     verifier?: string
-    proof?: {
-      proofId: string
-      paymentTxHash: string
-      disclosureTxHash?: string | null
-      requestId: string
-      ownerAddress: string
-      commitment: string
-      nullifier?: string | null
-      actorRole?: DisclosureActorRole
-      proofType?: DisclosureProofType
-      proofDigest?: string
-    }
+    proof?: unknown
   }) => {
     try {
       setBusyAction("verify")
@@ -405,6 +399,8 @@ export function useSelectiveDisclosure() {
     busyAction,
     error,
     lastVerified,
+    duplicateProof,
+    availableProofTypes,
     generateProof,
     verifyProof,
     revokeProof,

@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useState } from "react"
 import { useWallet } from "@provablehq/aleo-wallet-adaptor-react"
-import { ArrowLeft, Copy, ExternalLink } from "lucide-react"
+import { Copy, ExternalLink } from "lucide-react"
 
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -12,7 +12,12 @@ import { PaymentLinksAccessGate } from "@/features/payment-links/components/paym
 import { LinkStatusBadge } from "@/features/payment-links/components/link-status-badge"
 import { PaymentLinkPaymentsTable } from "@/features/payment-links/components/payment-link-payments-table"
 import { PaymentLinksSectionHeader } from "@/features/payment-links/components/payment-links-section-header"
-import { formatAmount, formatDateOnly, formatDateTime, shortHash } from "@/features/payment-links/lib/presentation"
+import {
+  formatAmount,
+  formatDateOnly,
+  formatDateTime,
+  shortHash,
+} from "@/features/payment-links/lib/presentation"
 import { usePaymentLinkDetails } from "@/hooks/use-payment-link-details"
 
 export function PaymentLinkDetailSection({ linkId }: { linkId: string }) {
@@ -52,7 +57,7 @@ export function PaymentLinkDetailSection({ linkId }: { linkId: string }) {
             <PaymentLinksSectionHeader
               eyebrow="Link Details"
               title={detail.title}
-              description={detail.description || "Detailed operational view of this payment link, including settlement history and proof actions."}
+              description={detail.description || "See how this payment link is doing, review payments, and take the next step when needed."}
               action={
                 <div className="flex flex-wrap gap-3">
                   <Button variant="outline" className="rounded-2xl border-foreground/10 bg-neutral-900/60" onClick={() => void copyLink()}>
@@ -62,7 +67,7 @@ export function PaymentLinkDetailSection({ linkId }: { linkId: string }) {
                   <a href={`/pay/${detail.id}`} target="_blank" rel="noopener noreferrer">
                     <Button className="rounded-2xl bg-[#F1F66A] text-black hover:bg-[#FAFF8B]">
                       <ExternalLink className="h-4 w-4" />
-                      Open payment page
+                      Open link page
                     </Button>
                   </a>
                 </div>
@@ -95,7 +100,7 @@ export function PaymentLinkDetailSection({ linkId }: { linkId: string }) {
               <Card className="rounded-[2.5rem] border border-foreground/5 bg-neutral-900/40 text-foreground">
                 <CardHeader className="border-b border-foreground/5">
                   <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">Link Metadata</div>
-                  <CardTitle className="mt-2 text-lg">Terms and routing context</CardTitle>
+                  <CardTitle className="mt-2 text-lg">Link details</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4 pt-6 text-sm text-neutral-400">
                   <MetaRow label="Created" value={formatDateTime(detail.createdAt)} />
@@ -103,6 +108,10 @@ export function PaymentLinkDetailSection({ linkId }: { linkId: string }) {
                   <MetaRow label="Max payments" value={detail.maxPayments ? String(detail.maxPayments) : "No cap"} />
                   <MetaRow label="Views" value={String(detail.views)} />
                   <MetaRow label="Unique visitors" value={String(detail.uniqueVisitors)} />
+                  <MetaRow
+                    label="Privacy"
+                    value="This page can be shared openly. Who paid stays private by default, and proofs only reveal what the proof owner chooses to share."
+                  />
                 </CardContent>
               </Card>
             </div>

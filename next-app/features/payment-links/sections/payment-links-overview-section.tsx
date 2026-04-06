@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useMemo } from "react"
 import { useWallet } from "@provablehq/aleo-wallet-adaptor-react"
-import { ArrowUpRight, BarChart3, Eye, Link2, PlusCircle, ShieldCheck } from "lucide-react"
+import { BarChart3, Eye, Link2, ShieldCheck } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -27,13 +27,13 @@ export function PaymentLinksOverviewSection() {
       <div className="space-y-8">
         <PaymentLinksSectionHeader
           eyebrow="Overview"
-          title="Private payment links, operated like infrastructure"
-          description="Issue private payment requests, monitor conversion and settlement, and route successful payments into compliance-grade proof workflows."
+          title="Payment links that are easy to create and easy to manage"
+          description="Create payment links, see how they are performing, and move completed payments into compliance proofs when needed. The payer stays private by default."
           action={
             <div className="flex flex-wrap gap-3">
               <Link href="/payment-links/create">
                 <Button >
-                
+
                   Create payment link
                 </Button>
               </Link>
@@ -47,26 +47,26 @@ export function PaymentLinksOverviewSection() {
         />
 
         <div className="flex flex-col gap-6 ">
-          <Card className="bg-transparent pt-0 rounded-none" >
-            <CardHeader className="px-0">
-              <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">Command Center</div>
-              <CardTitle className="mt-2 text-2xl">Operate links with clarity, not guesswork</CardTitle>
+          <Card className=" border rounded-[2.5rem]" >
+            <CardHeader>
+              <div className="text-sm text-neutral-500">Why Kloak</div>
+              <CardTitle className="mt-2 text-2xl">Everything you need to run payment links well</CardTitle>
             </CardHeader>
-            <CardContent className="grid gap-4  md:grid-cols-3 px-0">
+            <CardContent className="grid gap-4  md:grid-cols-3 ">
               <CapabilityCard
                 icon={Link2}
-                title="Create on web"
-                body="Use the web app for secure request creation, link terms, and expiry management."
+                title="Easy to share"
+                body="Create a link, set the amount and expiry, and share it anywhere you want."
               />
               <CapabilityCard
                 icon={BarChart3}
-                title="Track performance"
-                body="Monitor views, conversion, volume, and link health across your collection."
+                title="Easy to track"
+                body="See views, payments, volume, and top-performing links in one place."
               />
               <CapabilityCard
                 icon={ShieldCheck}
-                title="Proof-ready settlements"
-                body="Move settled link payments directly into selective disclosure and compliance workflows."
+                title="Private by default"
+                body="Who paid stays private, and proofs only reveal what the proof owner chooses to share."
               />
             </CardContent>
           </Card>
@@ -95,12 +95,12 @@ export function PaymentLinksOverviewSection() {
           </div>
         </div>
 
-        <Card className="rounded-[2.5rem] border border-foreground/5 bg-neutral-900/40 text-foreground">
-          <CardHeader className="border-b border-foreground/5">
+        <Card className="bg-transparent border rounded-[2.5rem]">
+          <CardHeader>
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
-                <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">Traffic</div>
-                <CardTitle className="mt-2 text-lg">Top-level demand signals</CardTitle>
+                <div className="text-sm text-neutral-500">Traffic</div>
+                <CardTitle className="mt-2 text-lg">A quick view of demand</CardTitle>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <SignalPill label="Views" value={String(overview?.totals.totalViews ?? 0)} />
@@ -108,12 +108,13 @@ export function PaymentLinksOverviewSection() {
               </div>
             </div>
           </CardHeader>
-          <CardContent className="pt-6">
+          <CardContent>
             <div className="grid gap-4 md:grid-cols-2">
-              <div className="rounded-[2rem] border border-foreground/5 bg-black/20 p-5">
-                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                  <BarChart3 className="h-4 w-4 text-primary" />
-                  Best revenue performer
+              <div className="rounded-[2.5rem] border px-6 py-8">
+                <div className="flex items-center justify-between gap-2 text-base ">
+                 
+                  Top earning link
+                   <BarChart3 className="h-6 w-6 text-primary" />
                 </div>
                 <div className="mt-3 text-xl font-semibold text-foreground">
                   {overview?.insights.highestRevenueLink?.title || "Waiting for payments"}
@@ -121,21 +122,23 @@ export function PaymentLinksOverviewSection() {
                 <p className="mt-2 text-sm text-neutral-500">
                   {overview?.insights.highestRevenueLink
                     ? `${overview.insights.highestRevenueLink.revenue.toFixed(4)} ALEO collected`
-                    : "Once a link receives meaningful volume, it will show up here."}
+                    : "Your best earner will show up here once payments start coming in."}
                 </p>
               </div>
-              <div className="rounded-[2rem] border border-foreground/5 bg-black/20 p-5">
-                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                  <Eye className="h-4 w-4 text-primary" />
-                  Highest conversion
+              <div className="rounded-[2.5rem] border px-6 py-8">
+                <div className="flex items-center justify-between gap-2 text-base ">
+                 
+                  Best conversion
+                    <Eye className="h-6 w-6 text-primary" />
                 </div>
+               
                 <div className="mt-3 text-xl font-semibold text-foreground">
                   {overview?.insights.highestConversionLink?.title || "Waiting for traffic"}
                 </div>
                 <p className="mt-2 text-sm text-neutral-500">
                   {overview?.insights.highestConversionLink
                     ? `${(overview.insights.highestConversionLink.conversion * 100).toFixed(1)}% visit-to-payment conversion`
-                    : "Once views and settlements accumulate, the top converter will appear here."}
+                    : "Once your links have enough traffic and payments, the strongest converter will appear here."}
                 </p>
               </div>
             </div>
@@ -145,14 +148,14 @@ export function PaymentLinksOverviewSection() {
         <PaymentLinksTable
           links={recentLinks}
           title="Recent links"
-          description="Your latest payment links, with operational status and quick navigation into details."
+          description="Your latest payment links, with status, expiry, and quick access to details."
         />
 
         <div className="flex justify-end">
           <Link href="/payment-links/analytics">
             <Button variant="outline" >
-              Open detailed analytics
-             
+              Open analytics
+
             </Button>
           </Link>
         </div>
@@ -163,12 +166,12 @@ export function PaymentLinksOverviewSection() {
 
 function OverviewMetric({ label, value, helper }: { label: string; value: string; helper: string }) {
   return (
-    <Card className="rounded-[2.5rem] border  text-foreground">
-      <CardHeader className="border-b border-foreground/5">
-        <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">{label}</div>
+    <Card>
+      <CardHeader >
+        <div className="text-xl  text-neutral-300 ">{label}</div>
       </CardHeader>
       <CardContent className="pt-6">
-        <div className="font-mono text-3xl font-semibold tracking-tight text-foreground">{value}</div>
+        <div className="font-mono text-3xl font-semibold tracking-tight text-primary">{value}</div>
         <p className="mt-3 text-xs leading-5 text-neutral-500">{helper}</p>
       </CardContent>
     </Card>
@@ -185,18 +188,19 @@ function CapabilityCard({
   body: string
 }) {
   return (
-    <div className="rounded-[2rem] border  bg-black/20 p-5">
-      <Icon className="h-5 w-5 text-primary" />
-      <div className="mt-4 text-sm font-medium text-foreground">{title}</div>
-      <p className="mt-2 text-sm leading-6 text-neutral-500">{body}</p>
+    <div className="rounded-[2rem] bg-neutral-950/50 py-8 px-6">
+      <div className="flex gap-2 items-center font-light">
+        <Icon className="h-5 w-5 text-primary" />
+        <div className=" text-base ">{title}</div></div>
+      <p className="mt-4 text-sm leading-6 text-neutral-500">{body}</p>
     </div>
   )
 }
 
 function SignalPill({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border  px-4 py-3 text-center">
-      <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">{label}</div>
+    <div className="rounded-3xl border  px-4 py-3 text-center">
+      <div className="text-xs text-primary">{label}</div>
       <div className="mt-2 font-mono text-base text-foreground">{value}</div>
     </div>
   )

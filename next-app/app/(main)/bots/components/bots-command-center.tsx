@@ -9,23 +9,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 const commands = [
   {
     command: "/start",
-    label: "Initialize bot session",
-    helper: "Starts the companion bot and prompts wallet linking when Telegram is not connected yet.",
+    label: "Start the bot",
+    helper: "Open the bot and begin the wallet linking flow if Telegram is not connected yet.",
   },
   {
     command: "My Links",
-    label: "Track and share links",
-    helper: "Browse existing payment links from your web account and share them directly into Telegram chats.",
+    label: "View and share links",
+    helper: "See your existing payment links and send them into Telegram chats faster.",
   },
   {
     command: "Analytics",
-    label: "Check link performance",
-    helper: "Returns payment-link analytics and recent payment performance directly inside Telegram.",
+    label: "Check performance",
+    helper: "See recent link activity and payment performance directly in Telegram.",
   },
   {
     command: "Settings",
     label: "Manage wallet link",
-    helper: "Review link status, relink, or disconnect your wallet from the Telegram companion surface.",
+    helper: "Check your connection, relink your wallet, or disconnect it when needed.",
   },
 ]
 
@@ -33,19 +33,19 @@ const actions = [
   {
     href: "/payment-links",
     title: "Payment Links",
-    description: "Create and edit links on the web app before tracking and sharing them through Telegram.",
+    description: "Create and update links on the web app before sharing them through Telegram.",
     icon: Link2,
   },
   {
     href: "/webhooks",
     title: "Webhook Delivery",
-    description: "Pair Telegram alerts with backend delivery for payment success events.",
+    description: "Pair Telegram alerts with backend notifications for successful payments.",
     icon: Bell,
   },
   {
     href: "/compliance",
     title: "Compliance Ledger",
-    description: "Turn payments collected via chat into verifier-ready proofs.",
+    description: "Turn completed payments into proofs you can share when needed.",
     icon: ShieldCheck,
   },
 ]
@@ -53,17 +53,17 @@ const actions = [
 export function BotsCommandCenter({ linked }: { linked: boolean }) {
   return (
     <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
-      <Card className="rounded-[2.5rem] border border-foreground/5 bg-neutral-900/40 text-foreground">
+      <Card>
         <CardHeader>
           <div className="flex items-start justify-between gap-4">
             <div>
-              <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">Command Center</div>
-              <CardTitle className="mt-2 text-lg">Operational Workflow</CardTitle>
+              <div className="text-sm text-neutral-500">How It Works</div>
+              <CardTitle className="mt-2 text-lg">What you can do in Telegram</CardTitle>
               <p className="mt-2 text-sm leading-6 text-neutral-400">
-                The bot acts as a mobile companion for links you already manage on the web app: inbox access, chat sharing, payment alerts, and lightweight analytics.
+                The bot works alongside the web app. Use it to share links, get paid alerts, and check activity without opening Kloak every time.
               </p>
             </div>
-            <Badge variant={linked ? "secondary" : "outline"}>{linked ? "Linked" : "Needs Link"}</Badge>
+            <Badge variant={linked ? "secondary" : "outline"}>{linked ? "Linked" : "Not linked"}</Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -77,10 +77,10 @@ export function BotsCommandCenter({ linked }: { linked: boolean }) {
         </CardContent>
       </Card>
 
-      <Card className="rounded-[2.5rem] border border-foreground/5 bg-neutral-900/40 text-foreground">
+      <Card>
         <CardHeader>
-          <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">Next Actions</div>
-          <CardTitle className="mt-2 text-lg">Jump to related surfaces</CardTitle>
+          <div className="text-sm text-neutral-500">Next Steps</div>
+          <CardTitle className="mt-2 text-lg">Keep everything in sync</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {actions.map((item) => {
@@ -112,7 +112,7 @@ export function BotsCommandCenter({ linked }: { linked: boolean }) {
               Wallet linking
             </div>
             <p className="mt-2 text-xs leading-5 text-neutral-500">
-              Start from Telegram, tap the wallet-link prompt, and come back once the bot confirms the connection.
+              Start in Telegram, approve the wallet link, and come back once the bot confirms the connection.
             </p>
           </div>
         </CardContent>
