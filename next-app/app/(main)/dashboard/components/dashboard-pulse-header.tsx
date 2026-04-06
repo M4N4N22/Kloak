@@ -20,13 +20,13 @@ function StatusPill({
   active: boolean
 }) {
   return (
-    <div className="flex items-center gap-2 rounded-full border border-foreground/8 bg-neutral-900/70 px-3 py-2">
-      <span className={`relative flex h-2.5 w-2.5 ${active ? "" : "opacity-60"}`}>
+    <div className="flex items-center gap-2 rounded-full border  p-1">
+      <span className={`relative flex ml-2 h-2.5 w-2.5 ${active ? "" : "opacity-60"}`}>
         <span className={`absolute inline-flex h-full w-full rounded-full ${active ? "animate-ping bg-primary/60" : "bg-neutral-600"}`} />
         <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${active ? "bg-primary" : "bg-neutral-600"}`} />
       </span>
-      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">{label}</span>
-      <span className="font-mono text-xs text-foreground">{value}</span>
+      <span className="text-sm text-neutral-500">{label}</span>
+      <span className="font-mono text-xs text-primary bg-primary/10 rounded-full px-3 py-1">{value}</span>
     </div>
   )
 }
@@ -40,10 +40,10 @@ export function DashboardPulseHeader({
       <div className="flex flex-wrap items-center gap-3">
         <StatusPill label="Telegram Bot" value={telegramOnline ? "Online" : "Offline"} active={telegramOnline} />
         <StatusPill label="Webhooks" value={webhookStatus} active={webhookStatus.includes("OK") || webhookStatus === "Awaiting traffic"} />
-        <div className="flex items-center gap-2 rounded-full border border-foreground/8 bg-neutral-900/70 px-3 py-2">
-          <Radio className="h-3.5 w-3.5 text-primary" />
-          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">Proof Feed</span>
-          <span className="font-mono text-xs text-foreground">Live</span>
+        <div className="flex items-center gap-2 rounded-full border  p-1">
+          <Radio className="h-3.5 w-3.5 text-primary ml-2" />
+          <span className="text-sm text-neutral-500">Proof Feed</span>
+          <span className="font-mono text-xs text-primary bg-primary/10 rounded-full px-3 py-1">Live</span>
         </div>
       </div>
 

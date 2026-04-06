@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
+import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { useWallet } from "@provablehq/aleo-wallet-adaptor-react"
 import { ArrowLeft, CheckCircle2, FileSearch, type LucideIcon, Settings2, ShieldCheck } from "lucide-react"
@@ -27,9 +28,13 @@ export function GenerateProofSection() {
   const preselectedTxHash = searchParams.get("txHash")?.trim() || ""
 
   const { payments, loading, error: paymentsError, refresh } = useCompliancePayments(actorAddress)
-  const { generateProof, busyAction, error } = useSelectiveDisclosure()
+  const { generateProof, busyAction, error, duplicateProof, availableProofTypes } = useSelectiveDisclosure()
   const { form, error: formError, setError, setField, selectedPayment, selectPayment, validate } =
     useProofForm(payments)
+  const activeDuplicateProof =
+    duplicateProof && duplicateProof.proofType === form.proofType && duplicateProof.actorRole === form.actorRole
+      ? duplicateProof
+      : null
 
   useEffect(() => {
     if (!preselectedTxHash) return
@@ -102,12 +107,13 @@ export function GenerateProofSection() {
           timestampFrom: form.timestampFrom || undefined,
           timestampTo: form.timestampTo || undefined,
         },
+        walletReceipt: selectedPayment?.walletReceipt,
       })
     } catch {
       return
     }
   }
-
+console.log(payments)
   return (
     <div className="mx-auto max-w-6xl space-y-10 pb-20">
       <SectionHeader
@@ -164,18 +170,18 @@ export function GenerateProofSection() {
 
           {currentStep === 2 ? (
             <div className="space-y-6">
-              <div className="relative group overflow-hidden rounded-3xl border p-1">
+              <div className="relative group overflow-hidden rounded-3xl bg-neutral-950 p-1">
 
 
 
-                <div className="rounded-[1.8rem]  to-transparent p-6">
+                <div className="rounded-[1.8rem] p-6">
                   <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <div className="flex items-center justify-center rounded-full text-primary">
                           <ShieldCheck className="h-3 w-3" />
                         </div>
-                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary/80">
+                        <p className="text-xs text-primary">
                           Selected Transaction
                         </p>
                       </div>
@@ -196,14 +202,14 @@ export function GenerateProofSection() {
                     </div>
 
                     {/* Hash Badge with "Copy" Feel */}
-                    <div className="flex flex-col items-end gap-2">
-                      <div className="rounded-xl border border-foreground/5 bg-black/40 px-3 py-1.5 backdrop-blur-sm">
+                    <div className="flex flex-col items-end ">
+                      <div className=" ">
                         <code className="text-[11px] font-mono font-medium text-primary/90">
-                          {shortHash(form.paymentTxHash, 6, 6)}
+                          {shortHash(form.paymentTxHash, 4, 4)}
                         </code>
                       </div>
-                      <p className="text-[10px] font-medium text-neutral-600 uppercase tracking-tighter">
-                        Immutable Hash
+                      <p className="text-xs font-medium text-neutral-500 ">
+                        Tx Hash
                       </p>
                     </div>
                   </div>
@@ -218,6 +224,12 @@ export function GenerateProofSection() {
                 onFieldChange={setField}
                 onGenerate={handleReview}
               />
+              {activeDuplicateProof ? (
+                <DuplicateProofNotice
+                  proofId={activeDuplicateProof.proofId}
+                  availableProofTypes={availableProofTypes}
+                />
+              ) : null}
             </div>
           ) : (
             <>
@@ -289,6 +301,13 @@ export function GenerateProofSection() {
                       </div>
                     ) : null}
 
+                    {activeDuplicateProof ? (
+                      <DuplicateProofNotice
+                        proofId={activeDuplicateProof.proofId}
+                        availableProofTypes={availableProofTypes}
+                      />
+                    ) : null}
+
                     <Button
                       size="lg"
                       onClick={handleGenerate}
@@ -307,6 +326,35 @@ export function GenerateProofSection() {
         </div>
 
       )}
+    </div>
+  )
+}
+
+function DuplicateProofNotice({
+  proofId,
+  availableProofTypes,
+}: {
+  proofId: string
+  availableProofTypes: Array<"existence" | "amount" | "threshold">
+}) {
+  return (
+    <div className="rounded-2xl border border-orange-500/20 bg-orange-500/10 px-4 py-4 text-sm text-orange-100">
+      <p className="font-medium">An active proof for this exact statement already exists.</p>
+      <p className="mt-2 text-orange-100/80">
+        Reuse proof <span className="font-mono">{shortHash(proofId, 8, 6)}</span>, revoke it from your issued proofs ledger, or generate one of the other proof types.
+      </p>
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        {availableProofTypes.map((type) => (
+          <span key={type} className="rounded-full border border-orange-400/20 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-100/90">
+            {type === "existence" ? "Basic" : type === "amount" ? "Amount" : "Threshold"}
+          </span>
+        ))}
+        <Link href="/compliance/proofs">
+          <Button size="sm" variant="outline" className="rounded-xl border-orange-400/20 bg-transparent text-orange-100 hover:bg-orange-500/10 hover:text-orange-50">
+            See issued proofs
+          </Button>
+        </Link>
+      </div>
     </div>
   )
 }

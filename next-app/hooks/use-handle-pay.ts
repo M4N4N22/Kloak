@@ -31,6 +31,8 @@ type AleoRecord = {
     spent?: boolean
 }
 
+type DisclosureReceiptRecord = AleoRecord
+
 const FINAL_STATUSES = ["finalized", "completed", "accepted"] as const
 const FAILED_STATUSES = ["failed", "rejected"] as const
 const POLL_INTERVAL_MS = 1000
@@ -44,6 +46,75 @@ function parseMicrocredits(record: AleoRecord) {
     const text = record.recordPlaintext || record.plaintext || ""
     const match = text.match(/microcredits:\s*(\d+)u64/)
     return match ? BigInt(match[1]) : BigInt(0)
+}
+
+function normalizeLeoValue(value: string | null) {
+    if (!value) return null
+
+    return value
+        .trim()
+        .replace(/^"+|"+$/g, "")
+        .replace(/\.(private|public|constant)$/, "")
+}
+
+function extractFieldValue(text: string, name: string) {
+    const match = text.match(new RegExp(`${name}:\\s*([^,\\n}]+)`))
+    return normalizeLeoValue(match?.[1] || null)
+}
+
+async function findWalletReceiptCommitment(input: {
+    requestRecords: ReturnType<typeof useWallet>["requestRecords"]
+    ownerAddress: string
+    merchantAddress: string
+    requestId: string
+    amountMicro: bigint
+    timestamp: number
+}) {
+    for (let attempt = 0; attempt < 6; attempt++) {
+        const receipts = await (
+            input.requestRecords as unknown as (
+                program: string,
+                includePlaintext?: boolean,
+                filter?: "all" | "unspent" | "spent",
+            ) => Promise<DisclosureReceiptRecord[]>
+        )("kloak_protocol_v10.aleo", true, "unspent")
+
+        const matchingReceipt = receipts.find((record) => {
+            if (record.spent) return false
+
+            const plaintext = record.recordPlaintext || record.plaintext || ""
+            const role = extractFieldValue(plaintext, "role")
+            const owner = extractFieldValue(plaintext, "owner")
+            const counterparty = extractFieldValue(plaintext, "counterparty")
+            const requestId = extractFieldValue(plaintext, "request_id")
+            const amount = extractFieldValue(plaintext, "amount")?.replace("u64", "")
+            const timestamp = extractFieldValue(plaintext, "timestamp")?.replace("u64", "")
+            const commitment = extractFieldValue(plaintext, "commitment")
+
+            return Boolean(
+                commitment &&
+                role === "0u8" &&
+                owner === normalizeLeoValue(input.ownerAddress) &&
+                counterparty === normalizeLeoValue(input.merchantAddress) &&
+                requestId === normalizeLeoValue(input.requestId) &&
+                amount === input.amountMicro.toString() &&
+                timestamp === String(input.timestamp),
+            )
+        })
+
+        const commitment = extractFieldValue(
+            matchingReceipt?.recordPlaintext || matchingReceipt?.plaintext || "",
+            "commitment",
+        )
+
+        if (commitment) {
+            return commitment
+        }
+
+        await sleep(1000)
+    }
+
+    return null
 }
 
 export function useHandlePay(link: PaymentLinkShape, amount: string) {
@@ -76,7 +147,7 @@ export function useHandlePay(link: PaymentLinkShape, amount: string) {
             const { Field } = await import("@provablehq/sdk")
             const receiptSecret = Field.random().toString()
             const receiptTimestamp = Math.floor(Date.now() / 1000)
-            const commitment = await computePaymentCommitment(
+            const predictedCommitment = await computePaymentCommitment(
                 requestIdFormatted,
                 requiredMicro.toString(),
                 address,
@@ -111,7 +182,7 @@ export function useHandlePay(link: PaymentLinkShape, amount: string) {
             setStatus("signing")
 
             const resultPromise = executeTransaction({
-                program: "kloak_protocol_v8.aleo",
+                program: "kloak_protocol_v10.aleo",
                 function: "pay_request_aleo",
                 inputs: [
                     recordPlaintext,
@@ -158,18 +229,27 @@ export function useHandlePay(link: PaymentLinkShape, amount: string) {
 
                     if (FINAL_STATUSES.includes(currentStatus as (typeof FINAL_STATUSES)[number])) {
                         try {
+                            const actualReceiptCommitment =
+                                await findWalletReceiptCommitment({
+                                    requestRecords,
+                                    ownerAddress: address,
+                                    merchantAddress,
+                                    requestId: requestIdFormatted,
+                                    amountMicro: requiredMicro,
+                                    timestamp: receiptTimestamp,
+                                }) || predictedCommitment
+
+                                console.log("Using receipt commitment:", { predictedCommitment, actualReceiptCommitment })
+
                             const dbResponse = await fetch(`/api/payment-links/${link.id}/pay`, {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify({
-                                    payer: address,
-                                    payerAddress: address,
                                     merchantAddress,
                                     amount,
                                     token: link.token,
                                     txHash: finalTransactionId,
-                                    receiptCommitment: commitment,
-                                    receiptOwner: address,
+                                    receiptCommitment: actualReceiptCommitment,
                                 }),
                             })
 

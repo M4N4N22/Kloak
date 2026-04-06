@@ -1,8 +1,10 @@
 "use client"
 
+import type { ReactNode } from "react"
+import type { LucideIcon } from "lucide-react"
 import { Eye, FileCheck2, Shield, Scale, Clock3, ArrowUpRight, ArrowDownLeft, Fingerprint, ShieldCheck } from "lucide-react"
 import { useWallet } from "@provablehq/aleo-wallet-adaptor-react"
-import { EyeOff, Lock, CheckCircle2, MinusCircle } from "lucide-react"
+import { EyeOff, Lock } from "lucide-react"
 import { useCompliancePayments } from "@/hooks/use-compliance-payments"
 import { useSelectiveDisclosureProofs } from "@/hooks/use-selective-disclosure-proofs"
 import { Card, CardContent } from "@/components/ui/card"
@@ -21,7 +23,7 @@ export function OverviewSection() {
       <SectionHeader
         eyebrow="Compliance Overview"
         title="Privacy-preserving proofs for real-world workflows"
-        description="Transform your private payment receipts into secure, verifiable disclosures. Share only what is necessary with auditors, employers, or tax authorities while keeping your wallet's inner workings hidden."
+        description="Turn wallet-held payment receipts into verifiable disclosures. Share only the fields a workflow requires while keeping payer identity, balances, and unrelated activity out of scope."
       />
 
       {/* 2. LIVE WORKSPACE SNAPSHOT: High-density data metrics */}
@@ -57,20 +59,20 @@ export function OverviewSection() {
       </div>
 
       {/* 3. THE "HOW IT WORKS" GRID: Human-centric explanations */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3 ">
         <FeatureCard
           title="What is a Proof?"
-          desc="A secure 'digital stamp' that confirms a payment happened. It acts as a receipt that doesn't reveal your name or balance."
+          desc="A verifiable receipt that confirms a payment statement without exposing your full wallet history or unrelated balances."
           icon={Shield}
         />
         <FeatureCard
           title="When to Share?"
-          desc="Perfect for expense reimbursements, tax filings, or platform access where a verifier needs 'Yes/No' confidence."
+          desc="Useful for reimbursements, tax workflows, and partner checks where someone needs proof of payment without broader wallet visibility."
           icon={FileCheck2}
         />
         <FeatureCard
-          title="Total Privacy"
-          desc="Your raw transaction history and total balances are never touched. You only disclose the specific policy you select."
+          title="Selective Privacy"
+          desc="You do not expose your whole wallet. You disclose only the payment statement and constraints you intentionally choose."
           icon={Eye}
         />
       </div>
@@ -78,14 +80,14 @@ export function OverviewSection() {
       {/* 4. VISUAL DISCLOSURE MODEL: Shared vs. Protected */}
       <div className="grid gap-6 lg:grid-cols-5">
         {/* SHARED SECTION - The "Public Disclosure" */}
-        <Card className="lg:col-span-3 relative overflow-hidden border-primary/20 bg-primary/[0.03] shadow-[0_0_40px_rgba(var(--primary-rgb),0.05)] rounded-[2.5rem] h-fit">
+        <Card className="lg:col-span-3 relative overflow-hidden border-primary/20  shadow-[0_0_40px_rgba(var(--primary-rgb),0.05)] rounded-[2.5rem] h-fit">
           {/* Subtle background glow */}
-          <div className="absolute -right-20 -top-40 h-64 w-64 rounded-full bg-primary/50 blur-[90px]" />
+          <div className="absolute -right-40 -bottom-40 h-96 w-96 rounded-full bg-primary/40 blur-[80px]" />
 
           <CardContent className="relative p-8 md:p-10">
             <div className="mb-8 flex items-center justify-between">
               <div className="space-y-1">
-                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-primary">
+                <div className="flex items-center gap-2 text-xs  text-primary">
                   <Eye className="h-4 w-4" />
                   Public Disclosure
                 </div>
@@ -93,7 +95,7 @@ export function OverviewSection() {
                   What you share with the world
                 </h3>
               </div>
-              <div className="hidden sm:block rounded-full bg-primary/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-primary ">
+              <div className="hidden sm:block rounded-full bg-primary/10 px-3 py-1 text-[10px]  uppercase tracking-widest text-primary ">
                 Verified
               </div>
             </div>
@@ -102,7 +104,7 @@ export function OverviewSection() {
               <ListItem2
                 icon={<ShieldCheck className="h-5 w-5 text-primary" />}
                 label="Payment Existence"
-                desc="Cryptographic proof that the specific transaction is recorded on-chain."
+                desc="Proof that a matching payment exists without exposing the rest of the wallet's activity."
               />
               <ListItem2
                 icon={<Scale className="h-5 w-5 text-primary" />}
@@ -112,7 +114,7 @@ export function OverviewSection() {
               <ListItem2
                 icon={<Clock3 className="h-5 w-5 text-primary" />}
                 label="Time Window"
-                desc="A verifiable timestamp of the event without exposing other history."
+                desc="Show the relevant date range when needed without exposing unrelated timeline data."
               />
               <ListItem2
                 icon={<Fingerprint className="h-5 w-5 text-primary" />}
@@ -121,8 +123,8 @@ export function OverviewSection() {
               />
             </div>
           </CardContent>
-          <div className="mt-10 flex items-center justify-center gap-2  bg-black  border-foreground/5">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+          <div className="mt-10 flex items-center justify-center gap-2">
+            <span className="text-xs text-neutral-500">
               Zero-Knowledge Protected
             </span>
           </div>
@@ -131,10 +133,10 @@ export function OverviewSection() {
 
 
         {/* HIDDEN SECTION - The "Secure Vault" */}
-        <Card className="lg:col-span-2 border-foreground/5 bg-neutral-900/50 backdrop-blur-xl rounded-[2.5rem]">
+        <Card className="lg:col-span-2">
           <CardContent className="p-8 md:p-10">
             <div className="mb-8 space-y-1">
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-neutral-500">
+              <div className="flex items-center gap-2 text-xs text-neutral-500">
                 <EyeOff className="h-4 w-4" />
                 Private Enclave
               </div>
@@ -157,7 +159,7 @@ export function OverviewSection() {
               <ListItem2
                 icon={<Lock className="h-4 w-4 text-neutral-600" />}
                 label="Unrelated Activity"
-                desc="Past and future transaction metadata is completely shielded."
+                desc="Payments outside the selected receipt stay out of the disclosure package."
                 secondary
               />
             </div>
@@ -175,21 +177,31 @@ export function OverviewSection() {
 
 /** HELPER COMPONENTS FOR CLEANER LAYOUT **/
 
-function ListItem2({ label, desc, icon, secondary = false }: any) {
+function ListItem2({
+  label,
+  desc,
+  icon,
+  secondary = false,
+}: {
+  label: string
+  desc: string
+  icon: ReactNode
+  secondary?: boolean
+}) {
   return (
     <div className="group flex items-start gap-4">
       <div className={cn(
-        "mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl  transition-all duration-300",
+        "mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-all duration-300",
         secondary
-          ? " bg-foreground/5 text-neutral-500 opacity-60"
-          : " bg-primary/10 text-primary group-hover:text-black"
+          ? "  text-neutral-500"
+          : "  text-primary group-hover:text-black"
       )}>
         {icon}
       </div>
       <div className="space-y-1">
         <h4 className={cn(
-          "text-sm font-bold tracking-tight",
-          secondary ? "text-neutral-400 line-through decoration-neutral-700" : "text-foreground"
+          "text-sm font-medium ",
+          secondary ? "text-neutral-400  decoration-neutral-700" : "text-foreground"
         )}>
           {label}
         </h4>
@@ -201,27 +213,48 @@ function ListItem2({ label, desc, icon, secondary = false }: any) {
   )
 }
 
-function QuickStat({ label, value, sub, icon: Icon, color }: any) {
+function QuickStat({
+  label,
+  value,
+  sub,
+  icon: Icon,
+  color,
+}: {
+  label: string
+  value: string | number
+  sub: string
+  icon: LucideIcon
+  color: string
+}) {
   return (
-    <Card className="border-foreground/5 bg-neutral-900/50 hover:bg-neutral-900/80 transition-colors">
+    <Card className="">
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-4">
-          <div className={cn("p-2 rounded-lg bg-neutral-800", color)}>
+           <p className="text-base">{label}</p>
+          <div className={cn("p-4 rounded-full border", color)}>
             <Icon className="h-5 w-5" />
           </div>
         </div>
         <div className="text-3xl font-bold text-foreground mb-1">{value}</div>
-        <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">{label}</p>
-        <p className="mt-2 text-[11px] text-neutral-600 leading-tight">{sub}</p>
+       
+        <p className="mt-2 text-xs text-neutral-500 leading-tight">{sub}</p>
       </CardContent>
     </Card>
   )
 }
 
-function FeatureCard({ title, desc, icon: Icon }: any) {
+function FeatureCard({
+  title,
+  desc,
+  icon: Icon,
+}: {
+  title: string
+  desc: string
+  icon: LucideIcon
+}) {
   return (
-    <div className="flex gap-4 py-8 px-4 rounded-3xl border">
-      <div className="flex-shrink-0 h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+    <div className="flex gap-4 py-8 px-6 rounded-[2.5rem] border">
+      <div className="flex-shrink-0 h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
         <Icon className="h-5 w-5" />
       </div>
       <div>
@@ -229,16 +262,5 @@ function FeatureCard({ title, desc, icon: Icon }: any) {
         <p className="text-xs leading-relaxed text-neutral-500">{desc}</p>
       </div>
     </div>
-  )
-}
-
-function ListItem({ label, desc, secondary }: { label: string, desc: string, secondary?: boolean }) {
-  return (
-    <li className="space-y-1">
-      <div className={cn("text-sm font-medium", secondary ? "text-neutral-400" : "text-emerald-50")}>
-        {label}
-      </div>
-      <p className="text-xs text-neutral-500 leading-normal">{desc}</p>
-    </li>
   )
 }

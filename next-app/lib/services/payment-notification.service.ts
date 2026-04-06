@@ -2,6 +2,7 @@ import crypto from "node:crypto"
 
 import { Payment, PaymentLink, WebhookEndpoint } from "@prisma/client"
 
+import { decryptTextAtRest } from "@/lib/at-rest-encryption"
 import { getBot } from "@/lib/bot/bot"
 import { prisma } from "@/lib/prisma"
 
@@ -119,9 +120,10 @@ async function deliverWebhook(
   const payload = buildPaymentSuccessPayload(link, payment)
   const body = JSON.stringify(payload)
   const timestamp = String(Date.now())
-  const signature = endpoint.secret
+  const webhookSecret = decryptTextAtRest(endpoint.secret)
+  const signature = webhookSecret
     ? crypto
-      .createHmac("sha256", endpoint.secret)
+      .createHmac("sha256", webhookSecret || "")
       .update(`${timestamp}.${body}`)
       .digest("hex")
     : null
@@ -146,8 +148,8 @@ async function deliverWebhook(
     responseStatus = response.status
     responseBody = (await response.text()).slice(0, 2000)
     success = response.ok
-  } catch (error: any) {
-    responseBody = error?.message ?? "Webhook delivery failed"
+  } catch (error: unknown) {
+    responseBody = error instanceof Error ? error.message : "Webhook delivery failed"
   }
 
   await prisma.webhookDelivery.create({

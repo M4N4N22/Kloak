@@ -1,11 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import { Prisma } from "@prisma/client"
 
-type ProofPayloadMeta = {
-  actorRole: "payer" | "receiver"
-  proofType: "existence" | "amount" | "threshold"
-}
-
 function startOfDay(value: Date) {
   return new Date(value.getFullYear(), value.getMonth(), value.getDate())
 }
@@ -26,46 +21,6 @@ function formatDayLabel(value: Date) {
   })
 }
 
-function getProofPayloadMeta(payload: Prisma.JsonValue | null): ProofPayloadMeta {
-  if (payload && typeof payload === "object" && !Array.isArray(payload)) {
-    const shape = payload as Record<string, unknown>
-    const actorRole = shape.actorRole === "receiver" ? "receiver" : "payer"
-    const proofType =
-      shape.proofType === "amount" || shape.proofType === "threshold"
-        ? shape.proofType
-        : "existence"
-
-    return { actorRole, proofType }
-  }
-
-  return {
-    actorRole: "payer",
-    proofType: "existence",
-  }
-}
-
-function getProofVerificationStatus(input: {
-  status: "ACTIVE" | "REVOKED"
-  latestVerification?: {
-    success: boolean
-    revoked: boolean
-  } | null
-}) {
-  if (input.status === "REVOKED") {
-    return "Revoked"
-  }
-
-  if (input.latestVerification?.success) {
-    return "Verified"
-  }
-
-  if (input.latestVerification && !input.latestVerification.success) {
-    return input.latestVerification.revoked ? "Revoked" : "Check failed"
-  }
-
-  return "Issued"
-}
-
 export async function getDashboardOverview(creatorAddress: string) {
   const today = startOfDay(new Date())
   const sevenDaysAgo = new Date(today)
@@ -75,8 +30,6 @@ export async function getDashboardOverview(creatorAddress: string) {
     links,
     recentPayments,
     chartPayments,
-    distinctDisclosedPayments,
-    recentProofs,
     linkedTelegramUsers,
     botPayments,
     activeWebhookEndpoints,
@@ -98,7 +51,7 @@ export async function getDashboardOverview(creatorAddress: string) {
         PaymentLink: { creatorAddress },
       },
       orderBy: { createdAt: "desc" },
-      take: 8,
+      take: 5,
       select: {
         id: true,
         txHash: true,
@@ -123,47 +76,6 @@ export async function getDashboardOverview(creatorAddress: string) {
       select: {
         amount: true,
         createdAt: true,
-      },
-    }),
-    prisma.selectiveDisclosureProof.findMany({
-      where: {
-        status: "ACTIVE",
-        payment: {
-          PaymentLink: { creatorAddress },
-        },
-      },
-      distinct: ["paymentId"],
-      select: {
-        paymentId: true,
-      },
-    }),
-    prisma.selectiveDisclosureProof.findMany({
-      where: {
-        payment: {
-          PaymentLink: { creatorAddress },
-        },
-      },
-      orderBy: { createdAt: "desc" },
-      take: 8,
-      select: {
-        proofId: true,
-        paymentTxHash: true,
-        status: true,
-        createdAt: true,
-        proofPayload: true,
-        _count: {
-          select: {
-            verifications: true,
-          },
-        },
-        verifications: {
-          orderBy: { createdAt: "desc" },
-          take: 1,
-          select: {
-            success: true,
-            revoked: true,
-          },
-        },
       },
     }),
     prisma.telegramUser.count({
@@ -202,7 +114,6 @@ export async function getDashboardOverview(creatorAddress: string) {
   const totalViews = links.reduce((sum, link) => sum + (link.views ?? 0), 0)
   const activeLinks = links.filter((link) => link.active).length
   const conversionRate = totalViews > 0 ? totalPayments / totalViews : 0
-  const disclosureRate = totalPayments > 0 ? distinctDisclosedPayments.length / totalPayments : 0
 
   const chartTemplate = Array.from({ length: 7 }, (_, index) => {
     const date = new Date(sevenDaysAgo)
@@ -225,8 +136,6 @@ export async function getDashboardOverview(creatorAddress: string) {
       target.volume += toNumber(payment.amount)
     }
   }
-
-  const botActivity = linkedTelegramUsers + botPayments + links.length
 
   const latestWebhookDelivery = recentWebhookDeliveries[0]
   const webhookHealth =
@@ -260,16 +169,13 @@ export async function getDashboardOverview(creatorAddress: string) {
       totalPayments,
       totalViews,
       conversionRate,
-      disclosureRate,
-      disclosedPayments: distinctDisclosedPayments.length,
-      botActivity,
       chart: chartTemplate,
     },
     connectivity: {
       telegram: {
         status: Boolean(process.env.BOT_TOKEN) ? "Online" : "Offline",
         linkedUsers: linkedTelegramUsers,
-        interactions: botActivity,
+        interactions: botPayments,
       },
       webhooks: {
         status: webhookHealth,
@@ -292,23 +198,6 @@ export async function getDashboardOverview(creatorAddress: string) {
         createdAt: payment.createdAt.toISOString(),
         txHash: payment.txHash,
       })),
-      proofs: recentProofs.map((proof) => {
-        const meta = getProofPayloadMeta(proof.proofPayload)
-        const latestVerification = proof.verifications[0] || null
-
-        return {
-          proofId: proof.proofId,
-          paymentTxHash: proof.paymentTxHash,
-          createdAt: proof.createdAt.toISOString(),
-          proofType: meta.proofType,
-          actorRole: meta.actorRole,
-          status: getProofVerificationStatus({
-            status: proof.status,
-            latestVerification,
-          }),
-          verificationCount: proof._count.verifications,
-        }
-      }),
     },
   }
 }

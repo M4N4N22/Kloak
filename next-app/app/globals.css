@@ -91,6 +91,20 @@
   --sidebar-ring: oklch(0.708 0 0);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
+  --wallet-adapter-primary: #9ce37d;
+  --wallet-adapter-primary-hover: #89cf6b;
+  --wallet-adapter-primary-foreground: #081106;
+  --wallet-adapter-background: rgba(10, 10, 10, 0.96);
+  --wallet-adapter-surface: rgba(16, 16, 18, 0.96);
+  --wallet-adapter-surface-hover: rgba(28, 28, 31, 0.98);
+  --wallet-adapter-surface-light: rgba(38, 38, 44, 0.96);
+  --wallet-adapter-text: #f4f4f5;
+  --wallet-adapter-text-secondary: rgba(244, 244, 245, 0.62);
+  --wallet-adapter-border: rgba(255, 255, 255, 0.1);
+  --wallet-adapter-border-light: rgba(255, 255, 255, 0.16);
+  --wallet-adapter-secondary: #9ce37d;
+  --wallet-adapter-secondary-hover: #89cf6b;
+  --wallet-adapter-radius-xl: 1.75rem;
 }
 
 .dark {
@@ -135,6 +149,20 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  --wallet-adapter-primary: #9ce37d;
+  --wallet-adapter-primary-hover: #89cf6b;
+  --wallet-adapter-primary-foreground: #081106;
+  --wallet-adapter-background: rgba(9, 9, 11, 0.96);
+  --wallet-adapter-surface: rgba(18, 18, 21, 0.96);
+  --wallet-adapter-surface-hover: rgba(28, 28, 32, 0.98);
+  --wallet-adapter-surface-light: rgba(38, 38, 44, 0.96);
+  --wallet-adapter-text: #f4f4f5;
+  --wallet-adapter-text-secondary: rgba(244, 244, 245, 0.62);
+  --wallet-adapter-border: rgba(255, 255, 255, 0.1);
+  --wallet-adapter-border-light: rgba(255, 255, 255, 0.16);
+  --wallet-adapter-secondary: #9ce37d;
+  --wallet-adapter-secondary-hover: #89cf6b;
+  --wallet-adapter-radius-xl: 1.75rem;
 }
 
 @layer base {
@@ -256,4 +284,29 @@
   .bg-flagship-gradient {
     @apply bg-linear-to-br from-primary via-green-400 to-emerald-400;
   }
+}
+
+.wallet-adapter-modal {
+  backdrop-filter: blur(8px);
+}
+
+.wallet-adapter-modal-overlay {
+  background: rgba(0, 0, 0, 0.68);
+}
+
+.wallet-adapter-modal-wrapper {
+  background: rgba(10, 10, 10, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 40px 120px rgba(0, 0, 0, 0.45);
+}
+
+.wallet-adapter-modal-title {
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+}
+
+.wallet-adapter-modal-list .wallet-adapter-button,
+.wallet-adapter-dropdown-list,
+.wallet-adapter-dropdown-list-item {
+  backdrop-filter: blur(12px);
 }

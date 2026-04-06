@@ -3,14 +3,11 @@ import { Prisma } from "@prisma/client"
 import { notifyPaymentSuccess } from "./payment-notification.service"
 
 type RecordPaymentInput = {
-  payer?: string | null
-  payerAddress?: string | null
   merchantAddress?: string | null
   amount: string | number
   token: "ALEO" | "USDCX" | "USAD"
   txHash?: string | null
   receiptCommitment?: string | null
-  receiptOwner?: string | null
 }
 
 export async function recordPayment(linkId: string, data: RecordPaymentInput) {
@@ -28,14 +25,11 @@ export async function recordPayment(linkId: string, data: RecordPaymentInput) {
     const payment = await tx.payment.create({
       data: {
         linkId,
-        payer: data.payer ?? null,
-        payerAddress: data.payerAddress ?? null,
         merchantAddress: data.merchantAddress ?? null,
         amount,
         token: data.token,
         txHash: data.txHash ?? null,
         receiptCommitment: data.receiptCommitment ?? null,
-        receiptOwner: data.receiptOwner ?? null,
         status: "SUCCESS",
       },
     })

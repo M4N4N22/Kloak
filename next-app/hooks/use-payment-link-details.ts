@@ -27,7 +27,6 @@ export type PaymentLinkDetail = {
     token: "ALEO" | "USDCX" | "USAD"
     status: string
     createdAt: string
-    payerAddress: string | null
     proofCount: number
   }>
   analytics: {

@@ -11,7 +11,7 @@ RENAME COLUMN "txHash" TO "paymentTxHash";
 ALTER TABLE "SelectiveDisclosureProof"
 DROP COLUMN "signature",
 ADD COLUMN "commitment" TEXT NOT NULL DEFAULT '',
-ADD COLUMN "contractProgram" TEXT NOT NULL DEFAULT 'kloak_protocol_v8.aleo',
+ADD COLUMN "contractProgram" TEXT NOT NULL DEFAULT 'kloak_protocol_v10.aleo',
 ADD COLUMN "disclosureTxHash" TEXT,
 ADD COLUMN "nullifier" TEXT,
 ADD COLUMN "ownerAddress" TEXT NOT NULL DEFAULT '',

@@ -3,7 +3,7 @@ import { OverviewSection } from "@/features/compliance/sections/overview-section
 
 export default function ComplianceOverviewPage() {
   return (
-    <ComplianceAccessGate>
+    <ComplianceAccessGate requiresSignedAccess>
       <OverviewSection />
     </ComplianceAccessGate>
   )

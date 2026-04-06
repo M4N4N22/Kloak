@@ -45,7 +45,7 @@ function NavItem({
         asChild
         className={cn(
           navigationMenuTriggerStyle(),
-          active && "bg-primary/10 text-primary"
+          active && "bg-transparent text-primary"
         )}
       >
         <Link className="" href={href}>{label}</Link>
@@ -60,8 +60,8 @@ export function AppHeader() {
   const pathname = usePathname()
 
   return (
-    <header className="fixed top-0 inset-x-0 z-50 ">
-      <div className="mx-auto flex  items-center justify-between gap-4   bg-background/55 px-4 py-3 shadow-2xl backdrop-blur-2xl">
+    <header className="fixed top-0 inset-x-0 z-50  ">
+      <div className="mx-auto flex  items-center justify-between gap-4  bg-gradient-to-b from-black via-black/70 to-transparent  py-3 px-8 ">
 
         {/* LOGO */}
         <Link href="/" className="flex items-center shrink-0">

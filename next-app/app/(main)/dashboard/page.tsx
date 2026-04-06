@@ -1,5 +1,6 @@
 "use client"
 
+import { useMemo, useSyncExternalStore } from "react"
 import { useWallet } from "@provablehq/aleo-wallet-adaptor-react"
 
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -9,6 +10,11 @@ import { DashboardKpiBento } from "./components/dashboard-kpi-bento"
 import { DashboardLedger } from "./components/dashboard-ledger"
 import { DashboardPulseHeader } from "./components/dashboard-pulse-header"
 import { useDashboardOverview } from "@/hooks/use-dashboard-overview"
+import { useSelectiveDisclosureProofs } from "@/hooks/use-selective-disclosure-proofs"
+import {
+  COMPLIANCE_READ_SCOPE,
+  getCachedComplianceAccessPayload,
+} from "@/lib/compliance-access"
 
 function DashboardLoadingState() {
   return (
@@ -32,6 +38,32 @@ export default function DashboardPage() {
   const { address, connected } = useWallet()
   const actorAddress = address || ""
   const { overview, loading, error } = useDashboardOverview(actorAddress)
+  const { proofs, loading: proofsLoading } = useSelectiveDisclosureProofs(actorAddress)
+  const hasProofAccess = useSyncExternalStore(
+    () => () => { },
+    () =>
+      actorAddress
+        ? Boolean(getCachedComplianceAccessPayload(COMPLIANCE_READ_SCOPE, actorAddress))
+        : false,
+    () => false,
+  )
+
+  const proofSummary = useMemo(() => {
+    const activeProofs = proofs.filter((proof) => proof.status === "ACTIVE")
+    const distinctCoveredPayments = new Set(activeProofs.map((proof) => proof.paymentTxHash)).size
+    const verificationEvents = proofs.reduce((sum, proof) => sum + proof.verificationCount, 0)
+
+    return {
+      activeProofs: activeProofs.length,
+      distinctCoveredPayments,
+      revokedProofs: proofs.filter((proof) => proof.status === "REVOKED").length,
+      verificationEvents,
+      disclosureRate:
+        overview && overview.metrics.totalPayments > 0
+          ? distinctCoveredPayments / overview.metrics.totalPayments
+          : 0,
+    }
+  }, [overview, proofs])
 
   if (!connected) {
     return <DashboardDisconnectedState />
@@ -66,23 +98,27 @@ export default function DashboardPage() {
         totalVolume={overview.metrics.totalVolume}
         activeLinks={overview.metrics.activeLinks}
         conversionRate={overview.metrics.conversionRate}
-        disclosureRate={overview.metrics.disclosureRate}
-        disclosedPayments={overview.metrics.disclosedPayments}
+        disclosureRate={proofSummary.disclosureRate}
+        disclosedPayments={proofSummary.distinctCoveredPayments}
         totalPayments={overview.metrics.totalPayments}
-        botActivity={overview.metrics.botActivity}
         linkedTelegramUsers={overview.connectivity.telegram.linkedUsers}
+        telegramOnline={overview.pulse.telegram.online}
         chart={overview.metrics.chart}
+        proofAccessGranted={hasProofAccess}
+        proofAccessLoading={proofsLoading}
+      />
+      
+      <DashboardLedger
+        payments={overview.feeds.payments}
+        proofAccessGranted={hasProofAccess}
+        proofAccessLoading={proofsLoading}
+        proofSummary={proofSummary}
       />
 
       <DashboardConnectivityPanel
         telegram={overview.connectivity.telegram}
         webhooks={overview.connectivity.webhooks}
         automation={overview.connectivity.automation}
-      />
-
-      <DashboardLedger
-        payments={overview.feeds.payments}
-        proofs={overview.feeds.proofs}
       />
     </div>
   )

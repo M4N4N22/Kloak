@@ -1,7 +1,7 @@
 "use client"
 
 import { useWallet } from "@provablehq/aleo-wallet-adaptor-react"
-import { RefreshCw, Plus, FileStack } from "lucide-react"
+import { RefreshCw, FileStack } from "lucide-react"
 
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -31,10 +31,10 @@ export function GeneratedProofsSection() {
       <SectionHeader
         eyebrow="Compliance Ledger"
         title="Issued Proofs"
-        description="A complete history of your zero-knowledge disclosures. Manage active links and revoke access as needed."
+        description="A complete history of your zero-knowledge disclosures. Manage active proofs and revoke access as needed."
         action={
           <div className="flex gap-3">
-            <Button variant="outline" size="sm" onClick={() => void refresh()} disabled={loading}>
+            <Button variant="outline"  onClick={() => void refresh()} disabled={loading}>
               <RefreshCw className={cn("mr-2 h-4 w-4", loading && "animate-spin")} />
               Sync Ledger
             </Button>
@@ -55,15 +55,15 @@ export function GeneratedProofsSection() {
           </div>
           <h3 className="text-foreground font-medium">No proofs found</h3>
           <p className="text-neutral-500 text-sm max-w-xs mt-1">
-            You haven't generated any disclosure proofs yet.
+            You haven&apos;t generated any disclosure proofs yet.
           </p>
         </div>
       ) : (
-        <div className="rounded-[2rem] border border-foreground/5 bg-neutral-900/40 overflow-hidden">
+        <div className="rounded-[2rem] border  overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-left">
               <thead>
-                <tr className="border-b border-foreground/5 bg-foreground/[0.02] text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">
+                <tr className="border-b  text-xs  text-neutral-500">
                   <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4">Proof Type & Role</th>
                   <th className="px-6 py-4">ID / Transaction</th>

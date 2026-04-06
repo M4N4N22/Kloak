@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "@provablehq/aleo-wallet-adaptor-react-ui/dist/styles.css";
 import { KloakWalletProvider } from "./providers/AleoWalletProvider";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";

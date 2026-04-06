@@ -12,11 +12,10 @@ import { LeoWalletAdapter } from "@provablehq/aleo-wallet-adaptor-leo";
 import { ShieldWalletAdapter } from "@provablehq/aleo-wallet-adaptor-shield";
 
 export const KloakWalletProvider: FC<{ children: ReactNode }> = ({ children }) => {
-
   const wallets = useMemo(
     () => [
-      new LeoWalletAdapter(),
       new ShieldWalletAdapter(),
+      new LeoWalletAdapter(),
     ],
     []
   );
@@ -24,13 +23,17 @@ export const KloakWalletProvider: FC<{ children: ReactNode }> = ({ children }) =
   return (
     <AleoWalletProvider
       wallets={wallets}
-      autoConnect
+      autoConnect={true}
       network={Network.TESTNET}
       decryptPermission={DecryptPermission.UponRequest}
+      localStorageKey="kloak:selected-wallet"
       programs={[
         "credits.aleo",
-        "kloak_protocol_v8.aleo"
+        "kloak_protocol_v10.aleo"
       ]}
+      onError={(error) => {
+        console.error(error.message);
+      }}
     >
       <WalletModalProvider>
         {children}

@@ -23,9 +23,9 @@ export function PaymentLinksAccessGate({
           <Link2 className="h-8 w-8" />
         </div>
         <div className="space-y-3">
-          <h1 className="text-4xl font-bold tracking-tight text-foreground">Connect your wallet to operate payment links</h1>
+          <h1 className="text-4xl font-bold tracking-tight text-foreground">Connect your wallet to use payment links</h1>
           <p className="text-sm leading-7 text-neutral-400">
-            Create private payment links, monitor conversion, review per-link settlement history, and route paid transactions into compliance workflows.
+            Create payment links, track payments, and move completed payments into compliance when needed, while keeping the payer private by default.
           </p>
         </div>
         <WalletConnect />

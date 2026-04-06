@@ -1,5 +1,5 @@
 {
-  "program": "kloak_protocol_v8.aleo",
+  "program": "kloak_protocol_v10.aleo",
   "structs": [
     {
       "path": [
@@ -201,15 +201,6 @@
   ],
   "mappings": [
     {
-      "name": "nullifiers",
-      "key": {
-        "Primitive": "Field"
-      },
-      "value": {
-        "Primitive": "Boolean"
-      }
-    },
-    {
       "name": "payment_commitments",
       "key": {
         "Primitive": "Field"
@@ -228,7 +219,7 @@
           "path": [
             "Campaign"
           ],
-          "program": "kloak_protocol_v8.aleo"
+          "program": "kloak_protocol_v10.aleo"
         }
       }
     },
@@ -253,7 +244,7 @@
           "path": [
             "PaymentRequest"
           ],
-          "program": "kloak_protocol_v8.aleo"
+          "program": "kloak_protocol_v10.aleo"
         }
       }
     },
@@ -335,7 +326,7 @@
               "path": [
                 "PaymentReceipt"
               ],
-              "program": "kloak_protocol_v8.aleo"
+              "program": "kloak_protocol_v10.aleo"
             }
           },
           "mode": "None"
@@ -438,7 +429,7 @@
               "path": [
                 "PaymentReceipt"
               ],
-              "program": "kloak_protocol_v8.aleo"
+              "program": "kloak_protocol_v10.aleo"
             }
           },
           "mode": "None"
@@ -545,7 +536,7 @@
               "path": [
                 "PaymentReceipt"
               ],
-              "program": "kloak_protocol_v8.aleo"
+              "program": "kloak_protocol_v10.aleo"
             }
           },
           "mode": "None"
@@ -692,7 +683,7 @@
               "path": [
                 "PaymentRequestReceipt"
               ],
-              "program": "kloak_protocol_v8.aleo"
+              "program": "kloak_protocol_v10.aleo"
             }
           },
           "mode": "None"
@@ -703,7 +694,7 @@
               "path": [
                 "PaymentRequestReceipt"
               ],
-              "program": "kloak_protocol_v8.aleo"
+              "program": "kloak_protocol_v10.aleo"
             }
           },
           "mode": "None"
@@ -839,7 +830,7 @@
               "path": [
                 "PaymentRequestReceipt"
               ],
-              "program": "kloak_protocol_v8.aleo"
+              "program": "kloak_protocol_v10.aleo"
             }
           },
           "mode": "None"
@@ -850,7 +841,7 @@
               "path": [
                 "PaymentRequestReceipt"
               ],
-              "program": "kloak_protocol_v8.aleo"
+              "program": "kloak_protocol_v10.aleo"
             }
           },
           "mode": "None"
@@ -986,7 +977,7 @@
               "path": [
                 "PaymentRequestReceipt"
               ],
-              "program": "kloak_protocol_v8.aleo"
+              "program": "kloak_protocol_v10.aleo"
             }
           },
           "mode": "None"
@@ -997,7 +988,7 @@
               "path": [
                 "PaymentRequestReceipt"
               ],
-              "program": "kloak_protocol_v8.aleo"
+              "program": "kloak_protocol_v10.aleo"
             }
           },
           "mode": "None"
@@ -1019,13 +1010,24 @@
               "path": [
                 "PaymentRequestReceipt"
               ],
-              "program": "kloak_protocol_v8.aleo"
+              "program": "kloak_protocol_v10.aleo"
             }
           },
           "mode": "None"
         }
       ],
       "outputs": [
+        {
+          "ty": {
+            "Record": {
+              "path": [
+                "PaymentRequestReceipt"
+              ],
+              "program": "kloak_protocol_v10.aleo"
+            }
+          },
+          "mode": "None"
+        },
         {
           "ty": {
             "Plaintext": {
@@ -1051,7 +1053,7 @@
               "path": [
                 "PaymentRequestReceipt"
               ],
-              "program": "kloak_protocol_v8.aleo"
+              "program": "kloak_protocol_v10.aleo"
             }
           },
           "mode": "None"
@@ -1069,6 +1071,17 @@
         }
       ],
       "outputs": [
+        {
+          "ty": {
+            "Record": {
+              "path": [
+                "PaymentRequestReceipt"
+              ],
+              "program": "kloak_protocol_v10.aleo"
+            }
+          },
+          "mode": "None"
+        },
         {
           "ty": {
             "Plaintext": {
@@ -1094,7 +1107,7 @@
               "path": [
                 "PaymentRequestReceipt"
               ],
-              "program": "kloak_protocol_v8.aleo"
+              "program": "kloak_protocol_v10.aleo"
             }
           },
           "mode": "None"
@@ -1112,6 +1125,17 @@
         }
       ],
       "outputs": [
+        {
+          "ty": {
+            "Record": {
+              "path": [
+                "PaymentRequestReceipt"
+              ],
+              "program": "kloak_protocol_v10.aleo"
+            }
+          },
+          "mode": "None"
+        },
         {
           "ty": {
             "Plaintext": {
@@ -1137,13 +1161,24 @@
               "path": [
                 "PaymentRequestReceipt"
               ],
-              "program": "kloak_protocol_v8.aleo"
+              "program": "kloak_protocol_v10.aleo"
             }
           },
           "mode": "None"
         }
       ],
       "outputs": [
+        {
+          "ty": {
+            "Record": {
+              "path": [
+                "PaymentRequestReceipt"
+              ],
+              "program": "kloak_protocol_v10.aleo"
+            }
+          },
+          "mode": "None"
+        },
         {
           "ty": {
             "Plaintext": {
@@ -1169,7 +1204,7 @@
               "path": [
                 "PaymentRequestReceipt"
               ],
-              "program": "kloak_protocol_v8.aleo"
+              "program": "kloak_protocol_v10.aleo"
             }
           },
           "mode": "None"
@@ -1187,6 +1222,17 @@
         }
       ],
       "outputs": [
+        {
+          "ty": {
+            "Record": {
+              "path": [
+                "PaymentRequestReceipt"
+              ],
+              "program": "kloak_protocol_v10.aleo"
+            }
+          },
+          "mode": "None"
+        },
         {
           "ty": {
             "Plaintext": {
@@ -1212,7 +1258,7 @@
               "path": [
                 "PaymentRequestReceipt"
               ],
-              "program": "kloak_protocol_v8.aleo"
+              "program": "kloak_protocol_v10.aleo"
             }
           },
           "mode": "None"
@@ -1230,6 +1276,17 @@
         }
       ],
       "outputs": [
+        {
+          "ty": {
+            "Record": {
+              "path": [
+                "PaymentRequestReceipt"
+              ],
+              "program": "kloak_protocol_v10.aleo"
+            }
+          },
+          "mode": "None"
+        },
         {
           "ty": {
             "Plaintext": {
@@ -1255,7 +1312,7 @@
               "path": [
                 "PaymentRequestReceipt"
               ],
-              "program": "kloak_protocol_v8.aleo"
+              "program": "kloak_protocol_v10.aleo"
             }
           },
           "mode": "None"
@@ -1284,6 +1341,17 @@
         }
       ],
       "outputs": [
+        {
+          "ty": {
+            "Record": {
+              "path": [
+                "PaymentRequestReceipt"
+              ],
+              "program": "kloak_protocol_v10.aleo"
+            }
+          },
+          "mode": "None"
+        },
         {
           "ty": {
             "Plaintext": {
@@ -1309,7 +1377,7 @@
               "path": [
                 "PaymentRequestReceipt"
               ],
-              "program": "kloak_protocol_v8.aleo"
+              "program": "kloak_protocol_v10.aleo"
             }
           },
           "mode": "None"
@@ -1338,6 +1406,17 @@
         }
       ],
       "outputs": [
+        {
+          "ty": {
+            "Record": {
+              "path": [
+                "PaymentRequestReceipt"
+              ],
+              "program": "kloak_protocol_v10.aleo"
+            }
+          },
+          "mode": "None"
+        },
         {
           "ty": {
             "Plaintext": {

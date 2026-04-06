@@ -1,25 +1,33 @@
 import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
+import { decryptJsonAtRest, encryptJsonAtRest } from "@/lib/at-rest-encryption"
 import {
   KLOAK_PROGRAM,
+  buildSharedDisclosureProof,
+  canonicalizePortableDisclosureProof,
+  canonicalizeDisclosureStatement,
   type DisclosureActorRole,
   type DisclosureConstraints,
   type DisclosureProofType,
+  type DisclosureStatement,
+  type PortableDisclosureProofV1,
   type StoredDisclosurePayload,
-  canonicalizeDisclosureProof,
   computeDisclosureDigest,
   createDisclosureProofId,
   evaluateDisclosureConstraints,
   normalizeDisclosureConstraints,
+  parsePortableDisclosureProof,
 } from "@/lib/selective-disclosure"
 
 class SelectiveDisclosureError extends Error {
   status: number
+  details?: Record<string, unknown>
 
-  constructor(message: string, status = 400) {
+  constructor(message: string, status = 400, details?: Record<string, unknown>) {
     super(message)
     this.name = "SelectiveDisclosureError"
     this.status = status
+    this.details = details
   }
 }
 
@@ -33,7 +41,6 @@ type ProofRow = Prisma.SelectiveDisclosureProofGetPayload<{
   }
 }>
 
-type PaymentWithLink = NonNullable<Awaited<ReturnType<typeof getPaymentByTxHash>>>
 type PaymentListRow = Prisma.PaymentGetPayload<{
   include: {
     PaymentLink: true
@@ -48,13 +55,62 @@ type CompliancePaymentListItem = {
   createdAt: string
   title: string
   description: string | null
-  payerAddress: string | null
-  merchantAddress: string | null
   direction: "sent" | "received"
+  paymentSource: "wallet" | "server"
+  walletReceipt?: WalletReceiptInput
+}
+type CompliancePaymentDiagnostic = {
+  id: string
+  direction: "sent" | "received"
+  requestId: string
+  commitment: string
+  amount: string
+  paymentTimestamp: string
+  title: string
+  message: string
+  actionLabel: string
+  reasonCode: "REQUEST_NOT_INDEXED" | "PAYMENT_NOT_SYNCED" | "PAYMENT_NOT_READY"
+}
+type WalletReceiptInput = {
+  requestId?: string
+  actorRole?: DisclosureActorRole
+  ownerAddress: string
+  counterpartyAddress: string
+  commitment: string
+  paymentTimestamp: string
+  amountMicro: string
+}
+
+type DuplicateProofMatch = {
+  proofId: string
+  proofType: DisclosureProofType
+  actorRole: DisclosureActorRole
+  createdAt: string
+  disclosureTxHash: string | null
 }
 
 function serializeConstraints(value: Prisma.JsonValue): DisclosureConstraints {
   return normalizeDisclosureConstraints((value ?? {}) as DisclosureConstraints)
+}
+
+function buildDisclosureStatement(input: {
+  actorRole: DisclosureActorRole
+  proofType: DisclosureProofType
+  constraints: DisclosureConstraints
+  exactAmount?: string | null
+  thresholdAmount?: string | null
+}): DisclosureStatement {
+  return {
+    actorRole: input.actorRole,
+    proofType: input.proofType,
+    disclosedAmount: input.proofType === "amount" ? input.exactAmount || null : null,
+    thresholdAmount: input.proofType === "threshold" ? input.thresholdAmount || null : null,
+    constraints: normalizeDisclosureConstraints(input.constraints),
+  }
+}
+
+function getDisclosureStatementSignature(statement: DisclosureStatement) {
+  return canonicalizeDisclosureStatement(statement)
 }
 
 function parseMicroUnitsToDisplay(amountMicro: string) {
@@ -90,6 +146,10 @@ function formatRequestId(requestId: string) {
 function serializeCompliancePayment(
   payment: PaymentListRow,
   direction: "sent" | "received",
+  options?: {
+    paymentSource?: "wallet" | "server"
+    walletReceipt?: WalletReceiptInput
+  },
 ): CompliancePaymentListItem | null {
   if (!payment.txHash) {
     return null
@@ -104,23 +164,115 @@ function serializeCompliancePayment(
     createdAt: payment.createdAt.toISOString(),
     title: payment.PaymentLink.title,
     description: payment.PaymentLink.description,
-    payerAddress: payment.receiptOwner || payment.payerAddress || null,
-    merchantAddress: payment.merchantAddress || payment.PaymentLink.creatorAddress || null,
     direction,
+    paymentSource: options?.paymentSource || "server",
+    walletReceipt: options?.walletReceipt,
   }
 }
 
-function resolveActorAndCounterparty(payment: PaymentWithLink, actorRole: DisclosureActorRole) {
-  const payerAddress = payment.receiptOwner || payment.payerAddress || ""
-  const merchantAddress = payment.merchantAddress || payment.PaymentLink.creatorAddress || ""
+async function getPaymentByCommitment(commitment: string) {
+  return prisma.payment.findFirst({
+    where: { receiptCommitment: commitment },
+    include: {
+      PaymentLink: true,
+    },
+  })
+}
 
-  if (!payerAddress || !merchantAddress) {
-    throw new SelectiveDisclosureError("Payment is missing payer or merchant metadata for selective disclosure", 409)
+async function getPaymentByWalletReceipt(input: {
+  requestId: string
+  actorRole: DisclosureActorRole
+  walletReceipt: WalletReceiptInput
+}) {
+  const directMatch = await getPaymentByCommitment(input.walletReceipt.commitment)
+
+  if (directMatch) {
+    return directMatch
   }
 
-  return actorRole === "payer"
-    ? { ownerAddress: payerAddress, counterpartyAddress: merchantAddress }
-    : { ownerAddress: merchantAddress, counterpartyAddress: payerAddress }
+  const requestId = formatRequestId(input.requestId)
+  const paymentTimestampMs = Number(input.walletReceipt.paymentTimestamp) * 1000
+  const paymentAmount = new Prisma.Decimal(parseMicroUnitsToDisplay(input.walletReceipt.amountMicro))
+  const merchantAddress =
+    input.actorRole === "receiver"
+      ? input.walletReceipt.ownerAddress
+      : input.walletReceipt.counterpartyAddress
+
+  const candidates = await prisma.payment.findMany({
+    where: {
+      status: "SUCCESS",
+      txHash: { not: null },
+      amount: paymentAmount,
+      PaymentLink: {
+        requestId,
+        creatorAddress: merchantAddress,
+      },
+    },
+    include: {
+      PaymentLink: true,
+    },
+    orderBy: { createdAt: "desc" },
+    take: 10,
+  })
+
+  if (candidates.length === 0) {
+    return null
+  }
+
+  return candidates
+    .map((candidate) => ({
+      candidate,
+      timestampDistance: Math.abs(candidate.createdAt.getTime() - paymentTimestampMs),
+    }))
+    .sort((a, b) => a.timestampDistance - b.timestampDistance)[0]?.candidate ?? null
+}
+
+async function reconcileWalletCompliancePayment(input: {
+  viewerAddress: string
+  walletReceipt: WalletReceiptInput
+}) {
+  const requestId = formatRequestId(input.walletReceipt.requestId?.trim() || "")
+  const actorRole = input.walletReceipt.actorRole === "receiver" ? "receiver" : "payer"
+
+  if (!requestId || input.walletReceipt.ownerAddress.trim() !== input.viewerAddress.trim()) {
+    return null
+  }
+
+  const payment = await getPaymentByWalletReceipt({
+    requestId,
+    actorRole,
+    walletReceipt: input.walletReceipt,
+  })
+
+  if (!payment || !payment.txHash || payment.status !== "SUCCESS") {
+    return null
+  }
+
+  const normalizedCommitment = input.walletReceipt.commitment.trim()
+
+  if (normalizedCommitment && payment.receiptCommitment !== normalizedCommitment) {
+    await prisma.payment.update({
+      where: { id: payment.id },
+      data: {
+        receiptCommitment: normalizedCommitment,
+      },
+    })
+
+    payment.receiptCommitment = normalizedCommitment
+  }
+
+  return serializeCompliancePayment(payment, actorRole === "receiver" ? "received" : "sent", {
+    paymentSource: "wallet",
+    walletReceipt: {
+      requestId,
+      actorRole,
+      ownerAddress: input.walletReceipt.ownerAddress.trim(),
+      counterpartyAddress: input.walletReceipt.counterpartyAddress.trim(),
+      commitment: input.walletReceipt.commitment.trim(),
+      paymentTimestamp: input.walletReceipt.paymentTimestamp.trim(),
+      amountMicro: input.walletReceipt.amountMicro.trim(),
+    },
+  })
 }
 
 function getStoredProofPayload(
@@ -132,28 +284,31 @@ function getStoredProofPayload(
   const normalizedConstraints = serializeConstraints(proof.constraints)
 
   if (
-    proof.proofPayload &&
-    typeof proof.proofPayload === "object" &&
-    !Array.isArray(proof.proofPayload)
+    decryptJsonAtRest<Record<string, unknown>>(proof.proofPayload)
   ) {
-    const payload = proof.proofPayload as Record<string, unknown>
+    const payload = decryptJsonAtRest<Record<string, unknown>>(proof.proofPayload)!
 
-    if (typeof payload.amount === "string" && payload.amount.trim()) {
+    if (
+      typeof payload.proofId === "string" &&
+      typeof payload.program === "string" &&
+      typeof payload.paymentTxHash === "string" &&
+      typeof payload.requestId === "string" &&
+      typeof payload.ownerAddress === "string" &&
+      typeof payload.commitment === "string" &&
+      typeof payload.proverAddress === "string"
+    ) {
       return {
-        proofId: typeof payload.proofId === "string" ? payload.proofId : proof.proofId,
-        program: typeof payload.program === "string" ? payload.program : proof.contractProgram,
-        paymentTxHash:
-          typeof payload.paymentTxHash === "string" ? payload.paymentTxHash : proof.paymentTxHash,
+        proofId: payload.proofId,
+        program: payload.program,
+        paymentTxHash: payload.paymentTxHash,
         disclosureTxHash:
           typeof payload.disclosureTxHash === "string" || payload.disclosureTxHash === null
             ? (payload.disclosureTxHash as string | null)
             : proof.disclosureTxHash,
-        requestId: typeof payload.requestId === "string" ? payload.requestId : proof.requestId,
-        amount: payload.amount,
-        ownerAddress:
-          typeof payload.ownerAddress === "string" ? payload.ownerAddress : proof.ownerAddress,
+        requestId: payload.requestId,
+        ownerAddress: payload.ownerAddress,
         counterpartyAddress:
-          typeof payload.counterpartyAddress === "string" ? payload.counterpartyAddress : "",
+          typeof payload.counterpartyAddress === "string" ? payload.counterpartyAddress : null,
         actorRole:
           payload.actorRole === "receiver" ? "receiver" : "payer",
         proofType:
@@ -170,7 +325,11 @@ function getStoredProofPayload(
           typeof payload.paymentTimestamp === "string" || payload.paymentTimestamp === null
             ? (payload.paymentTimestamp as string | null)
             : null,
-        commitment: typeof payload.commitment === "string" ? payload.commitment : proof.commitment,
+        amount:
+          typeof payload.amount === "string" || payload.amount === null
+            ? (payload.amount as string | null)
+            : null,
+        commitment: payload.commitment,
         nullifier:
           typeof payload.nullifier === "string" || payload.nullifier === null
             ? (payload.nullifier as string | null)
@@ -179,8 +338,7 @@ function getStoredProofPayload(
           payload.constraints && typeof payload.constraints === "object"
             ? normalizeDisclosureConstraints(payload.constraints as DisclosureConstraints)
             : normalizedConstraints,
-        proverAddress:
-          typeof payload.proverAddress === "string" ? payload.proverAddress : proof.proverAddress,
+        proverAddress: payload.proverAddress,
       }
     }
   }
@@ -191,9 +349,8 @@ function getStoredProofPayload(
     paymentTxHash: proof.paymentTxHash,
     disclosureTxHash: proof.disclosureTxHash,
     requestId: proof.requestId,
-    amount: "unknown",
     ownerAddress: proof.ownerAddress,
-    counterpartyAddress: "",
+    counterpartyAddress: null,
     actorRole: "payer",
     proofType: "existence",
     disclosedAmount: null,
@@ -206,8 +363,102 @@ function getStoredProofPayload(
   }
 }
 
+function getStoredProofStatement(
+  proof: Pick<
+    ProofRow,
+    "proofId" | "contractProgram" | "paymentTxHash" | "disclosureTxHash" | "requestId" | "ownerAddress" | "commitment" | "nullifier" | "constraints" | "proverAddress"
+  > & { proofPayload?: Prisma.JsonValue | null },
+) {
+  const payload = getStoredProofPayload(proof)
+
+  return buildDisclosureStatement({
+    actorRole: payload.actorRole,
+    proofType: payload.proofType,
+    exactAmount: payload.disclosedAmount,
+    thresholdAmount: payload.thresholdAmount,
+    constraints: payload.constraints,
+  })
+}
+
+async function findActiveDuplicateProof(input: {
+  paymentId: string
+  ownerAddress: string
+  actorRole: DisclosureActorRole
+  proofType: DisclosureProofType
+  constraints: DisclosureConstraints
+  exactAmount?: string | null
+  thresholdAmount?: string | null
+}) {
+  const activeProofs = await prisma.selectiveDisclosureProof.findMany({
+    where: {
+      paymentId: input.paymentId,
+      ownerAddress: input.ownerAddress,
+      status: "ACTIVE",
+    },
+    select: {
+      proofId: true,
+      proofPayload: true,
+      disclosureTxHash: true,
+      createdAt: true,
+      constraints: true,
+      contractProgram: true,
+      paymentTxHash: true,
+      requestId: true,
+      commitment: true,
+      nullifier: true,
+      proverAddress: true,
+      ownerAddress: true,
+    },
+    orderBy: { createdAt: "desc" },
+  })
+
+  const targetStatement = getDisclosureStatementSignature(
+    buildDisclosureStatement({
+      actorRole: input.actorRole,
+      proofType: input.proofType,
+      exactAmount: input.exactAmount,
+      thresholdAmount: input.thresholdAmount,
+      constraints: input.constraints,
+    }),
+  )
+
+  const duplicate = activeProofs.find((proof) => {
+    const statement = getStoredProofStatement(proof)
+    return getDisclosureStatementSignature(statement) === targetStatement
+  })
+
+  if (!duplicate) return null
+
+  return {
+    proofId: duplicate.proofId,
+    proofType: input.proofType,
+    actorRole: input.actorRole,
+    createdAt: duplicate.createdAt.toISOString(),
+    disclosureTxHash: duplicate.disclosureTxHash,
+  } satisfies DuplicateProofMatch
+}
+
 function serializeProofRow(proof: ProofRow) {
   const payload = getStoredProofPayload(proof)
+  const hasDisclosedTimeRange = Boolean(
+    payload.constraints.timestampFrom || payload.constraints.timestampTo,
+  )
+  const shouldHideExactTimestamp = payload.proofType !== "amount" || hasDisclosedTimeRange
+  const portableProof = buildSharedDisclosureProof({
+    program: proof.contractProgram,
+    proofId: proof.proofId,
+    paymentTxHash: proof.paymentTxHash,
+    disclosureTxHash: proof.disclosureTxHash,
+    requestId: proof.requestId,
+    ownerAddress: proof.ownerAddress,
+    proverAddress: proof.proverAddress,
+    commitment: proof.commitment,
+    actorRole: payload.actorRole,
+    proofType: payload.proofType,
+    disclosedAmount: payload.disclosedAmount,
+    thresholdAmount: payload.thresholdAmount,
+    constraints: serializeConstraints(proof.constraints),
+  })
 
   return {
     proofId: proof.proofId,
@@ -220,13 +471,13 @@ function serializeProofRow(proof: ProofRow) {
     proofType: payload.proofType,
     disclosedAmount: payload.disclosedAmount,
     thresholdAmount: payload.thresholdAmount,
-    paymentTimestamp: payload.paymentTimestamp,
+    paymentTimestamp: shouldHideExactTimestamp ? null : payload.paymentTimestamp,
     proverAddress: proof.proverAddress,
     commitment: proof.commitment,
     nullifier: proof.nullifier,
     contractProgram: proof.contractProgram,
     constraints: serializeConstraints(proof.constraints),
-    proofDigest: computeDisclosureDigest(canonicalizeDisclosureProof(payload)),
+    proofDigest: portableProof.proofDigest,
     status: proof.status,
     createdAt: proof.createdAt.toISOString(),
     revokedAt: proof.revokedAt ? proof.revokedAt.toISOString() : null,
@@ -235,7 +486,7 @@ function serializeProofRow(proof: ProofRow) {
 }
 
 function assertSubmittedProofMatches(
-  submittedProof: NonNullable<Parameters<typeof verifySelectiveDisclosureProof>[0]["proof"]>,
+  submittedProof: PortableDisclosureProofV1,
   proofRecord: Awaited<ReturnType<typeof prisma.selectiveDisclosureProof.findUniqueOrThrow>>,
 ) {
   const storedPayload = getStoredProofPayload({
@@ -251,56 +502,94 @@ function assertSubmittedProofMatches(
     proverAddress: proofRecord.proverAddress,
     proofPayload: proofRecord.proofPayload,
   })
-  const storedDigest = computeDisclosureDigest(canonicalizeDisclosureProof(storedPayload))
+  const storedProof = buildSharedDisclosureProof({
+    program: proofRecord.contractProgram,
+    proofId: proofRecord.proofId,
+    paymentTxHash: proofRecord.paymentTxHash,
+    disclosureTxHash: proofRecord.disclosureTxHash,
+    requestId: proofRecord.requestId,
+    ownerAddress: proofRecord.ownerAddress,
+    proverAddress: proofRecord.proverAddress,
+    commitment: proofRecord.commitment,
+    actorRole: storedPayload.actorRole,
+    proofType: storedPayload.proofType,
+    disclosedAmount: storedPayload.disclosedAmount,
+    thresholdAmount: storedPayload.thresholdAmount,
+    constraints: serializeConstraints(proofRecord.constraints),
+  })
+  const submittedDigest = computeDisclosureDigest(
+    canonicalizePortableDisclosureProof({
+      kind: submittedProof.kind,
+      version: submittedProof.version,
+      program: submittedProof.program,
+      proofId: submittedProof.proofId,
+      subject: submittedProof.subject,
+      statement: submittedProof.statement,
+      chain: submittedProof.chain,
+    }),
+  )
 
-  if (submittedProof.paymentTxHash !== proofRecord.paymentTxHash) {
+  if (submittedProof.proofDigest !== submittedDigest) {
+    throw new SelectiveDisclosureError("Submitted proof package failed its integrity check", 409)
+  }
+
+  if (submittedProof.chain.paymentTxHash !== proofRecord.paymentTxHash) {
     throw new SelectiveDisclosureError("Submitted proof payment transaction hash does not match the stored proof", 409)
   }
 
-  if (submittedProof.requestId !== proofRecord.requestId) {
+  if (submittedProof.chain.requestId !== proofRecord.requestId) {
     throw new SelectiveDisclosureError("Submitted proof requestId does not match the stored proof", 409)
   }
 
-  if (submittedProof.ownerAddress !== proofRecord.ownerAddress) {
+  if (submittedProof.subject.ownerAddress !== proofRecord.ownerAddress) {
     throw new SelectiveDisclosureError("Submitted proof owner does not match the stored proof", 409)
   }
 
-  if (submittedProof.commitment !== proofRecord.commitment) {
+  if (submittedProof.chain.commitment !== proofRecord.commitment) {
     throw new SelectiveDisclosureError("Submitted proof commitment does not match the stored proof", 409)
   }
 
   if (
-    typeof submittedProof.disclosureTxHash !== "undefined" &&
-    submittedProof.disclosureTxHash !== proofRecord.disclosureTxHash
+    typeof submittedProof.chain.disclosureTxHash !== "undefined" &&
+    submittedProof.chain.disclosureTxHash !== proofRecord.disclosureTxHash
   ) {
     throw new SelectiveDisclosureError("Submitted proof disclosure transaction hash does not match the stored proof", 409)
   }
 
-  if (
-    typeof submittedProof.nullifier !== "undefined" &&
-    submittedProof.nullifier !== proofRecord.nullifier
-  ) {
-    throw new SelectiveDisclosureError("Submitted proof nullifier does not match the stored proof", 409)
-  }
-
-  if (
-    typeof submittedProof.actorRole !== "undefined" &&
-    submittedProof.actorRole !== storedPayload.actorRole
-  ) {
+  if (submittedProof.statement.actorRole !== storedPayload.actorRole) {
     throw new SelectiveDisclosureError("Submitted proof actor role does not match the stored proof", 409)
   }
 
-  if (
-    typeof submittedProof.proofType !== "undefined" &&
-    submittedProof.proofType !== storedPayload.proofType
-  ) {
+  if (submittedProof.statement.proofType !== storedPayload.proofType) {
     throw new SelectiveDisclosureError("Submitted proof type does not match the stored proof", 409)
   }
 
+  if (submittedProof.program !== storedProof.program) {
+    throw new SelectiveDisclosureError("Submitted proof program does not match the stored proof", 409)
+  }
+
   if (
-    typeof submittedProof.proofDigest === "string" &&
-    submittedProof.proofDigest !== storedDigest
+    typeof submittedProof.subject.proverAddress === "string" &&
+    submittedProof.subject.proverAddress !== proofRecord.proverAddress
   ) {
+    throw new SelectiveDisclosureError("Submitted proof prover does not match the stored proof", 409)
+  }
+
+  if (
+    submittedProof.statement.disclosedAmount !== storedProof.statement.disclosedAmount ||
+    submittedProof.statement.thresholdAmount !== storedProof.statement.thresholdAmount
+  ) {
+    throw new SelectiveDisclosureError("Submitted proof disclosure amounts do not match the stored proof", 409)
+  }
+
+  if (
+    canonicalizeDisclosureStatement(submittedProof.statement) !==
+    canonicalizeDisclosureStatement(storedProof.statement)
+  ) {
+    throw new SelectiveDisclosureError("Submitted proof statement does not match the stored proof", 409)
+  }
+
+  if (submittedProof.proofDigest !== storedProof.proofDigest) {
     throw new SelectiveDisclosureError("Submitted proof digest does not match the stored proof", 409)
   }
 }
@@ -314,11 +603,118 @@ async function getPaymentByTxHash(txHash: string) {
   })
 }
 
-function assertAuthorizedActor(payment: PaymentWithLink, actorAddress: string, actorRole: DisclosureActorRole) {
-  const { ownerAddress } = resolveActorAndCounterparty(payment, actorRole)
+async function getPaymentLinkByWalletReceipt(input: {
+  requestId: string
+  actorRole: DisclosureActorRole
+  walletReceipt: WalletReceiptInput
+}) {
+  const normalizedRequestId = input.requestId.endsWith("field")
+    ? input.requestId
+    : `${input.requestId}field`
+  const merchantAddress =
+    input.actorRole === "receiver"
+      ? input.walletReceipt.ownerAddress
+      : input.walletReceipt.counterpartyAddress
 
-  if (actorAddress !== ownerAddress) {
-    throw new SelectiveDisclosureError(`Only the ${actorRole} can generate this disclosure proof`, 403)
+  return prisma.paymentLink.findFirst({
+    where: {
+      requestId: normalizedRequestId,
+      creatorAddress: merchantAddress,
+    },
+  })
+}
+
+async function buildWalletReceiptDiagnostic(input: {
+  viewerAddress: string
+  walletReceipt: WalletReceiptInput
+}): Promise<CompliancePaymentDiagnostic | null> {
+  const requestId = formatRequestId(input.walletReceipt.requestId?.trim() || "")
+  const actorRole = input.walletReceipt.actorRole === "receiver" ? "receiver" : "payer"
+
+  if (!requestId || input.walletReceipt.ownerAddress.trim() !== input.viewerAddress.trim()) {
+    return null
+  }
+
+  const payment = await getPaymentByWalletReceipt({
+    requestId,
+    actorRole,
+    walletReceipt: input.walletReceipt,
+  })
+
+  if (payment?.txHash && payment.status === "SUCCESS") {
+    return null
+  }
+
+  const linkedRequest = await getPaymentLinkByWalletReceipt({
+    requestId,
+    actorRole,
+    walletReceipt: input.walletReceipt,
+  })
+
+  const paymentAmount = new Prisma.Decimal(parseMicroUnitsToDisplay(input.walletReceipt.amountMicro))
+  const merchantAddress =
+    actorRole === "receiver"
+      ? input.walletReceipt.ownerAddress.trim()
+      : input.walletReceipt.counterpartyAddress.trim()
+
+  const relatedPayments = linkedRequest
+    ? await prisma.payment.findMany({
+        where: {
+          amount: paymentAmount,
+          PaymentLink: {
+            requestId,
+            creatorAddress: merchantAddress,
+          },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 3,
+      })
+    : []
+
+  if (!linkedRequest) {
+    return {
+      id: input.walletReceipt.commitment.trim(),
+      direction: actorRole === "receiver" ? "received" : "sent",
+      requestId,
+      commitment: input.walletReceipt.commitment.trim(),
+      amount: parseMicroUnitsToDisplay(input.walletReceipt.amountMicro),
+      paymentTimestamp: new Date(Number(input.walletReceipt.paymentTimestamp.trim()) * 1000).toISOString(),
+      title: "This receipt is not linked to a Kloak request yet",
+      message:
+        "We found the receipt in your wallet, but Kloak does not currently have the matching payment request indexed for it. This can happen if the payment came from older test data or a different app environment.",
+      actionLabel: "Use a payment made through the current Kloak app, or resync after switching to the matching environment.",
+      reasonCode: "REQUEST_NOT_INDEXED",
+    }
+  }
+
+  if (relatedPayments.length === 0) {
+    return {
+      id: input.walletReceipt.commitment.trim(),
+      direction: actorRole === "receiver" ? "received" : "sent",
+      requestId,
+      commitment: input.walletReceipt.commitment.trim(),
+      amount: parseMicroUnitsToDisplay(input.walletReceipt.amountMicro),
+      paymentTimestamp: new Date(Number(input.walletReceipt.paymentTimestamp.trim()) * 1000).toISOString(),
+      title: "This payment has not finished syncing into Kloak yet",
+      message:
+        "The receipt exists in your wallet and the request is known to Kloak, but the settled payment row is not recorded yet. This usually happens if the app was closed before the post-payment sync finished.",
+      actionLabel: "Open the original payment page if possible, or make a fresh payment and wait for the success screen before leaving.",
+      reasonCode: "PAYMENT_NOT_SYNCED",
+    }
+  }
+
+  return {
+    id: input.walletReceipt.commitment.trim(),
+    direction: actorRole === "receiver" ? "received" : "sent",
+    requestId,
+    commitment: input.walletReceipt.commitment.trim(),
+    amount: parseMicroUnitsToDisplay(input.walletReceipt.amountMicro),
+    paymentTimestamp: new Date(Number(input.walletReceipt.paymentTimestamp.trim()) * 1000).toISOString(),
+    title: "We found the payment, but it is not ready for proofs yet",
+    message:
+      "Kloak can see a related payment record, but it is still pending, failed, or missing the finalized transaction data needed for compliance proofs.",
+    actionLabel: "Wait for the payment to fully settle, then refresh this page and try again.",
+    reasonCode: "PAYMENT_NOT_READY",
   }
 }
 
@@ -352,7 +748,6 @@ export async function listSelectiveDisclosureProofs(viewerAddress: string) {
   const proofs = await prisma.selectiveDisclosureProof.findMany({
     where: {
       OR: [
-        { creatorAddress: viewerAddress },
         { proverAddress: viewerAddress },
         { ownerAddress: viewerAddress },
       ],
@@ -370,47 +765,43 @@ export async function listSelectiveDisclosureProofs(viewerAddress: string) {
   return proofs.map(serializeProofRow)
 }
 
-export async function listCompliancePayments(viewerAddress: string) {
-  const [sentPayments, receivedPayments] = await Promise.all([
-    prisma.payment.findMany({
-      where: {
-        status: "SUCCESS",
-        txHash: { not: null },
-        OR: [
-          { payerAddress: viewerAddress },
-          { receiptOwner: viewerAddress },
-        ],
-      },
-      include: {
-        PaymentLink: true,
-      },
-      orderBy: { createdAt: "desc" },
-      take: 20,
+export async function listCompliancePayments(viewerAddress: string, walletReceipts: WalletReceiptInput[] = []) {
+  const reconciliationResults = await Promise.all(
+    walletReceipts.map(async (walletReceipt) => {
+      const payment = await reconcileWalletCompliancePayment({
+        viewerAddress,
+        walletReceipt,
+      })
+
+      if (payment) {
+        return { payment, diagnostic: null as CompliancePaymentDiagnostic | null }
+      }
+
+      const diagnostic = await buildWalletReceiptDiagnostic({
+        viewerAddress,
+        walletReceipt,
+      })
+
+      return { payment: null as CompliancePaymentListItem | null, diagnostic }
     }),
-    prisma.payment.findMany({
-      where: {
-        status: "SUCCESS",
-        txHash: { not: null },
-        OR: [
-          { merchantAddress: viewerAddress },
-          { PaymentLink: { creatorAddress: viewerAddress } },
-        ],
-      },
-      include: {
-        PaymentLink: true,
-      },
-      orderBy: { createdAt: "desc" },
-      take: 20,
-    }),
-  ])
+  )
+
+  const reconciledWalletPayments = reconciliationResults
+    .map((result) => result.payment)
+    .filter((payment): payment is CompliancePaymentListItem => Boolean(payment))
+  const diagnostics = reconciliationResults
+    .map((result) => result.diagnostic)
+    .filter((item): item is CompliancePaymentDiagnostic => Boolean(item))
+  const sentPayments = reconciledWalletPayments.filter((payment) => payment.direction === "sent")
+  const receivedPayments = reconciledWalletPayments.filter((payment) => payment.direction === "received")
 
   return {
-    sent: sentPayments
-      .map((payment) => serializeCompliancePayment(payment, "sent"))
-      .filter((payment): payment is CompliancePaymentListItem => Boolean(payment)),
-    received: receivedPayments
-      .map((payment) => serializeCompliancePayment(payment, "received"))
-      .filter((payment): payment is CompliancePaymentListItem => Boolean(payment)),
+    sent: sentPayments,
+    received: receivedPayments,
+    diagnostics: {
+      sent: diagnostics.filter((item) => item.direction === "sent"),
+      received: diagnostics.filter((item) => item.direction === "received"),
+    },
   }
 }
 
@@ -423,6 +814,7 @@ export async function prepareSelectiveDisclosureProof(input: {
   exactAmount?: string | null
   thresholdAmount?: string | null
   constraints?: DisclosureConstraints
+  walletReceipt?: WalletReceiptInput
 }) {
   const txHash = input.txHash.trim()
   const requestId = formatRequestId(input.requestId.trim())
@@ -431,20 +823,38 @@ export async function prepareSelectiveDisclosureProof(input: {
   const proofType = input.proofType
   const exactAmount = input.exactAmount?.trim() || null
   const thresholdAmount = input.thresholdAmount?.trim() || null
+  const walletReceipt = input.walletReceipt
   const constraints = normalizeDisclosureConstraints({
     ...input.constraints,
     requestId,
   })
 
-  if (!txHash || !requestId || !actorAddress) {
-    throw new SelectiveDisclosureError("actorAddress, txHash, and requestId are required")
+  if (!requestId || !actorAddress) {
+    throw new SelectiveDisclosureError("actorAddress and requestId are required")
   }
 
   validateProofShape({ proofType, exactAmount, thresholdAmount })
 
-  const payment = await getPaymentByTxHash(txHash)
+  const payment =
+    txHash && !txHash.startsWith("wallet:")
+      ? await getPaymentByTxHash(txHash)
+      : walletReceipt?.commitment
+        ? await getPaymentByWalletReceipt({ requestId, actorRole, walletReceipt })
+        : null
 
   if (!payment || !payment.txHash) {
+    if (walletReceipt) {
+      const linkedRequest = await getPaymentLinkByWalletReceipt({ requestId, actorRole, walletReceipt })
+
+      if (linkedRequest) {
+        throw new SelectiveDisclosureError(
+          "This payment is still only present in your wallet receipt and was never synced into Kloak's payment history. This usually happens if the app closed before settlement finished syncing. Right now, compliance proofs can only be issued for payments that were recorded by Kloak after confirmation.",
+          409,
+          { code: "PAYMENT_NOT_SYNCED" },
+        )
+      }
+    }
+
     throw new SelectiveDisclosureError("Payment transaction not found", 404)
   }
 
@@ -456,10 +866,26 @@ export async function prepareSelectiveDisclosureProof(input: {
     throw new SelectiveDisclosureError("Transaction does not belong to the provided requestId")
   }
 
-  assertAuthorizedActor(payment, actorAddress, actorRole)
+  if (!walletReceipt) {
+    throw new SelectiveDisclosureError(
+      "This proof now requires the wallet-held receipt for the payment. Refresh your compliance payments and select the wallet-backed payment entry again.",
+      409,
+      { code: "WALLET_RECEIPT_REQUIRED" },
+    )
+  }
 
-  const { ownerAddress, counterpartyAddress } = resolveActorAndCounterparty(payment, actorRole)
-  const amountMicro = toMicroUnits(payment.amount)
+  if (walletReceipt.ownerAddress.trim() !== actorAddress) {
+    throw new SelectiveDisclosureError("Only the wallet that owns this receipt can generate the proof", 403)
+  }
+
+  const ownerAddress = walletReceipt.ownerAddress.trim()
+  const counterpartyAddress = walletReceipt.counterpartyAddress.trim()
+  const amountMicro = walletReceipt.amountMicro.trim()
+
+  if (toMicroUnits(payment.amount) !== amountMicro) {
+    throw new SelectiveDisclosureError("Wallet receipt amount does not match the stored payment record", 409)
+  }
+
   const evaluation = evaluateDisclosureConstraints(
     Number(payment.amount),
     payment.createdAt,
@@ -479,6 +905,30 @@ export async function prepareSelectiveDisclosureProof(input: {
     throw new SelectiveDisclosureError("Payment amount does not satisfy the requested threshold")
   }
 
+  const duplicateProof = await findActiveDuplicateProof({
+    paymentId: payment.id,
+    ownerAddress,
+    actorRole,
+    proofType,
+    constraints,
+    exactAmount: proofType === "amount" ? amountMicro : null,
+    thresholdAmount,
+  })
+
+  if (duplicateProof) {
+    throw new SelectiveDisclosureError(
+      "You already have an active proof for this statement. Reuse it, revoke it, or generate one of the other proof types.",
+      409,
+      {
+        code: "DUPLICATE_PROOF_STATEMENT",
+        existingProof: duplicateProof,
+        availableProofTypes: (["existence", "amount", "threshold"] as DisclosureProofType[]).filter(
+          (type) => type !== proofType,
+        ),
+      },
+    )
+  }
+
   return {
     paymentId: payment.id,
     program: KLOAK_PROGRAM,
@@ -491,9 +941,9 @@ export async function prepareSelectiveDisclosureProof(input: {
     proofType,
     exactAmount: proofType === "amount" ? amountMicro : exactAmount,
     thresholdAmount,
-    paymentTimestamp: Math.floor(payment.createdAt.getTime() / 1000).toString(),
-    paymentTxHash: txHash,
-    commitment: payment.receiptCommitment,
+    paymentTimestamp: walletReceipt.paymentTimestamp.trim(),
+    paymentTxHash: payment.txHash,
+    commitment: walletReceipt.commitment.trim(),
     constraints,
     proofFunction: getProofFunctionName(
       actorRole,
@@ -515,9 +965,9 @@ export async function finalizeSelectiveDisclosureProof(input: {
   thresholdAmount?: string | null
   paymentTimestamp?: string | null
   commitment: string
-  nullifier?: string | null
   disclosureTxHash: string
   constraints?: DisclosureConstraints
+  walletReceipt?: WalletReceiptInput
 }) {
   const prepared = await prepareSelectiveDisclosureProof(input)
   const proofId = createDisclosureProofId()
@@ -542,22 +992,42 @@ export async function finalizeSelectiveDisclosureProof(input: {
     })
   }
 
+  const duplicateProof = await findActiveDuplicateProof({
+    paymentId: prepared.paymentId,
+    ownerAddress: prepared.ownerAddress,
+    actorRole: prepared.actorRole,
+    proofType: prepared.proofType,
+    constraints: prepared.constraints,
+    exactAmount: prepared.proofType === "amount" ? prepared.amountMicro : null,
+    thresholdAmount: prepared.thresholdAmount,
+  })
+
+  if (duplicateProof) {
+    throw new SelectiveDisclosureError(
+      "You already have an active proof for this statement. Reuse it, revoke it, or generate one of the other proof types.",
+      409,
+      {
+        code: "DUPLICATE_PROOF_STATEMENT",
+        existingProof: duplicateProof,
+        availableProofTypes: (["existence", "amount", "threshold"] as DisclosureProofType[]).filter(
+          (type) => type !== prepared.proofType,
+        ),
+      },
+    )
+  }
+
   const proofPayload: StoredDisclosurePayload = {
     proofId,
     program: prepared.program,
     paymentTxHash: prepared.paymentTxHash,
     disclosureTxHash: input.disclosureTxHash,
     requestId: prepared.requestId,
-    amount: prepared.amountMicro,
     ownerAddress: prepared.ownerAddress,
-    counterpartyAddress: prepared.counterpartyAddress,
     actorRole: prepared.actorRole,
     proofType: prepared.proofType,
     disclosedAmount: prepared.exactAmount,
     thresholdAmount: prepared.thresholdAmount,
-    paymentTimestamp: input.paymentTimestamp || prepared.paymentTimestamp,
     commitment: submittedCommitment,
-    nullifier: input.nullifier?.trim() || null,
     constraints: prepared.constraints,
     proverAddress: input.actorAddress,
   }
@@ -573,10 +1043,10 @@ export async function finalizeSelectiveDisclosureProof(input: {
       proverAddress: input.actorAddress,
       ownerAddress: prepared.ownerAddress,
       commitment: submittedCommitment,
-      nullifier: input.nullifier?.trim() || null,
+      nullifier: null,
       contractProgram: prepared.program,
       constraints: prepared.constraints as Prisma.InputJsonValue,
-      proofPayload: proofPayload as unknown as Prisma.InputJsonValue,
+      proofPayload: encryptJsonAtRest(proofPayload) as unknown as Prisma.InputJsonValue,
     },
     include: {
       _count: {
@@ -593,23 +1063,17 @@ export async function finalizeSelectiveDisclosureProof(input: {
 export async function verifySelectiveDisclosureProof(input: {
   proofId?: string
   verifier?: string
-  proof?: {
-    proofId: string
-    paymentTxHash: string
-    disclosureTxHash?: string | null
-    requestId: string
-    ownerAddress: string
-    commitment: string
-    nullifier?: string | null
-    actorRole?: DisclosureActorRole
-    proofType?: DisclosureProofType
-    proofDigest?: string
-  }
+  proof?: unknown
 }) {
-  const proofId = input.proofId || input.proof?.proofId
+  const submittedProof = input.proof ? parsePortableDisclosureProof(input.proof) : null
+  const proofId = input.proofId || submittedProof?.proofId
 
   if (!proofId) {
     throw new SelectiveDisclosureError("proofId is required")
+  }
+
+  if (input.proof && !submittedProof) {
+    throw new SelectiveDisclosureError("Proof package is not in a supported format", 400)
   }
 
   const proofRecord = await prisma.selectiveDisclosureProof.findUnique({
@@ -627,8 +1091,8 @@ export async function verifySelectiveDisclosureProof(input: {
     throw new SelectiveDisclosureError("Proof not found", 404)
   }
 
-  if (input.proof) {
-    assertSubmittedProofMatches(input.proof, proofRecord)
+  if (submittedProof) {
+    assertSubmittedProofMatches(submittedProof, proofRecord)
   }
 
   if (proofRecord.status === "REVOKED") {
@@ -659,6 +1123,10 @@ export async function verifySelectiveDisclosureProof(input: {
     proofPayload: proofRecord.proofPayload,
   })
   const payment = proofRecord.payment
+  const hasDisclosedTimeRange = Boolean(
+    payload.constraints.timestampFrom || payload.constraints.timestampTo,
+  )
+  const shouldHideExactTimestamp = payload.proofType !== "amount" || hasDisclosedTimeRange
 
   if (!payment.txHash || payment.txHash !== proofRecord.paymentTxHash) {
     throw new SelectiveDisclosureError("Underlying payment transaction is unavailable", 404)
@@ -666,12 +1134,6 @@ export async function verifySelectiveDisclosureProof(input: {
 
   if (formatRequestId(payment.PaymentLink.requestId) !== proofRecord.requestId) {
     throw new SelectiveDisclosureError("Proof requestId no longer matches the underlying payment", 409)
-  }
-
-  const actorBinding = resolveActorAndCounterparty(payment, payload.actorRole)
-
-  if (actorBinding.ownerAddress !== proofRecord.ownerAddress) {
-    throw new SelectiveDisclosureError("Proof owner no longer matches the recorded payment participant", 409)
   }
 
   if (payment.receiptCommitment && payment.receiptCommitment !== proofRecord.commitment) {
@@ -742,7 +1204,7 @@ export async function verifySelectiveDisclosureProof(input: {
     nullifier: proofRecord.nullifier,
     revoked: false,
     verifiedAt: new Date().toISOString(),
-    paymentTimestamp: payment.createdAt.toISOString(),
+    paymentTimestamp: shouldHideExactTimestamp ? null : payment.createdAt.toISOString(),
     constraints: serializeConstraints(proofRecord.constraints),
     message: success
       ? "Selective disclosure proof verified successfully"

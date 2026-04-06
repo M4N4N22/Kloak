@@ -46,7 +46,6 @@ export async function GET(
             token: true,
             status: true,
             createdAt: true,
-            payerAddress: true,
             _count: {
               select: {
                 selectiveDisclosureProofs: true,
@@ -77,7 +76,6 @@ export async function GET(
         token: payment.token,
         status: payment.status,
         createdAt: payment.createdAt.toISOString(),
-        payerAddress: payment.payerAddress,
         proofCount: payment._count.selectiveDisclosureProofs,
       })),
       analytics: {

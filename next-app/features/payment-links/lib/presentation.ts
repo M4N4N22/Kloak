@@ -76,7 +76,7 @@ export function getPaymentLinkStatusMeta(input: PaymentLinkStatusInput) {
         status,
         label: "Expired",
         helper: "Past expiry",
-        className: "border-amber-400/20 bg-amber-400/10 text-amber-200",
+        className: "border-orange-400/20 bg-orange-400/10 text-orange-200",
       }
     case "capped":
       return {

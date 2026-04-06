@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { decryptTextAtRest, encryptTextAtRest } from "@/lib/at-rest-encryption"
 
 function normalizeWebhookUrl(rawUrl?: string | null) {
   if (!rawUrl?.trim()) {
@@ -23,13 +24,24 @@ export async function createWebhookEndpoint(data: {
     throw new Error("Creator address is required")
   }
 
-  return prisma.webhookEndpoint.create({
+  const normalizedSecret = data.secret?.trim() || null
+
+  const endpoint = await prisma.webhookEndpoint.create({
     data: {
       creatorAddress: data.creatorAddress.trim(),
       url: normalizeWebhookUrl(data.url),
-      secret: data.secret?.trim() || null,
+      secret: encryptTextAtRest(normalizedSecret),
     },
   })
+
+  return {
+    id: endpoint.id,
+    url: endpoint.url,
+    secret: normalizedSecret,
+    active: endpoint.active,
+    createdAt: endpoint.createdAt,
+    updatedAt: endpoint.updatedAt,
+  }
 }
 
 export async function getWebhookEndpoints(creatorAddress: string) {
@@ -51,7 +63,7 @@ export async function getWebhookEndpoints(creatorAddress: string) {
   return endpoints.map((endpoint) => ({
     id: endpoint.id,
     url: endpoint.url,
-    secret: endpoint.secret,
+    secret: decryptTextAtRest(endpoint.secret),
     isActive: endpoint.active,
     createdAt: endpoint.createdAt,
     updatedAt: endpoint.updatedAt,

@@ -16,9 +16,9 @@ function MetricCard({
   icon: typeof Users
 }) {
   return (
-    <Card className="rounded-[2.5rem] border border-foreground/5 bg-neutral-900/40 text-foreground">
+    <Card>
       <CardHeader className="flex flex-row items-center justify-between border-b border-foreground/5 pb-4">
-        <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">{label}</div>
+        <div className="text-sm text-neutral-500">{label}</div>
         <Icon className="h-4 w-4 text-primary" />
       </CardHeader>
       <CardContent className="pt-5">
@@ -41,29 +41,23 @@ export function BotsKpiGrid({
   trackedVolume: number
 }) {
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-      <MetricCard
-        label="Linked Wallets"
-        value={String(linkedUsers)}
-        helper="Wallet identities currently connected to Telegram users."
-        icon={Users}
-      />
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       <MetricCard
         label="Tracked Links"
         value={String(trackedLinksCount)}
-        helper="Existing payment links available in the Telegram inbox for sharing and monitoring."
+        helper="Payment links you can manage and share from Telegram."
         icon={Link2}
       />
       <MetricCard
         label="Payment Alerts"
         value={String(paymentAlertsCount)}
-        helper="Recorded payments across tracked links that can trigger Telegram notifications."
+        helper="Payments that can trigger alerts in Telegram."
         icon={Bell}
       />
       <MetricCard
         label="Tracked Volume"
         value={trackedVolume.toFixed(4)}
-        helper="Total ALEO volume collected across links the bot can monitor and surface."
+        helper="Total ALEO collected across links the bot can follow."
         icon={BarChart3}
       />
     </div>

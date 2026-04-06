@@ -1,6 +1,7 @@
 "use client"
 
-import { Activity, Bot, ShieldCheck } from "lucide-react"
+import Link from "next/link"
+import { Activity, Bot, LockKeyhole, ShieldCheck } from "lucide-react"
 import {
   Area,
   AreaChart,
@@ -11,6 +12,7 @@ import {
   YAxis,
 } from "recharts"
 
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 
 type DashboardKpiBentoProps = {
@@ -20,8 +22,10 @@ type DashboardKpiBentoProps = {
   disclosureRate: number
   disclosedPayments: number
   totalPayments: number
-  botActivity: number
   linkedTelegramUsers: number
+  telegramOnline: boolean
+  proofAccessGranted: boolean
+  proofAccessLoading: boolean
   chart: Array<{
     date: string
     label: string
@@ -31,7 +35,7 @@ type DashboardKpiBentoProps = {
 
 function DenseLabel({ label }: { label: string }) {
   return (
-    <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">{label}</div>
+    <div className="text-sm text-neutral-500">{label}</div>
   )
 }
 
@@ -42,8 +46,10 @@ export function DashboardKpiBento({
   disclosureRate,
   disclosedPayments,
   totalPayments,
-  botActivity,
   linkedTelegramUsers,
+  telegramOnline,
+  proofAccessGranted,
+  proofAccessLoading,
   chart,
 }: DashboardKpiBentoProps) {
   return (
@@ -76,8 +82,8 @@ export function DashboardKpiBento({
               <AreaChart data={chart} margin={{ left: -20, right: 8, top: 10, bottom: 0 }}>
                 <defs>
                   <linearGradient id="dashboardVolume" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#F1F66A" stopOpacity={0.6} />
-                    <stop offset="100%" stopColor="#F1F66A" stopOpacity={0.02} />
+                    <stop offset="0%" stopColor="#9CE37D" stopOpacity={0.6} />
+                    <stop offset="100%" stopColor="#9CE37D" stopOpacity={0.02} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.04)" />
@@ -103,7 +109,7 @@ export function DashboardKpiBento({
                 <Area
                   type="monotone"
                   dataKey="volume"
-                  stroke="#F1F66A"
+                  stroke="#9CE37D"
                   fill="url(#dashboardVolume)"
                   strokeWidth={2}
                 />
@@ -113,36 +119,58 @@ export function DashboardKpiBento({
         </CardContent>
       </Card>
 
-      <Card className="rounded-[2.5rem] border border-foreground/5 bg-neutral-900/40 text-foreground">
+      <Card>
         <CardHeader className="border-b border-foreground/5">
           <div className="flex items-center justify-between">
             <DenseLabel label="Disclosure Rate" />
-            <ShieldCheck className="h-4 w-4 text-primary" />
+            {proofAccessGranted ? (
+              <ShieldCheck className="h-4 w-4 text-primary" />
+            ) : (
+              <LockKeyhole className="h-4 w-4 text-neutral-500" />
+            )}
           </div>
         </CardHeader>
         <CardContent className="space-y-5 pt-6">
-          <div className="font-mono text-4xl font-semibold tracking-tight text-foreground">
-            {(disclosureRate * 100).toFixed(1)}%
-          </div>
-          <div className="space-y-2">
-            <div className="h-2 overflow-hidden rounded-full bg-foreground/5">
-              <div
-                className="h-full rounded-full bg-primary"
-                style={{ width: `${Math.min(disclosureRate * 100, 100)}%` }}
-              />
-            </div>
-            <div className="flex items-center justify-between font-mono text-xs text-neutral-500">
-              <span>{disclosedPayments} payments with proofs</span>
-              <span>{totalPayments} total payments</span>
-            </div>
-          </div>
-          <p className="text-xs leading-5 text-neutral-500">
-            Share of recorded payments that have at least one active selective disclosure proof.
-          </p>
+          {proofAccessGranted ? (
+            <>
+              <div className="font-mono text-4xl font-semibold tracking-tight text-foreground">
+                {proofAccessLoading ? "..." : `${(disclosureRate * 100).toFixed(1)}%`}
+              </div>
+              <div className="space-y-2">
+                <div className="h-2 overflow-hidden rounded-full bg-foreground/5">
+                  <div
+                    className="h-full rounded-full bg-primary"
+                    style={{ width: `${Math.min(disclosureRate * 100, 100)}%` }}
+                  />
+                </div>
+                <div className="flex items-center justify-between font-mono text-xs text-neutral-500">
+                  <span>{disclosedPayments} payments with proofs</span>
+                  <span>{totalPayments} total payments</span>
+                </div>
+              </div>
+              <p className="text-xs leading-5 text-neutral-500">
+                Synced from the same wallet-owned proof ledger shown inside Compliance.
+              </p>
+            </>
+          ) : (
+            <>
+              <div className="font-mono text-4xl font-semibold tracking-tight text-foreground">Locked</div>
+              <div className="rounded-2xl border border-dashed border-foreground/10 bg-black/20 p-3">
+                <p className="text-xs leading-5 text-neutral-500">
+                  This metric only appears after you unlock your proof ledger with the wallet check.
+                </p>
+              </div>
+              <Link href="/compliance/proofs">
+                <Button variant="outline">
+                  Unlock in compliance
+                </Button>
+              </Link>
+            </>
+          )}
         </CardContent>
       </Card>
 
-      <Card className="rounded-[2.5rem] border border-foreground/5 bg-neutral-900/40 text-foreground">
+      <Card>
         <CardHeader className="border-b border-foreground/5">
           <div className="flex items-center justify-between">
             <DenseLabel label="Bot Activity" />
@@ -150,23 +178,35 @@ export function DashboardKpiBento({
           </div>
         </CardHeader>
         <CardContent className="space-y-5 pt-6">
-          <div className="font-mono text-4xl font-semibold tracking-tight text-foreground">{botActivity}</div>
+          <div className="font-mono text-4xl font-semibold tracking-tight text-foreground">
+            {linkedTelegramUsers > 0 ? "Connected" : "Not linked"}
+          </div>
           <div className="grid gap-3">
-            <div className="rounded-2xl border border-foreground/5 bg-black/20 p-3">
-              <DenseLabel label="Linked Users" />
-              <div className="mt-2 font-mono text-sm text-foreground">{linkedTelegramUsers}</div>
+            <div className="rounded-full border border-foreground/5 bg-black/20 p-3">
+              <DenseLabel label="Wallet Link" />
+              <div className="mt-2 font-mono text-sm text-foreground">
+                {linkedTelegramUsers > 0 ? `${linkedTelegramUsers} linked account${linkedTelegramUsers > 1 ? "s" : ""}` : "Link Telegram to this wallet"}
+              </div>
             </div>
             <div className="rounded-2xl border border-foreground/5 bg-black/20 p-3">
               <DenseLabel label="Channel Health" />
               <div className="mt-2 flex items-center gap-2 font-mono text-sm text-foreground">
                 <Activity className="h-4 w-4 text-primary" />
-                Telegram live
+                {telegramOnline ? "Telegram live" : "Bot offline"}
               </div>
             </div>
           </div>
-          <p className="text-xs leading-5 text-neutral-500">
-            Combined Telegram-linked activity across linked users, tracked payment links, and alertable payment events.
-          </p>
+          {linkedTelegramUsers > 0 ? (
+            <p className="text-xs leading-5 text-neutral-500">
+              Your bot workspace is linked. Use Telegram to share tracked links faster and receive payment alerts.
+            </p>
+          ) : (
+            <Link href="/bots">
+              <Button variant="outline">
+                Connect Telegram bot
+              </Button>
+            </Link>
+          )}
         </CardContent>
       </Card>
     </div>
