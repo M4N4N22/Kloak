@@ -2,12 +2,18 @@
 
 import { useCallback, useEffect, useState } from "react"
 
+import type { PaymentLinkTemplateId } from "@/features/payment-links/lib/templates"
+
 export type PaymentLinkRecord = {
   id: string
   creatorAddress: string | null
   requestId: string
   title: string
   description: string | null
+  template: PaymentLinkTemplateId
+  successMessage: string | null
+  redirectUrl: string | null
+  suggestedAmounts: number[] | null
   amount: string | null
   token: "ALEO" | "USDCX" | "USAD"
   allowCustomAmount: boolean

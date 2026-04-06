@@ -1,11 +1,16 @@
 import { prisma } from "@/lib/prisma"
-import { Prisma, Token } from "@prisma/client"
+import { PaymentLinkTemplate, Prisma, Token } from "@prisma/client"
+import { getPaymentLinkTemplateFromDb } from "@/features/payment-links/lib/templates"
 
 type CreatePaymentLinkInput = {
   creatorAddress?: string | null
   requestId: string
   title: string
   description?: string | null
+  template?: PaymentLinkTemplate
+  successMessage?: string | null
+  redirectUrl?: string | null
+  suggestedAmounts?: number[] | null
   amount?: number | string | null
   token: Token
   allowCustomAmount?: boolean
@@ -23,6 +28,10 @@ export async function createPaymentLink(data: CreatePaymentLinkInput) {
 
       title: data.title,
       description: data.description ?? null,
+      template: data.template ?? "CUSTOM",
+      successMessage: data.successMessage?.trim() || null,
+      redirectUrl: data.redirectUrl?.trim() || null,
+      suggestedAmounts: data.suggestedAmounts ?? undefined,
 
       amount: data.amount ? new Prisma.Decimal(data.amount) : null,
       token: data.token,
@@ -35,8 +44,13 @@ export async function createPaymentLink(data: CreatePaymentLinkInput) {
   })
 }
 export async function getPaymentLinks(creatorAddress: string) {
-  return prisma.paymentLink.findMany({
+  const links = await prisma.paymentLink.findMany({
     where: { creatorAddress },
     orderBy: { createdAt: "desc" }
   })
+
+  return links.map((link) => ({
+    ...link,
+    template: getPaymentLinkTemplateFromDb(link.template),
+  }))
 }

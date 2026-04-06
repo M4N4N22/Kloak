@@ -19,9 +19,9 @@ export function LandingHeroSection() {
 
           <div className="space-y-5">
             <h1 className="mx-auto max-w-5xl text-5xl font-light tracking-tighter text-foreground sm:text-7xl xl:text-[6.2rem]">
-              Share the link.
+              Settle Privately.
               <br />
-              <span className="opacity-50">Keep the payer private.</span>
+              <span className="opacity-50">Disclose Selectively.</span>
             </h1>
             <p className="mx-auto max-w-3xl text-base leading-relaxed text-zinc-400 sm:text-lg">
               Create a payment link, get paid privately, and share a proof only when you need to.

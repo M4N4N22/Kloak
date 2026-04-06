@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import PayClient from "./pay-client"
 import type { Metadata } from "next"
+import { getPaymentLinkTemplate, getPaymentLinkTemplateFromDb } from "@/features/payment-links/lib/templates"
 
 // =========================
 // 🔥 METADATA (OG + SHARE)
@@ -28,8 +29,14 @@ export async function generateMetadata({
   const amount = link.allowCustomAmount
     ? "Custom"
     : `${Number(link.amount)} ${link.token}`
+  const template = getPaymentLinkTemplate(getPaymentLinkTemplateFromDb(link.template))
 
-  const title = `Pay ${amount} via Kloak`
+  const title =
+    template.id === "invoice"
+      ? `Pay invoice via Kloak`
+      : template.id === "tip-jar"
+        ? `Support via Kloak`
+        : `Pay ${amount} via Kloak`
   const description =
     link.description ||
     link.title ||
@@ -93,6 +100,12 @@ export default async function PayPage({
 
   const safeLink = {
     ...link,
+    template: getPaymentLinkTemplateFromDb(link.template),
+    successMessage: link.successMessage ?? null,
+    redirectUrl: link.redirectUrl ?? null,
+    suggestedAmounts: Array.isArray(link.suggestedAmounts)
+      ? link.suggestedAmounts.map((value) => Number(value)).filter((value) => Number.isFinite(value))
+      : null,
     amount: link.amount ? Number(link.amount) : null,
     totalVolume: Number(link.totalVolume),
   }

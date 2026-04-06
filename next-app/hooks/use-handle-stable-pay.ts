@@ -186,7 +186,7 @@ function extractProofInput(record: StableRecord) {
 type StablePaymentLink = {
   id: string
   requestId: string
-  token: StableToken
+  token: "ALEO" | StableToken
   creatorAddress?: string | null
 }
 

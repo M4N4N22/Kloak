@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Image from "next/image"
-import { Globe, Loader2 } from "lucide-react"
+import { Check, Globe, Loader2 } from "lucide-react"
 import { useWallet } from "@provablehq/aleo-wallet-adaptor-react"
 
 import { Button } from "@/components/ui/button"
@@ -11,11 +11,20 @@ import PaymentStepper from "../components/payment-stepper"
 import { cn } from "@/lib/utils"
 import { useHandlePay } from "@/hooks/use-handle-pay"
 import { useHandleStablePay } from "@/hooks/use-handle-stable-pay"
+import {
+  getPaymentLinkTemplate,
+  type PaymentLinkTemplateId,
+} from "@/features/payment-links/lib/templates"
 
 type PayClientLink = {
   id: string
+  requestId: string
   title: string
   description: string | null
+  template: PaymentLinkTemplateId
+  successMessage: string | null
+  redirectUrl: string | null
+  suggestedAmounts: number[] | null
   amount: number | null
   token: "ALEO" | "USDCX" | "USAD"
   allowCustomAmount: boolean
@@ -23,9 +32,11 @@ type PayClientLink = {
 
 export default function PayClient({ link }: { link: PayClientLink }) {
   const { connected } = useWallet()
+  const template = getPaymentLinkTemplate(link.template)
 
-  const [amount, setAmount] = useState(link.amount || "")
+  const [amount, setAmount] = useState<string>(link.amount !== null ? String(link.amount) : "")
   const [copied, setCopied] = useState(false)
+  const [redirectSeconds, setRedirectSeconds] = useState(4)
 
   const aleoPayment = useHandlePay(link, amount)
   const stablePayment = useHandleStablePay(link, amount)
@@ -59,6 +70,59 @@ export default function PayClient({ link }: { link: PayClientLink }) {
 
   const isFinalized = status === "finalized"
   const statusLabel = getStatusLabel(status)
+
+  useEffect(() => {
+    if (!isFinalized || !link.redirectUrl) {
+      return
+    }
+
+    const countdown = window.setInterval(() => {
+      setRedirectSeconds((current) => {
+        if (current <= 1) {
+          window.clearInterval(countdown)
+          window.location.assign(link.redirectUrl as string)
+          return 0
+        }
+
+        return current - 1
+      })
+    }, 1000)
+
+    return () => window.clearInterval(countdown)
+  }, [isFinalized, link.redirectUrl])
+
+  const payPageCopy = {
+    invoice: {
+      eyebrow: "Invoice payment",
+      amountLabel: "Invoice total",
+      buttonLabel: "Pay invoice",
+      helper: "Review the invoice details and complete payment securely.",
+    },
+    freelance: {
+      eyebrow: "Freelance payment",
+      amountLabel: "Amount due",
+      buttonLabel: "Pay now",
+      helper: "Complete this service payment securely with your wallet.",
+    },
+    "tip-jar": {
+      eyebrow: "Support payment",
+      amountLabel: "Choose an amount",
+      buttonLabel: "Send support",
+      helper: "Pick any amount you want to send.",
+    },
+    checkout: {
+      eyebrow: "Checkout",
+      amountLabel: "Order total",
+      buttonLabel: "Complete payment",
+      helper: "Finish your payment to continue.",
+    },
+    custom: {
+      eyebrow: "Payment",
+      amountLabel: "Amount to pay",
+      buttonLabel: "Pay now",
+      helper: "Review the details and confirm the payment in your wallet.",
+    },
+  }[template.id]
 
   const handleCopy = () => {
     if (!txId) return
@@ -108,24 +172,55 @@ export default function PayClient({ link }: { link: PayClientLink }) {
           {!isFinalized && (
             <>
               <div className="mt-6 space-y-3">
+                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                  {payPageCopy.eyebrow}
+                </p>
                 <h1 className="text-xl font-bold">{link.title}</h1>
 
-                {link.description && <p className="text-sm text-muted-foreground">{link.description}</p>}
+                {link.description ? (
+                  <p className="text-sm text-muted-foreground">{link.description}</p>
+                ) : (
+                  <p className="text-sm text-muted-foreground">{payPageCopy.helper}</p>
+                )}
               </div>
 
               <div className="border-t border-dashed border-foreground/20" />
 
               <div className="space-y-2">
-                <span className="text-xs uppercase tracking-wide text-muted-foreground">Amount to pay</span>
+                <span className="text-xs uppercase tracking-wide text-muted-foreground">
+                  {payPageCopy.amountLabel}
+                </span>
 
                 {link.allowCustomAmount ? (
-                  <input
-                    type="number"
-                    placeholder="Enter amount"
-                    className="w-full bg-transparent text-3xl font-bold outline-none"
-                    value={amount}
-                    onChange={(event) => setAmount(event.target.value)}
-                  />
+                  <div className="space-y-4">
+                    {template.id === "tip-jar" && link.suggestedAmounts?.length ? (
+                      <div className="flex flex-wrap gap-2">
+                        {link.suggestedAmounts.map((suggestedAmount) => (
+                          <button
+                            key={suggestedAmount}
+                            type="button"
+                            onClick={() => setAmount(String(suggestedAmount))}
+                            className={cn(
+                              "rounded-full border px-3 py-1.5 text-xs font-medium transition",
+                              String(suggestedAmount) === String(amount)
+                                ? "border-primary bg-primary/10 text-primary"
+                                : "border-foreground/10 bg-black/20 text-muted-foreground hover:border-foreground/20 hover:text-foreground",
+                            )}
+                          >
+                            {suggestedAmount} {link.token}
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
+
+                    <input
+                      type="number"
+                      placeholder="Enter amount"
+                      className="w-full bg-transparent text-3xl font-bold outline-none"
+                      value={amount}
+                      onChange={(event) => setAmount(event.target.value)}
+                    />
+                  </div>
                 ) : (
                   <div className="text-3xl font-bold tracking-tight">
                     {link.amount}
@@ -141,9 +236,19 @@ export default function PayClient({ link }: { link: PayClientLink }) {
               <div className="space-y-2">
                 <div className="flex flex-col items-center gap-4">
                   <span className="flex h-16 w-16 items-center justify-center rounded-full bg-flagship-gradient text-2xl font-bold text-primary-foreground ring-8 ring-primary/20">
-                    ✓
+                    <Check className="h-8 w-8" />
                   </span>
                   <span className="text-xl">Payment Successful</span>
+                  {link.successMessage ? (
+                    <p className="max-w-xs text-sm leading-6 text-muted-foreground">
+                      {link.successMessage}
+                    </p>
+                  ) : null}
+                  {link.redirectUrl ? (
+                    <p className="max-w-xs text-xs leading-5 text-muted-foreground">
+                      You&apos;ll be sent back automatically in {redirectSeconds}s.
+                    </p>
+                  ) : null}
                 </div>
 
                 <div className="mt-6 space-y-3 rounded-xl border bg-black/60 p-4">
@@ -175,6 +280,16 @@ export default function PayClient({ link }: { link: PayClientLink }) {
                     </div>
                   </div>
                 </div>
+
+                {link.redirectUrl ? (
+                  <Button
+                    variant="outline"
+                    className="w-full rounded-full"
+                    onClick={() => window.location.assign(link.redirectUrl as string)}
+                  >
+                    Continue
+                  </Button>
+                ) : null}
               </div>
             ) : connected ? (
               <div className="space-y-3">
@@ -192,7 +307,7 @@ export default function PayClient({ link }: { link: PayClientLink }) {
                       {statusLabel}
                     </>
                   ) : (
-                    "Confirm Payment"
+                    payPageCopy.buttonLabel
                   )}
                 </Button>
 

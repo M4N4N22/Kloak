@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server"
 import { createPaymentLink, getPaymentLinks } from "@/lib/services/paymentLink.service"
-import { prisma } from "@/lib/prisma"
 
 export async function POST(req: Request) {
   try {
@@ -8,15 +7,25 @@ export async function POST(req: Request) {
     const link = await createPaymentLink(body)
     return NextResponse.json(link)
 
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Failed to create payment link"
+    const stack = error instanceof Error ? error.stack : undefined
+    const prismaEngine =
+      typeof error === "object" &&
+      error !== null &&
+      "clientVersion" in error &&
+      typeof (error as { clientVersion?: unknown }).clientVersion === "string"
+        ? (error as { clientVersion: string }).clientVersion
+        : undefined
+
     console.error("POST Error Details:", {
-      message: error.message,
-      stack: error.stack?.split('\n').slice(0, 3).join('\n'), // First 3 lines of stack
-      prismaEngine: error.clientVersion
+      message,
+      stack: stack?.split('\n').slice(0, 3).join('\n'),
+      prismaEngine,
     })
 
     return NextResponse.json(
-      { error: error.message || "Failed to create payment link" },
+      { error: message },
       { status: 500 }
     )
   }
@@ -38,8 +47,9 @@ export async function GET(req: Request) {
 
     return NextResponse.json(links)
 
-  } catch (error: any) {
-    console.error("GET Error Details:", error.message)
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Failed to fetch payment links"
+    console.error("GET Error Details:", message)
 
     return NextResponse.json(
       { error: "Failed to fetch payment links" },
