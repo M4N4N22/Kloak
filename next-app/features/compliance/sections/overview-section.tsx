@@ -80,9 +80,18 @@ export function OverviewSection() {
       {/* 4. VISUAL DISCLOSURE MODEL: Shared vs. Protected */}
       <div className="grid gap-6 lg:grid-cols-5">
         {/* SHARED SECTION - The "Public Disclosure" */}
-        <Card className="lg:col-span-3 relative overflow-hidden border-primary/20  shadow-[0_0_40px_rgba(var(--primary-rgb),0.05)] rounded-[2.5rem] h-fit">
+        <Card className="lg:col-span-3 relative ">
           {/* Subtle background glow */}
-          <div className="absolute -right-40 -bottom-40 h-96 w-96 rounded-full bg-primary/40 blur-[80px]" />
+          <div className="pointer-events-none fixed inset-0 -z-10">
+            {/* The Dot Matrix Layer */}
+            <div
+              className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.15)_1px,transparent_1px)] bg-[size:40px_40px]"
+            />
+
+            {/* The Glow/Vignette Layers */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(241,246,106,0.08),transparent_28%)]" />
+            <div className="absolute inset-x-0 top-0 h-screen bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.06),transparent_65%)]" />
+          </div>
 
           <CardContent className="relative p-8 md:p-10">
             <div className="mb-8 flex items-center justify-between">
@@ -230,13 +239,13 @@ function QuickStat({
     <Card className="">
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-4">
-           <p className="text-base">{label}</p>
+          <p className="text-base">{label}</p>
           <div className={cn("p-4 rounded-full border", color)}>
             <Icon className="h-5 w-5" />
           </div>
         </div>
         <div className="text-3xl font-bold text-foreground mb-1">{value}</div>
-       
+
         <p className="mt-2 text-xs text-neutral-500 leading-tight">{sub}</p>
       </CardContent>
     </Card>

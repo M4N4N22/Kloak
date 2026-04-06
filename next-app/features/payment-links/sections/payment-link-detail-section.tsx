@@ -105,9 +105,18 @@ export function PaymentLinkDetailSection({ linkId }: { linkId: string }) {
                 <CardContent className="space-y-4 pt-6 text-sm text-neutral-400">
                   <MetaRow label="Created" value={formatDateTime(detail.createdAt)} />
                   <MetaRow label="Request ID" value={detail.requestId} mono />
+                  <MetaRow label="Template" value={detail.template.replace("-", " ")} />
                   <MetaRow label="Max payments" value={detail.maxPayments ? String(detail.maxPayments) : "No cap"} />
                   <MetaRow label="Views" value={String(detail.views)} />
                   <MetaRow label="Unique visitors" value={String(detail.uniqueVisitors)} />
+                  {detail.successMessage ? <MetaRow label="Success message" value={detail.successMessage} /> : null}
+                  {detail.redirectUrl ? <MetaRow label="Redirect after payment" value={detail.redirectUrl} mono /> : null}
+                  {detail.template === "tip-jar" && detail.suggestedAmounts?.length ? (
+                    <MetaRow
+                      label="Suggested amounts"
+                      value={detail.suggestedAmounts.map((amount) => `${amount} ${detail.token}`).join(", ")}
+                    />
+                  ) : null}
                   <MetaRow
                     label="Privacy"
                     value="This page can be shared openly. Who paid stays private by default, and proofs only reveal what the proof owner chooses to share."

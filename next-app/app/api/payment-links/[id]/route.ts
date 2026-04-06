@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 
 import { prisma } from "@/lib/prisma"
+import { getPaymentLinkTemplateFromDb } from "@/features/payment-links/lib/templates"
 
 export async function GET(
   req: NextRequest,
@@ -25,6 +26,10 @@ export async function GET(
         requestId: true,
         title: true,
         description: true,
+        template: true,
+        successMessage: true,
+        redirectUrl: true,
+        suggestedAmounts: true,
         amount: true,
         token: true,
         allowCustomAmount: true,
@@ -64,6 +69,12 @@ export async function GET(
 
     return NextResponse.json({
       ...link,
+      template: getPaymentLinkTemplateFromDb(link.template),
+      successMessage: link.successMessage ?? null,
+      redirectUrl: link.redirectUrl ?? null,
+      suggestedAmounts: Array.isArray(link.suggestedAmounts)
+        ? link.suggestedAmounts.map((value) => Number(value)).filter((value) => Number.isFinite(value))
+        : null,
       amount: link.amount?.toString() ?? null,
       totalVolume: link.totalVolume.toString(),
       createdAt: link.createdAt.toISOString(),

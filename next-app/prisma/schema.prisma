@@ -108,6 +108,10 @@ model PaymentLink {
 
   title       String
   description String?
+  template    PaymentLinkTemplate @default(CUSTOM)
+  successMessage String?
+  redirectUrl String?
+  suggestedAmounts Json?
 
   amount Decimal?
   token  Token
@@ -342,6 +346,14 @@ enum Token {
   ALEO
   USDCX
   USAD
+}
+
+enum PaymentLinkTemplate {
+  INVOICE
+  FREELANCE
+  TIP_JAR
+  CHECKOUT
+  CUSTOM
 }
 
 enum PaymentStatus {
