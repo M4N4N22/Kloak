@@ -1,193 +1,252 @@
 # Kloak
 
-A privacy-first payment link system built on the Aleo blockchain, enabling secure and private transactions using zero-knowledge proofs.
+Kloak is an Aleo-native private payments and selective disclosure system.
 
-## Overview
+It combines private payment links, wallet-held payment receipts, portable compliance proofs, public-chain verification, Telegram workflows, webhooks, and automation into a single operator-facing product built on Aleo.
 
-Kloak allows creators to generate payment links that can be paid using Aleo's native credits (ALEO) or stablecoins (USDCx, USAD) with full privacy preservation. The system integrates on-chain Aleo programs for transaction logic, a Next.js web application for user interfaces, Supabase for off-chain metadata, and a Telegram bot for notifications and control.
+## What Kloak is today
 
-## Important Links
+Kloak is not just a payment-link generator. The current system is built around three layers:
 
-- Deployed App  
-  https://kloak.vercel.app
+1. **Private settlement on Aleo**
+   Payment requests are created and paid through the Aleo program in [programs/kloak_protocol/src/main.leo](./programs/kloak_protocol/src/main.leo).
 
-- Demo Video  
-  https://youtu.be/b1AdffOf_PM
+2. **Receipt-backed selective disclosure**
+   Private `PaymentRequestReceipt` records become the source of truth for payer- and receiver-side proofs.
 
-- Create Payment Link  
-  https://kloak.vercel.app/payment-links
+3. **Chain-first verification**
+   Shared proof packages are verified against public Aleo transactions first, with Kloak-managed records adding revocation and history checks on top.
 
-- Get Kloak Telegram Bot  
-  https://kloak.vercel.app/bots
+For a technical changelog of the current branch, see [wave5_updates.md](./wave5_updates.md).
 
-- Create a Webhook  
-  https://kloak.vercel.app/webhooks
+## Core product surfaces
 
-- Leo Program (kloak_protocol_v6)  
-  https://github.com/M4N4N22/Kloak/blob/main/programs/kloak_protocol/src/main.leo
+- **Payment Links**
+  Shareable payment requests with templates, redirects, suggested amounts, and private settlement.
 
-- Wave 4 Detailed Updates  
-  https://github.com/M4N4N22/Kloak/blob/main/Wave4_Updates.md
+- **Compliance**
+  Generate selective disclosure proofs from wallet-held receipts and verify them with a portable proof package model.
 
-## Architecture
+- **Verification**
+  Public Aleo chain checks are the primary trust signal. Kloak record checks are secondary and mainly add revocation and history status.
+
+- **Telegram**
+  Linked wallet notifications and operational workflows through the Kloak bot.
+
+- **Webhooks and automation**
+  Event delivery and heavier operational workflows for teams that need integrations and orchestration.
+
+## Aleo-native architecture
+
+Kloak is built to follow what Aleo actually exposes instead of pretending private arguments are publicly inspectable.
 
 ```mermaid
-graph TB
-    A[Creator] -->|Signs transaction| B[Aleo Program]
-    B -->|On-chain state| C[Payment Links]
-    B -->|Validates payments| D[Payment Processing]
-
-    E[User] -->|Pays link| B
-    E -->|Interacts via| F[Next.js Web App]
-
-    F -->|API calls| G[Supabase DB]
-    F -->|Metadata| G
-
-    H[Telegram Bot] -->|Notifications| G
-    H -->|Control| F
-
-    I[Webhook System] -->|Events| G
+flowchart LR
+    A["Creator"] --> B["Kloak App<br/>payment links, dashboard, bots, webhooks"]
+    B --> C["Aleo Program<br/>kloak_protocol_v10.aleo"]
+    U["Payer"] --> D["Public Pay Page"]
+    D --> C
+    C --> E["Private settlement"]
+    C --> F["Wallet-held PaymentRequestReceipt"]
+    F --> G["Selective disclosure transitions<br/>prove_*"]
+    G --> H["Portable proof package"]
+    H --> I["Verifier"]
+    I --> J["Public Aleo chain check"]
+    I --> K["Kloak record checks<br/>revocation and history"]
+    B --> L["Postgres / Prisma metadata"]
+    B --> M["Telegram workflows"]
+    B --> N["Webhooks and automation"]
 ```
 
-### Core Components
+### On-chain program
 
-- **Aleo Program**: Handles on-chain payment request creation and validation using zero-knowledge proofs.
-- **Next.js App**: Web interface for creating payment links, processing payments, and user dashboards.
-- **Supabase**: PostgreSQL database for storing payment link metadata, analytics, and webhook configurations.
-- **Telegram Bot**: Provides notifications and administrative controls.
+The main protocol program is [programs/kloak_protocol/src/main.leo](./programs/kloak_protocol/src/main.leo).
 
-## Features
+Key transitions:
 
-- **Private Payments**: All transactions use Aleo's zero-knowledge technology for privacy.
-- **Multi-Token Support**: Pay with ALEO, USDCx, or USAD.
-- **Payment Links**: Generate shareable links for payments.
-- **Webhook Integration**: Receive notifications for payment events.
-- **Telegram Integration**: Bot for notifications and link management.
-- **Analytics**: Track payment link performance.
+- `create_payment_request`
+- `pay_request_aleo`
+- `pay_request_usdcx`
+- `pay_request_usad`
+- `prove_payment_basic`
+- `prove_payment_amount`
+- `prove_payment_threshold`
+- `prove_payment_timebox`
+- `prove_receipt_basic`
+- `prove_receipt_amount`
+- `prove_receipt_threshold`
+- `prove_receipt_timebox`
 
-## Tech Stack
+The program stores:
 
-- **Blockchain**: Aleo
-- **Frontend/Backend**: Next.js, React
-- **Database**: Supabase (PostgreSQL)
-- **Bot**: Telegram (Grammy framework)
-- **ZK Proofs**: Aleo SDK
-- **Styling**: Tailwind CSS, Radix UI
+- `payment_requests`
+- `payment_commitments`
 
-## Prerequisites
+and emits private `PaymentRequestReceipt` records for both payer and receiver.
+
+### Off-chain app layer
+
+The application lives in [next-app](./next-app) and handles:
+
+- creator-facing product UX
+- public pay pages
+- proof packaging
+- proof verification UX
+- webhook delivery
+- Telegram integration
+- metadata and operational storage
+
+### Verification model
+
+Proof packaging and verification are centered in:
+
+- [next-app/lib/selective-disclosure.ts](./next-app/lib/selective-disclosure.ts)
+- [next-app/lib/portable-proof-verifier.ts](./next-app/lib/portable-proof-verifier.ts)
+- [next-app/lib/aleo-chain-verifier.ts](./next-app/lib/aleo-chain-verifier.ts)
+- [next-app/lib/services/selective-disclosure.service.ts](./next-app/lib/services/selective-disclosure.service.ts)
+
+Kloak now treats verification as layered:
+
+1. proof package integrity
+2. public Aleo chain confirmation
+3. Kloak-backed revocation and history checks
+
+That trust model is intentional and matches what the product can actually prove today.
+
+## Privacy model
+
+Kloak is privacy-first, but it does not claim that every field everywhere is private.
+
+What is private by design:
+
+- settlement through Aleo private transfers
+- payer and receiver receipts held in the wallet
+- selective disclosure generated from those receipts
+- payer identity remaining hidden by default at the product layer
+
+What is not claimed as globally hidden:
+
+- payment link metadata such as title or description
+- all off-chain operational metadata
+- all proof-type metadata on-chain
+
+The current product emphasis is:
+
+- **share payment requests openly if needed**
+- **keep settlement and payer identity private by default**
+- **reveal only the proof statement needed for compliance**
+
+## Security hardening in the current branch
+
+Recent hardening work focused on replacing trust in client-supplied addresses with signed wallet access and reducing overreliance on Kloak-managed state.
+
+Relevant files:
+
+- [next-app/lib/creator-access.ts](./next-app/lib/creator-access.ts)
+- [next-app/lib/compliance-access.ts](./next-app/lib/compliance-access.ts)
+- [next-app/lib/payment-chain-validation.ts](./next-app/lib/payment-chain-validation.ts)
+- [next-app/app/api/payment-links/[id]/pay/route.ts](./next-app/app/api/payment-links/[id]/pay/route.ts)
+- [next-app/app/api/proof/verify/route.ts](./next-app/app/api/proof/verify/route.ts)
+- [next-app/app/api/proof/[proofId]/revoke/route.ts](./next-app/app/api/proof/[proofId]/revoke/route.ts)
+
+Highlights:
+
+- creator-scoped routes now use signed creator access
+- compliance routes use signed compliance access
+- webhook secrets are no longer re-exposed on read
+- proof verification is now explicitly chain-first
+- payment recording validates only against the Aleo transaction shape the SDK actually exposes for private payments
+
+## Compliance lifecycle
+
+The current proof lifecycle is:
+
+1. A merchant creates a payment request on-chain.
+2. A payer settles the request privately.
+3. The program mints payer and receiver `PaymentRequestReceipt` records.
+4. A receipt owner generates a proof by calling one of the `prove_*` transitions.
+5. Kloak builds a portable proof package around the resulting disclosure transaction.
+6. Verification checks the proof package, then Aleo chain references, then Kloak-side revocation/history state.
+
+Relevant implementation files:
+
+- [programs/kloak_protocol/src/main.leo](./programs/kloak_protocol/src/main.leo)
+- [next-app/lib/selective-disclosure.ts](./next-app/lib/selective-disclosure.ts)
+- [next-app/lib/services/selective-disclosure.service.ts](./next-app/lib/services/selective-disclosure.service.ts)
+
+## Repository layout
+
+```text
+Kloak/
+|- next-app/                         # Next.js app, APIs, UI, Prisma, verification logic
+|- programs/
+|  |- kloak_protocol/src/main.leo    # Aleo-native payment and selective disclosure program
+|  `- README.md                      # Program-specific documentation
+|- Wave4_Updates.md                  # Previous wave summary
+`- wave5_updates.md                  # Current branch technical update summary
+```
+
+## Getting started
+
+### Prerequisites
 
 - Node.js 18+
-- npm or yarn
-- Aleo CLI (for program development)
-- Supabase account
-- Telegram Bot Token
+- npm
+- Leo v4 toolchain
+- a PostgreSQL-compatible database
+- Aleo-compatible wallet support for testing the app
 
-## Installation
+### App setup
 
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   cd Kloak
-   ```
-
-2. Install dependencies for the Next.js app:
-   ```bash
-   cd next-app
-   npm install
-   ```
-
-3. Set up the database:
-   ```bash
-   npx prisma generate
-   npx prisma db push
-   ```
-
-## Environment Variables
-
-Create a `.env` file in the `next-app` directory with the following variables:
-
-```env
-# Database
-DATABASE_URL="postgresql://username:password@host:port/database"
-
-# Telegram Bot
-BOT_TOKEN="your-telegram-bot-token"
-
-# URLs
-BACKEND_URL="http://localhost:3000"
-APP_URL="https://your-app-url.com"
-NEXT_PUBLIC_BASE_URL="http://localhost:3000"
-
-# Security
-JWT_SECRET="your-jwt-secret-key"
+```bash
+cd next-app
+npm install
+npx prisma generate
+npx prisma db push
+npm run dev
 ```
 
-### Variable Explanations
+### Program build
 
-- `DATABASE_URL`: Connection string for your Supabase PostgreSQL database.
-- `BOT_TOKEN`: Token obtained from BotFather on Telegram for the bot integration.
-- `BACKEND_URL`: URL for the backend API (localhost for development).
-- `APP_URL`: Public URL of your deployed application.
-- `NEXT_PUBLIC_BASE_URL`: Public base URL for the Next.js app (exposed to client-side).
-- `JWT_SECRET`: Secret key for JWT token signing (use a strong, random string).
+```bash
+cd programs/kloak_protocol
+leo build
+```
 
-## Running the Application
+For the current program details, see [programs/README.md](./programs/README.md).
 
-1. Start the development server:
-   ```bash
-   npm run dev
-   ```
+## Environment notes
 
-2. Open [http://localhost:3000](http://localhost:3000) in your browser.
+At minimum, the app expects database, app URL, and signing/encryption configuration. The exact env surface evolves with the app, but commonly used variables include:
 
-3. For the Telegram bot:
-   ```bash
-   # Run the bot script (assuming it's set up)
-   npm run bot
-   ```
+- `DATABASE_URL`
+- `APP_URL`
+- `NEXT_PUBLIC_BASE_URL`
+- `JWT_SECRET`
+- `DATA_ENCRYPTION_KEY`
+- `BOT_TOKEN`
+- `PROVABLE_API_HOST`
 
-## Building the Aleo Program
+If `DATA_ENCRYPTION_KEY` is not set, some at-rest encryption paths fall back to `JWT_SECRET`. For production, a dedicated encryption key is the safer choice.
 
-The Aleo program is located in `programs/kloak_protocol/`.
+## Current status
 
-1. Install Aleo CLI if not already installed.
+The repository has moved well beyond the earlier payment-link prototype stage.
 
-2. Build the program:
-   ```bash
-   cd programs/kloak_protocol
-   leo build
-   ```
+Current branch work includes:
 
-3. Deploy to Aleo testnet/mainnet as needed.
+- Aleo program updated to `kloak_protocol_v10.aleo`
+- Leo v4-compatible syntax and structure
+- compliance and selective disclosure as a first-class product surface
+- chain-first proof verification
+- hardened creator and compliance API access
+- payment-link templates, redirects, and improved pay flows
+- trust pages, docs, FAQ, and pricing updates
 
-## Deployment
+## References
 
-### Next.js App
-- Use Vercel, Netlify, or any Node.js hosting platform.
-- Set environment variables in your hosting platform's dashboard.
-- Run `npm run build` for production build.
-
-### Database
-- Use Supabase for managed PostgreSQL.
-- Run migrations with Prisma.
-
-### Aleo Program
-- Deploy to Aleo network using Aleo CLI or wallet.
-
-### Telegram Bot
-- Host the bot on a server (e.g., Railway, Heroku) and set webhook or use polling.
-
-## API Endpoints
-
-- `POST /api/payment-links`: Create a new payment link
-- `GET /api/payment-links/:id`: Get payment link details
-- `POST /api/payments`: Process a payment
-- `GET /api/analytics`: Get analytics data
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests
-5. Submit a pull request
+- App: [next-app](./next-app)
+- Program: [programs/kloak_protocol/src/main.leo](./programs/kloak_protocol/src/main.leo)
+- Program docs: [programs/README.md](./programs/README.md)
+- Wave 5 updates: [wave5_updates.md](./wave5_updates.md)
+- Wave 4 updates: [Wave4_Updates.md](./Wave4_Updates.md)

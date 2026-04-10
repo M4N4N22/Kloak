@@ -1,122 +1,278 @@
-# Kloak Protocol v6.aleo
+# Kloak Protocol v10
+
+This directory documents the current Aleo program used by Kloak.
+
+The live source is [programs/kloak_protocol/src/main.leo](./kloak_protocol/src/main.leo), currently defined as:
+
+```leo
+program kloak_protocol_v10.aleo
+```
+
+This README replaces the old `v6` notes and reflects the current Leo v4-compatible program structure and proof model.
 
 ## Overview
 
-The Kloak Protocol v6.aleo is a zero-knowledge smart contract deployed on the Aleo blockchain that enables private payment requests and transactions. It integrates support for three different tokens: Aleo's native credits (ALEO), and two stablecoins (USDCx and USAD), ensuring all transactions maintain user privacy through zero-knowledge proofs.
+Kloak Protocol v10 is an Aleo-native private payment request and selective disclosure program.
 
-## Key Features
+It supports:
 
-### Payment Request Creation
-Merchants can create payment requests specifying:
-- **Asset Type**: 0 for ALEO, 1 for USDCx, 2 for USAD
-- **Amount**: Fixed or open (flexible) amount
-- **Request ID**: Unique identifier for the request
+- private ALEO payments
+- private USDCx and USAD payments
+- on-chain payment requests
+- wallet-held payer and receiver receipts
+- selective disclosure proofs for compliance workflows
 
-Each request is stored on-chain and marked as active for processing.
+The program does **not** try to make every payment fact public. Instead, it:
 
-### Payment Processing
-Users can pay these requests privately using any of the three supported tokens:
+1. stores public request metadata needed for payment routing
+2. settles funds privately
+3. binds the payment to a commitment
+4. mints private receipts that can later generate proofs
 
-- **ALEO Payments**: Direct private transfer from credits records
-- **USDCx/USAD Payments**: Private transfers using respective stablecoin programs, including compliance checks and Merkle proofs
+## Imports and external dependencies
 
-All payments generate receipts confirming transaction details.
+The current program imports:
 
-### Token Integration
-- **ALEO**: Native Aleo credits for seamless blockchain transactions
-- **USDCx**: Test stablecoin program for USDC-like transactions
-- **USAD**: Test stablecoin program for USD-like transactions
+- `credits.aleo`
+- `test_usdcx_stablecoin.aleo`
+- `test_usad_stablecoin.aleo`
 
-All tokens support private transfers with zero-knowledge proofs, ensuring transaction privacy.
+These imports are visible at the top of [main.leo](./kloak_protocol/src/main.leo).
 
-## Architecture
+## Current mappings
 
-```mermaid
-graph TD
-    A[Merchant] -->|create_payment_request| B[Kloak Protocol]
-    B -->|Store| C[Payment Requests Mapping]
+The main mappings are:
 
-    D[User] -->|pay_request_*| B
-    B -->|Validate| C
-    B -->|Transfer| E[Token Programs]
-    E -->|ALEO| F[credits.aleo]
-    E -->|USDCx| G[test_usdcx_stablecoin.aleo]
-    E -->|USAD| H[test_usad_stablecoin.aleo]
+- `payment_requests: field => PaymentRequest`
+- `payment_commitments: field => bool`
 
-    B -->|Generate| I[Payment Receipt]
-```
+The file also still includes paused campaign-related mappings:
 
-## Program Structure
+- `campaigns`
+- `campaign_claimed`
+- `campaign_pool`
+- `campaign_creator`
 
-### Mappings
-- `payment_requests`: Stores PaymentRequest structs by request ID
-- `nullifiers`: Prevents double-spending in distributions
-- `campaigns`: Campaign data (currently paused)
-- `campaign_pool`: Campaign funds (currently paused)
-- `campaign_creator`: Campaign ownership (currently paused)
+Those campaign paths are currently not part of the active product path.
 
-### Structs
-- `PaymentRequest`: Contains merchant address, asset type, amount, open amount flag, and active status
-- `PaymentReceipt`: Records payment details
-- `PaymentRequestReceipt`: Confirms payment request fulfillment
+## Core structs and records
 
-### Transitions
-- `create_payment_request`: Creates a new payment request
-- `pay_request_aleo/usdcx/usad`: Processes payments for respective tokens
-- `send_private_payment_*`: Direct private payments (utility functions)
+### `PaymentRequest`
 
-## Campaign Features (Paused)
+Stored in `payment_requests`, this represents the public payment request envelope:
 
-The program includes structures for campaign creation and distribution using Merkle trees for privacy-preserving payouts. However, development on these features has been paused because Aleo programs cannot hold funds directly, which is required for escrow-based campaign distributions. This limitation prevents the implementation of fund-holding mechanisms necessary for campaign payouts.
+- `merchant`
+- `asset`
+- `amount`
+- `open_amount`
+- `active`
 
-## Technical Implementation
+### `PaymentReceipt`
 
-- **Zero-Knowledge Proofs**: Uses Aleo's ZKP system for private transactions
-- **Merkle Proofs**: For verification in campaign distributions (depth 10)
-- **Asynchronous Transitions**: Handles complex token transfers
-- **Hash Functions**: BHP256 for commitments and proofs
-- **Token Imports**: Integrates with credits.aleo and custom stablecoin programs
+A smaller private receipt used by helper transfer functions.
 
-## Building and Deployment
+### `PaymentRequestReceipt`
 
-### Prerequisites
-- Aleo CLI installed
-- Access to Aleo testnet or mainnet
+This is the important one for Kloak's compliance flow.
 
-### Build
+It contains:
+
+- `owner`
+- `counterparty`
+- `role`
+- `payer`
+- `merchant`
+- `request_id`
+- `amount`
+- `timestamp`
+- `secret`
+- `commitment`
+
+This record is the private witness later used to generate selective disclosure proofs.
+
+## Payment flow
+
+### 1. Create request
+
+Transition:
+
+- `create_payment_request`
+
+Inputs:
+
+- `request_id`
+- `asset`
+- `amount`
+- `open_amount`
+
+Behavior:
+
+- validates the asset
+- binds the request to `self.caller` as merchant
+- stores the request in `payment_requests`
+
+### 2. Pay request privately
+
+Transitions:
+
+- `pay_request_aleo`
+- `pay_request_usdcx`
+- `pay_request_usad`
+
+All three variants follow the same broad model:
+
+1. derive the payer as `self.caller`
+2. compute a commitment using request, amount, payer, merchant, timestamp, and secret
+3. transfer value privately
+4. mint a payer receipt
+5. mint a merchant receipt
+6. assert the request matches the chosen asset and merchant
+7. enforce fixed amount when `open_amount == false`
+8. store the resulting commitment in `payment_commitments`
+
+## Commitment model
+
+Commitments are derived by `payment_commitment(...)` in [main.leo](./kloak_protocol/src/main.leo).
+
+The commitment combines:
+
+- `request_id`
+- `amount`
+- `payer`
+- `merchant`
+- `timestamp`
+- `secret`
+
+through BHP256-based hashing.
+
+This gives the program an on-chain anchor for later proof generation without exposing every underlying payment fact publicly.
+
+## Selective disclosure model
+
+Selective disclosure is implemented through these transitions:
+
+### Payer-side
+
+- `prove_payment_basic`
+- `prove_payment_amount`
+- `prove_payment_threshold`
+- `prove_payment_timebox`
+
+### Receiver-side
+
+- `prove_receipt_basic`
+- `prove_receipt_amount`
+- `prove_receipt_threshold`
+- `prove_receipt_timebox`
+
+### Shared validation path
+
+All of these transitions rely on:
+
+- `assert_valid_receipt_fields(...)`
+
+That helper checks:
+
+- `owner == self.caller`
+- role matches the expected proof side
+- stored receipt commitment matches the recomputed commitment
+
+Each proof transition then applies the proof-specific assertion:
+
+- existence only
+- exact amount equality
+- threshold comparison
+- timestamp range comparison
+
+Finally, the transition checks that the commitment exists in `payment_commitments`.
+
+## Important design change: refreshed receipts
+
+The current proof transitions return a refreshed `PaymentRequestReceipt` rather than consuming the proof path permanently.
+
+That matters because it allows:
+
+- multiple later proofs from the same payment
+- different disclosure modes for the same receipt
+- a more practical compliance workflow
+
+This is an important difference from one-shot proof patterns that permanently burn the witness after first use.
+
+## What verification means at the program level
+
+There is no separate `verify_proof` transition in the program.
+
+Instead:
+
+1. a receipt owner generates a disclosure transaction by calling one of the `prove_*` transitions
+2. the Aleo program validates the receipt and commitment relationship
+3. the app later packages and verifies that proof using:
+   - the disclosure transaction
+   - the payment transaction
+   - the exported proof package
+
+So the Leo program handles **proof generation and validity assertions**, while the application handles **portable proof packaging and verifier UX**.
+
+## Leo v4 notes
+
+This program README now reflects the current Leo v4-era codebase and structure, including:
+
+- current `program ... {}` layout
+- current `record`, `struct`, `mapping`, and `Final` usage
+- current transition naming
+- current import style and typed return signatures
+
+Build with:
+
 ```bash
 cd programs/kloak_protocol
 leo build
 ```
 
-### Deploy
+If you are working locally from the repo root:
+
 ```bash
-leo deploy
+cd programs/kloak_protocol
+leo build
 ```
 
-### Testing
-```bash
-leo test
-```
+## Security and product boundaries
 
-## Integration with Frontend
+### What the program guarantees
 
-The program integrates with the Next.js frontend through:
-- Payment link creation via `create_payment_request`
-- Payment processing via `pay_request_*` functions
-- Receipt verification for UI updates
+- asset type validation
+- merchant binding on requests
+- fixed-amount enforcement when required
+- private transfer flow
+- commitment anchoring
+- receipt-based proof generation
 
-## Security Considerations
+### What the program does not try to do
 
-- All transactions are private by default
-- Nullifiers prevent replay attacks
-- Asset type validation ensures correct token usage
-- Amount validation for fixed-amount requests
+- fully public verification of private payment arguments in plaintext
+- full application-level policy management
+- webhook, notification, or dashboard logic
+- complete off-chain compliance lifecycle management
 
-## Future Enhancements
+Those responsibilities live in the Next.js application layer.
 
-- Resume campaign distribution features (requires protocol-level fund holding)
-- Additional token integrations
-- Enhanced privacy features
-- Cross-chain capabilities</content>
-<parameter name="filePath">c:\dev\buildathons\aleo-privacy-buildathon\Kloak\programs\README.md
+## Relevant application references
+
+If you are tracing the end-to-end flow from program to app, the most useful files are:
+
+- [../next-app/lib/selective-disclosure.ts](../next-app/lib/selective-disclosure.ts)
+- [../next-app/lib/services/selective-disclosure.service.ts](../next-app/lib/services/selective-disclosure.service.ts)
+- [../next-app/lib/portable-proof-verifier.ts](../next-app/lib/portable-proof-verifier.ts)
+- [../next-app/lib/aleo-chain-verifier.ts](../next-app/lib/aleo-chain-verifier.ts)
+- [../next-app/lib/payment-chain-validation.ts](../next-app/lib/payment-chain-validation.ts)
+
+## Status
+
+Kloak Protocol v10 is the current program baseline for:
+
+- private payment requests
+- private settlement
+- selective disclosure
+- compliance-oriented proof flows
+
+Campaign-related code remains present in the source tree, but it is not the active product path at this time.
