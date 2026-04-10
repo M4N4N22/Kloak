@@ -8,7 +8,7 @@ import { DocsCodeBlock } from "@/features/docs/components/docs-code-block"
 import { DocsSection } from "@/features/docs/components/docs-section"
 
 export const metadata: Metadata = {
-  title: "Operations Docs | Kloak",
+  title: "Operations Docs",
   description: "How Telegram bot, webhooks, automation, and the dashboard fit into the Kloak payment flow.",
 }
 
