@@ -60,6 +60,24 @@ export type PortableDisclosureProofV1 = {
   proofDigest: string
 }
 
+export type PortableDisclosureVerificationGuide = {
+  primaryTrustSignal: "public-chain"
+  secondaryTrustSignals: Array<"kloak-record" | "revocation-status" | "payment-history">
+  checks: Array<{
+    id:
+      | "package-integrity"
+      | "payment-transaction"
+      | "disclosure-transaction"
+      | "disclosure-match"
+      | "kloak-record"
+      | "revocation-status"
+      | "payment-history"
+    label: string
+    source: "package" | "public-chain" | "kloak"
+  }>
+  note: string
+}
+
 export type LegacySharedDisclosureProof = {
   proofId: string
   paymentTxHash: string
@@ -82,6 +100,26 @@ export type SharedDisclosureProof = PortableDisclosureProofV1
 export const KLOAK_PROGRAM = "kloak_protocol_v10.aleo"
 export const PORTABLE_DISCLOSURE_PROOF_KIND = "kloak.selective-disclosure-proof"
 export const PORTABLE_DISCLOSURE_PROOF_VERSION = 1 as const
+
+export function getDisclosureProofFunctionName(
+  actorRole: DisclosureActorRole,
+  proofType: DisclosureProofType,
+  hasTimebox: boolean,
+) {
+  if (hasTimebox) {
+    return actorRole === "payer" ? "prove_payment_timebox" : "prove_receipt_timebox"
+  }
+
+  if (actorRole === "payer") {
+    if (proofType === "amount") return "prove_payment_amount"
+    if (proofType === "threshold") return "prove_payment_threshold"
+    return "prove_payment_basic"
+  }
+
+  if (proofType === "amount") return "prove_receipt_amount"
+  if (proofType === "threshold") return "prove_receipt_threshold"
+  return "prove_receipt_basic"
+}
 
 export function normalizeDisclosureConstraints(input: DisclosureConstraints = {}): DisclosureConstraints {
   const normalized: DisclosureConstraints = {}
@@ -191,6 +229,24 @@ export function buildSharedDisclosureProof(payload: {
   return {
     ...portableProof,
     proofDigest: computeDisclosureDigest(canonicalizePortableDisclosureProof(portableProof)),
+  }
+}
+
+export function buildPortableDisclosureVerificationGuide(): PortableDisclosureVerificationGuide {
+  return {
+    primaryTrustSignal: "public-chain",
+    secondaryTrustSignals: ["kloak-record", "revocation-status", "payment-history"],
+    checks: [
+      { id: "package-integrity", label: "Proof package was intact", source: "package" },
+      { id: "payment-transaction", label: "Payment transaction was found on Aleo", source: "public-chain" },
+      { id: "disclosure-transaction", label: "Proof transaction was found on Aleo", source: "public-chain" },
+      { id: "disclosure-match", label: "Proof transaction matched the shared statement", source: "public-chain" },
+      { id: "kloak-record", label: "Kloak found the proof record", source: "kloak" },
+      { id: "revocation-status", label: "Kloak checked revocation status", source: "kloak" },
+      { id: "payment-history", label: "Kloak re-checked payment history", source: "kloak" },
+    ],
+    note:
+      "Kloak verifies the shared package first, then tries to confirm the proof from public Aleo transactions. Kloak record checks add revocation and history status on top when available.",
   }
 }
 

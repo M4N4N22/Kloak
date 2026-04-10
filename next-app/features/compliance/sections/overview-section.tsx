@@ -9,6 +9,7 @@ import { useCompliancePayments } from "@/hooks/use-compliance-payments"
 import { useSelectiveDisclosureProofs } from "@/hooks/use-selective-disclosure-proofs"
 import { Card, CardContent } from "@/components/ui/card"
 import { SectionHeader } from "@/features/compliance/components/section-header"
+import { ContextHelpCard } from "@/features/trust/components/context-help-card"
 import { cn } from "@/lib/utils"
 
 export function OverviewSection() {
@@ -24,6 +25,16 @@ export function OverviewSection() {
         eyebrow="Compliance Overview"
         title="Privacy-preserving proofs for real-world workflows"
         description="Turn wallet-held payment receipts into verifiable disclosures. Share only the fields a workflow requires while keeping payer identity, balances, and unrelated activity out of scope."
+      />
+
+      <ContextHelpCard
+        title="New to proofs?"
+        description="Start with the docs if you want a plain-language walkthrough, the security notes if you want the trust model, or support if a proof flow feels off."
+        links={[
+          { label: "Open docs", href: "/docs" },
+          { label: "Read security", href: "/security" },
+          { label: "Get support", href: "/support" },
+        ]}
       />
 
       {/* 2. LIVE WORKSPACE SNAPSHOT: High-density data metrics */}
@@ -84,9 +95,7 @@ export function OverviewSection() {
           {/* Subtle background glow */}
           <div className="pointer-events-none fixed inset-0 -z-10">
             {/* The Dot Matrix Layer */}
-            <div
-              className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.15)_1px,transparent_1px)] bg-[size:40px_40px]"
-            />
+           
 
             {/* The Glow/Vignette Layers */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(241,246,106,0.08),transparent_28%)]" />
@@ -262,7 +271,7 @@ function FeatureCard({
   icon: LucideIcon
 }) {
   return (
-    <div className="flex gap-4 py-8 px-6 rounded-[2.5rem] border">
+    <div className="flex gap-4 py-8 px-6 rounded-[2.5rem] border backdrop-blur-xl ">
       <div className="flex-shrink-0 h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
         <Icon className="h-5 w-5" />
       </div>

@@ -37,7 +37,7 @@ export function LandingStorySection() {
           {steps.map((item) => {
             const Icon = item.icon
             return (
-              <div key={item.step} className="rounded-[2.5rem] border p-7 text-center">
+              <div key={item.step} className="rounded-[2.5rem] border p-7 text-center backdrop-blur-xl">
                 <div className="flex flex-col items-center gap-5">
                   <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-foreground/10 bg-black/30 text-zinc-200">
                     <Icon className="h-5 w-5" />

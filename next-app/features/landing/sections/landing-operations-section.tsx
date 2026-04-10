@@ -41,7 +41,7 @@ export function LandingOperationsSection() {
               <Link
                 key={surface.title}
                 href={surface.href}
-                className="group rounded-[2.5rem] border  p-7 transition-colors hover:bg-zinc-900/5"
+                className="group rounded-[2.5rem] border backdrop-blur-xl p-7 transition-colors hover:bg-zinc-900/5"
               >
                 <div className="flex h-full flex-col justify-between gap-10">
                   <div className="space-y-5">

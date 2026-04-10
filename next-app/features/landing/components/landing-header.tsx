@@ -7,6 +7,7 @@ const navItems = [
   { label: "Selective Disclosure", href: "#selective-disclosure" },
   { label: "Operations", href: "#operations" },
   { label: "Privacy Boundary", href: "#privacy-boundary" },
+  { label: "FAQ", href: "#faq" },
 ]
 
 export function LandingHeader() {

@@ -49,7 +49,7 @@ export function LandingHeroSection() {
           
         </div>
 
-        <div className="rounded-[2.75rem] border p-3 shadow-2xl shadow-black/30 ">
+        <div className="rounded-[2.75rem] border p-3 shadow-2xl shadow-black/30 backdrop-blur-xl">
           <div className="rounded-[2.2rem] border  p-5 sm:p-7">
             <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
               <div className="rounded-[2rem] border  p-6 sm:p-8">

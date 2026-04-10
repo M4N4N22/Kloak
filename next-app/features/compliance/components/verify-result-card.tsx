@@ -2,11 +2,14 @@
 
 import {
   Calendar,
+  CheckCircle2,
   ClipboardCheck,
+  CircleDashed,
   Fingerprint,
   Scale,
   ShieldAlert,
   ShieldCheck,
+  XCircle,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -20,12 +23,27 @@ import {
 
 type VerifyResult = {
   valid: boolean
+  verificationMode: "portable-package" | "kloak-backed"
+  kloakVerified: boolean
+  publicChainStatus: "verified" | "mismatch" | "unavailable"
+  publicChainMessage: string
+  recordStatus: "active" | "missing"
+  recordMessage: string
+  verificationChecks: {
+    packageIntegrity: boolean
+    publicChainPaymentTransaction: boolean
+    publicChainDisclosureTransaction: boolean
+    publicChainDisclosureMatch: boolean
+    kloakRecordFound: boolean
+    kloakRevocationChecked: boolean
+    kloakPaymentHistoryChecked: boolean
+  }
   proofId: string
   paymentTxHash: string
   disclosureTxHash?: string | null
   requestId: string
   ownerAddress: string
-  counterpartyAddress: string
+  counterpartyAddress: string | null
   actorRole: "payer" | "receiver"
   proofType: "existence" | "amount" | "threshold"
   disclosedAmount?: string | null
@@ -63,6 +81,28 @@ export function VerifyResultCard({ result }: { result: VerifyResult | null }) {
 
   const isValid = result.valid && !result.revoked
   const timeRange = formatDateRange(result.constraints.timestampFrom, result.constraints.timestampTo)
+  const isPortableOnly = result.verificationMode === "portable-package"
+  const publicChainLabel =
+    result.publicChainStatus === "verified"
+      ? "Confirmed"
+      : result.publicChainStatus === "unavailable"
+        ? "Unavailable"
+        : "Mismatch"
+  const recordLabel = result.recordStatus === "active" ? "Active in Kloak" : "Not found in Kloak"
+  const heading = !isValid
+    ? "Verification Failed"
+    : result.publicChainStatus === "verified"
+      ? "Verified on Aleo"
+      : isPortableOnly
+        ? "Package Checked"
+        : "Verified in Kloak"
+  const badgeLabel = !isValid
+    ? "INVALID"
+    : result.publicChainStatus === "verified"
+      ? "CHAIN CONFIRMED"
+      : isPortableOnly
+        ? "PACKAGE CHECKED"
+        : "KLOAK VERIFIED"
 
   return (
     <div className="overflow-hidden rounded-[2.5rem] border shadow-2xl">
@@ -88,10 +128,17 @@ export function VerifyResultCard({ result }: { result: VerifyResult | null }) {
                 isValid ? "text-primary" : "text-red-400",
               )}
             >
-              {isValid ? "Compliance Verified" : "Verification Failed"}
+              {heading}
             </h2>
             <p className="mt-0.5 text-xs font-medium  text-neutral-500">
               Ref: {shortHash(result.proofId, 8, 8)}
+            </p>
+            <p className="mt-1 text-[11px] text-neutral-500">
+              {result.publicChainStatus === "verified"
+                ? "The main trust check came from the public Aleo chain, with Kloak used for record status where available."
+                : isPortableOnly
+                  ? "The package was checked first, then Kloak tried to confirm it from public chain references."
+                  : "Kloak matched the proof record and also attempted public chain confirmation."}
             </p>
           </div>
         </div>
@@ -104,7 +151,7 @@ export function VerifyResultCard({ result }: { result: VerifyResult | null }) {
               : " bg-red-500/20 text-red-400",
           )}
         >
-          {isValid ? "AUTHENTIC" : "INVALID"}
+          {badgeLabel}
         </Badge>
       </div>
 
@@ -117,17 +164,27 @@ export function VerifyResultCard({ result }: { result: VerifyResult | null }) {
             <div className="space-y-4 rounded-3xl  bg-foreground/[0.03] p-6">
               <div className="flex items-center gap-3 font-semibold text-foreground">
                 <Scale className="h-5 w-5 text-primary" />
-                Proven Disclosure
+                Verification Trust
               </div>
               <div className="space-y-3">
                 <p className="text-sm leading-relaxed text-neutral-400">
-                  This zero-knowledge proof confirms that the{" "}
-                  <span className="font-bold text-foreground">{result.actorRole}</span> successfully
-                  processed a transaction of type{" "}
+                  {result.publicChainStatus === "verified"
+                    ? "The public Aleo chain confirms the payment and proof transactions for this package."
+                    : result.publicChainStatus === "unavailable"
+                      ? "The proof package is valid, but the public chain could not be checked right now."
+                      : "The shared package does not line up with the public chain details for this proof."}
+                </p>
+                <div className="grid gap-3 md:grid-cols-2">
+                  <SignalCard label="Public chain" value={publicChainLabel} />
+                  <SignalCard label="Kloak record" value={recordLabel} />
+                </div>
+                <p className="text-sm leading-relaxed text-neutral-400">
+                  This proof was issued by the{" "}
+                  <span className="font-bold text-foreground">{result.actorRole}</span> for a{" "}
                   <span className="font-bold text-foreground">
                     {formatProofTypeLabel(result.proofType)}
-                  </span>
-                  .
+                  </span>{" "}
+                  disclosure.
                 </p>
                 {result.disclosedAmount ? (
                   <div className="flex items-center justify-between border-t border-foreground/5 pt-2">
@@ -169,7 +226,7 @@ export function VerifyResultCard({ result }: { result: VerifyResult | null }) {
                   </div>
                 ) : null}
                 <div className="flex items-center justify-between border-t border-foreground/5 pt-2 text-[10px] text-neutral-600">
-                  <span>Verified Locally On</span>
+                  <span>{isPortableOnly ? "Package Checked On" : "Verified On"}</span>
                   <span>{formatDateTime(result.verifiedAt)}</span>
                 </div>
               </div>
@@ -184,6 +241,9 @@ export function VerifyResultCard({ result }: { result: VerifyResult | null }) {
           <div className="overflow-hidden rounded-3xl border border-foreground/5 bg-black/40">
             <table className="w-full border-collapse text-left">
               <tbody className="divide-y divide-foreground/[0.04]">
+                <TraceRow label="Verification Level" value={isPortableOnly ? "Package only" : "Kloak-backed"} plain />
+                <TraceRow label="Public Chain Check" value={publicChainLabel} plain />
+                <TraceRow label="Kloak Record" value={recordLabel} plain />
                 <TraceRow label="On-Chain Transaction" value={result.paymentTxHash} />
                 <TraceRow label="Request Identifier" value={result.requestId} />
                 <TraceRow label="Prover Identity (Address)" value={result.proverAddress} />
@@ -193,10 +253,60 @@ export function VerifyResultCard({ result }: { result: VerifyResult | null }) {
           </div>
         </section>
 
+        <section className="space-y-4">
+          <h3 className="px-1 text-sm font-semibold text-neutral-500">
+            What Was Checked
+          </h3>
+          <div className="grid gap-3 md:grid-cols-2">
+            <CheckItem
+              label="Proof package was intact"
+              checked={result.verificationChecks.packageIntegrity}
+            />
+            <CheckItem
+              label="Payment transaction was found on Aleo"
+              checked={result.verificationChecks.publicChainPaymentTransaction}
+              unavailable={
+                result.publicChainStatus === "unavailable" &&
+                !result.verificationChecks.publicChainPaymentTransaction
+              }
+            />
+            <CheckItem
+              label="Proof transaction was found on Aleo"
+              checked={result.verificationChecks.publicChainDisclosureTransaction}
+              unavailable={
+                result.publicChainStatus === "unavailable" &&
+                !result.verificationChecks.publicChainDisclosureTransaction
+              }
+            />
+            <CheckItem
+              label="Proof transaction matched the shared statement"
+              checked={result.verificationChecks.publicChainDisclosureMatch}
+              unavailable={
+                result.publicChainStatus === "unavailable" &&
+                !result.verificationChecks.publicChainDisclosureMatch
+              }
+            />
+            <CheckItem
+              label="Kloak found the proof record"
+              checked={result.verificationChecks.kloakRecordFound}
+            />
+            <CheckItem
+              label="Kloak checked revocation status"
+              checked={result.verificationChecks.kloakRevocationChecked}
+            />
+            <CheckItem
+              label="Kloak re-checked payment history"
+              checked={result.verificationChecks.kloakPaymentHistoryChecked}
+            />
+          </div>
+        </section>
+
         <div className="flex items-center justify-between rounded-2xl border border-foreground/5 bg-neutral-950/50 p-4">
           <div className="flex items-center gap-3">
             <span className="text-[11px] font-medium text-neutral-500">
-              Cryptographically secured by Aleo zero-knowledge circuits
+              {result.publicChainStatus === "verified"
+                ? `${result.publicChainMessage} ${result.recordMessage}`
+                : `${result.recordMessage} ${result.publicChainMessage}`}
             </span>
           </div>
         </div>
@@ -205,14 +315,63 @@ export function VerifyResultCard({ result }: { result: VerifyResult | null }) {
   )
 }
 
+function CheckItem({
+  label,
+  checked,
+  unavailable = false,
+}: {
+  label: string
+  checked: boolean
+  unavailable?: boolean
+}) {
+  const Icon = unavailable ? CircleDashed : checked ? CheckCircle2 : XCircle
+  const iconClassName = unavailable
+    ? "text-neutral-500"
+    : checked
+      ? "text-primary"
+      : "text-red-400"
+  const stateLabel = unavailable ? "Unavailable" : checked ? "Checked" : "Not checked"
+
+  return (
+    <div className="flex items-center justify-between rounded-2xl border border-foreground/5 bg-black/20 px-4 py-3">
+      <div className="flex items-center gap-3">
+        <Icon className={cn("h-4 w-4 shrink-0", iconClassName)} />
+        <span className="text-sm text-neutral-300">{label}</span>
+      </div>
+      <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-600">
+        {stateLabel}
+      </span>
+    </div>
+  )
+}
+
+function SignalCard({
+  label,
+  value,
+}: {
+  label: string
+  value: string
+}) {
+  return (
+    <div className="rounded-2xl border border-foreground/5 bg-black/20 p-4">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-600">
+        {label}
+      </p>
+      <p className="mt-2 text-sm font-medium text-foreground">{value}</p>
+    </div>
+  )
+}
+
 function TraceRow({
   label,
   value,
   truncate = 12,
+  plain = false,
 }: {
   label: string
   value: string
   truncate?: number
+  plain?: boolean
 }) {
   return (
     <tr className="group">
@@ -220,7 +379,7 @@ function TraceRow({
       <td className="px-6 py-4 text-right">
         <div className="group flex items-center justify-end gap-2">
           <code className="text-[11px] font-mono text-neutral-400 transition-colors group-hover:text-primary">
-            {shortHash(value, truncate, truncate)}
+            {plain ? value : shortHash(value, truncate, truncate)}
           </code>
           <button className="text-neutral-700 transition-colors hover:text-foreground">
             <ClipboardCheck className="h-3 w-3" />

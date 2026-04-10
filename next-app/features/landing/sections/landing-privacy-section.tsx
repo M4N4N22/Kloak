@@ -31,7 +31,7 @@ export function LandingPrivacySection() {
         />
 
         <div className="grid gap-4 xl:grid-cols-[0.8fr_1.2fr]">
-          <div className="rounded-[2.5rem] border  p-7">
+          <div className="rounded-[2.5rem] border backdrop-blur-xl  p-7">
             <p className="text-[10px] font-bold uppercase text-primary">What Kloak means</p>
             <div className="mt-6 space-y-3 text-sm leading-relaxed text-zinc-400">
               <p>Share the payment link.</p>
@@ -44,7 +44,7 @@ export function LandingPrivacySection() {
             {truths.map((truth) => {
               const Icon = truth.icon
               return (
-                <div key={truth.title} className="rounded-[2rem] border  p-6">
+                <div key={truth.title} className="rounded-[2rem] border backdrop-blur-xl p-6">
                   <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-foreground/10 bg-black/30 text-zinc-100">
                     <Icon className="h-5 w-5" />
                   </div>

@@ -23,10 +23,10 @@ export function PaymentLinkPaymentsTable({
   requestId: string
 }) {
   return (
-    <Card className="rounded-[2.5rem] border border-foreground/5 bg-neutral-900/40 text-foreground">
+    <Card>
       <CardHeader className="border-b border-foreground/5">
-        <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">Settlements</div>
-        <CardTitle className="mt-2 text-lg">Payments through this link</CardTitle>
+        <div className="text-sm text-neutral-500">Settlements</div>
+        <CardTitle className="text-lg">Payments through this link</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         {payments.length === 0 ? (
@@ -40,7 +40,7 @@ export function PaymentLinkPaymentsTable({
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-left">
               <thead>
-                <tr className="border-b border-foreground/5 bg-foreground/[0.02] text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">
+                <tr className="border-b border-foreground/5 bg-foreground/[0.02] text-sm text-neutral-500">
                   <th className="px-6 py-4">Payment</th>
                   <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4">Privacy</th>

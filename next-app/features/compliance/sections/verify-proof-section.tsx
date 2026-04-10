@@ -7,6 +7,7 @@ import { useWallet } from "@provablehq/aleo-wallet-adaptor-react"
 import { SectionHeader } from "@/features/compliance/components/section-header"
 import { VerifyProofPanel } from "@/features/compliance/components/verify-proof-panel"
 import { VerifyResultCard } from "@/features/compliance/components/verify-result-card"
+import { TrustLinksRow } from "@/features/trust/components/trust-links-row"
 import { useSelectiveDisclosure } from "@/hooks/use-selective-disclosure"
 
 function getProofIdFromLink(value: string) {
@@ -25,9 +26,8 @@ export function VerifyProofSection() {
   const [value, setValue] = useState("")
 
   const proofIdFromUrl = searchParams.get("proofId")
-  const initialLinkValue = proofIdFromUrl
-    ? `${window.origin}/compliance/verify?proofId=${encodeURIComponent(proofIdFromUrl)}`
-    : ""
+  const queryString = searchParams.toString()
+  const initialLinkValue = proofIdFromUrl ? `${window.origin}/compliance/verify?${queryString}` : ""
   const currentValue = value || initialLinkValue
 
   const linkProofId = useMemo(() => getProofIdFromLink(currentValue), [currentValue])

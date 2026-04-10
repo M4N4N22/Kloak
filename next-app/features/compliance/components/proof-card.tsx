@@ -8,12 +8,14 @@ import {
   FileCode2,
   MoreHorizontal,
   ShieldAlert,
-  ShieldCheck,
   Trash2,
 } from "lucide-react"
 
 import type { SelectiveDisclosureProof } from "@/hooks/use-selective-disclosure-proofs"
-import { buildSharedDisclosureProof } from "@/lib/selective-disclosure"
+import {
+  buildPortableDisclosureVerificationGuide,
+  buildSharedDisclosureProof,
+} from "@/lib/selective-disclosure"
 import { cn } from "@/lib/utils"
 import {
   buildProofSummary,
@@ -39,7 +41,7 @@ type ProofTableRowProps = {
 export function ProofTableRow({ proof, busy, onDelete }: ProofTableRowProps) {
   const [copied, setCopied] = useState<string | null>(null)
   const isActive = proof.status === "ACTIVE"
-  const shareLink = `${window.location.origin}/compliance/verify?proofId=${proof.proofId}`
+  const shareLink = `${window.location.origin}/compliance/verify?proofId=${proof.proofId}&guide=chain-first`
   const sharedPayload = buildSharedDisclosureProof({
     program: proof.contractProgram,
     proofId: proof.proofId,
@@ -55,7 +57,14 @@ export function ProofTableRow({ proof, busy, onDelete }: ProofTableRowProps) {
     thresholdAmount: proof.thresholdAmount,
     constraints: proof.constraints,
   })
-  const sharedPayloadText = JSON.stringify(sharedPayload, null, 2)
+  const sharedPayloadText = JSON.stringify(
+    {
+      ...sharedPayload,
+      verificationGuide: buildPortableDisclosureVerificationGuide(),
+    },
+    null,
+    2,
+  )
   const summaryLines = buildProofSummary(proof)
 
   const copy = async (text: string, id: string) => {
@@ -127,52 +136,60 @@ export function ProofTableRow({ proof, busy, onDelete }: ProofTableRowProps) {
       </td>
 
       <td className="px-6 py-4 text-right">
-        <div className="flex items-center justify-end gap-2">
-          {isActive ? (
-            <Button
-              variant="outline"
-              onClick={() => copy(shareLink, "link")}
-            >
-              {copied === "link" ? "Copied" : "Copy Link"}
-            </Button>
-          ) : null}
+        <div className="space-y-2">
+          <div className="flex items-center justify-end gap-2">
+            {isActive ? (
+              <Button
+                variant="outline"
+                onClick={() => copy(shareLink, "link")}
+              >
+                {copied === "link" ? "Copied" : "Copy Verify Link"}
+              </Button>
+            ) : null}
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="rounded-md p-2 text-neutral-500 transition-colors hover:bg-foreground/[0.04] hover:text-foreground">
-                <MoreHorizontal className="h-4 w-4" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              className="w-52 border-foreground/10 bg-neutral-900 text-foreground"
-            >
-              <DropdownMenuItem onClick={() => copy(sharedPayloadText, "json")} className="gap-2">
-                <FileCode2 className="h-4 w-4" />
-                {copied === "json" ? "Copied" : "Copy Proof Package"}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => window.open(shareLink, "_blank")} className="gap-2">
-                <ExternalLink className="h-4 w-4" />
-                Open Verification
-              </DropdownMenuItem>
-              {isActive && onDelete ? (
-                <>
-                  <DropdownMenuSeparator className="bg-foreground/5" />
-                  <DropdownMenuItem
-                    onClick={() => onDelete(proof.proofId)}
-                    disabled={busy}
-                    className={cn(
-                      "gap-2 text-red-400 focus:bg-red-400/10 focus:text-red-400",
-                      busy && "opacity-60",
-                    )}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    {busy ? "Revoking..." : "Revoke Proof"}
-                  </DropdownMenuItem>
-                </>
-              ) : null}
-            </DropdownMenuContent>
-          </DropdownMenu>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="rounded-md p-2 text-neutral-500 transition-colors hover:bg-foreground/[0.04] hover:text-foreground">
+                  <MoreHorizontal className="h-4 w-4" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="w-52 border-foreground/10 bg-neutral-900 text-foreground"
+              >
+                <DropdownMenuItem onClick={() => copy(sharedPayloadText, "json")} className="gap-2">
+                  <FileCode2 className="h-4 w-4" />
+                  {copied === "json" ? "Copied" : "Copy Proof Package JSON"}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => window.open(shareLink, "_blank")} className="gap-2">
+                  <ExternalLink className="h-4 w-4" />
+                  Open Verify Page
+                </DropdownMenuItem>
+                {isActive && onDelete ? (
+                  <>
+                    <DropdownMenuSeparator className="bg-foreground/5" />
+                    <DropdownMenuItem
+                      onClick={() => onDelete(proof.proofId)}
+                      disabled={busy}
+                      className={cn(
+                        "gap-2 text-red-400 focus:bg-red-400/10 focus:text-red-400",
+                        busy && "opacity-60",
+                      )}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      {busy ? "Revoking..." : "Revoke Proof"}
+                    </DropdownMenuItem>
+                  </>
+                ) : null}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {isActive ? (
+            <p className="text-right text-[10px] font-medium text-neutral-600">
+              Recommended for most reviewers: Verify Link
+            </p>
+          ) : null}
         </div>
       </td>
     </tr>

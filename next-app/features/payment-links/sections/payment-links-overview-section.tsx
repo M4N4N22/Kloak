@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { PaymentLinksAccessGate } from "@/features/payment-links/components/payment-links-access-gate"
 import { PaymentLinksSectionHeader } from "@/features/payment-links/components/payment-links-section-header"
 import { PaymentLinksTable } from "@/features/payment-links/components/payment-links-table"
+import { ContextHelpCard } from "@/features/trust/components/context-help-card"
 import { usePaymentLinks } from "@/hooks/use-payment-links"
 import { usePaymentLinksOverview } from "@/hooks/use-payment-links-overview"
 
@@ -46,8 +47,18 @@ export function PaymentLinksOverviewSection() {
           }
         />
 
+        <ContextHelpCard
+          title="Want the quick version before you start?"
+          description="Use docs for how payment links work, privacy for what stays hidden, and support if a link or payment does not behave the way you expect."
+          links={[
+            { label: "Open docs", href: "/docs" },
+            { label: "Read privacy", href: "/privacy" },
+            { label: "Get support", href: "/support" },
+          ]}
+        />
+
         <div className="flex flex-col gap-6 ">
-          <Card className=" border rounded-[2.5rem]" >
+          <Card className="" >
             <CardHeader>
               <div className="text-sm text-neutral-500">Why Kloak</div>
               <CardTitle className="mt-2 text-2xl">Everything you need to run payment links well</CardTitle>

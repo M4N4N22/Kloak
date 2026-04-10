@@ -1,6 +1,6 @@
 "use client"
 
-import { Bot, Link2 } from "lucide-react"
+import { Bot } from "lucide-react"
 import { useWallet } from "@provablehq/aleo-wallet-adaptor-react"
 
 import { WalletConnect } from "@/components/wallet-connect"
@@ -11,6 +11,7 @@ import { BotsActivityLedger } from "./components/bots-activity-ledger"
 import { BotsCommandCenter } from "./components/bots-command-center"
 import { BotsKpiGrid } from "./components/bots-kpi-grid"
 import { BotsPulseHeader } from "./components/bots-pulse-header"
+import { ContextHelpCard } from "@/features/trust/components/context-help-card"
 import { useBotsOverview } from "@/hooks/use-bots-overview"
 
 const TELEGRAM_BOT_USERNAME = "@kloak_private_payments_bot"
@@ -85,6 +86,16 @@ export default function BotsPage() {
         alerts={overview.pulse.alerts}
         botUsername={TELEGRAM_BOT_USERNAME}
         botLink={TELEGRAM_BOT_LINK}
+      />
+
+      <ContextHelpCard
+        title="Need a quick guide to the bot?"
+        description="Create links on the web, then use Telegram to share them, follow payments, and stay on top of activity from chat."
+        links={[
+          { label: "Open docs", href: "/docs" },
+          { label: "Read privacy", href: "/privacy" },
+          { label: "Get support", href: "/support" },
+        ]}
       />
 
       {error ? (

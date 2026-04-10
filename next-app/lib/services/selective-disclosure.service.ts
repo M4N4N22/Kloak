@@ -1,10 +1,11 @@
 import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 import { decryptJsonAtRest, encryptJsonAtRest } from "@/lib/at-rest-encryption"
+import { verifyProofPackageAgainstPublicChain } from "@/lib/aleo-chain-verifier"
+import { validatePortableDisclosureProofPackage } from "@/lib/portable-proof-verifier"
 import {
   KLOAK_PROGRAM,
   buildSharedDisclosureProof,
-  canonicalizePortableDisclosureProof,
   canonicalizeDisclosureStatement,
   type DisclosureActorRole,
   type DisclosureConstraints,
@@ -12,11 +13,10 @@ import {
   type DisclosureStatement,
   type PortableDisclosureProofV1,
   type StoredDisclosurePayload,
-  computeDisclosureDigest,
   createDisclosureProofId,
   evaluateDisclosureConstraints,
+  getDisclosureProofFunctionName,
   normalizeDisclosureConstraints,
-  parsePortableDisclosureProof,
 } from "@/lib/selective-disclosure"
 
 class SelectiveDisclosureError extends Error {
@@ -87,6 +87,16 @@ type DuplicateProofMatch = {
   actorRole: DisclosureActorRole
   createdAt: string
   disclosureTxHash: string | null
+}
+
+type VerificationChecks = {
+  packageIntegrity: boolean
+  publicChainPaymentTransaction: boolean
+  publicChainDisclosureTransaction: boolean
+  publicChainDisclosureMatch: boolean
+  kloakRecordFound: boolean
+  kloakRevocationChecked: boolean
+  kloakPaymentHistoryChecked: boolean
 }
 
 function serializeConstraints(value: Prisma.JsonValue): DisclosureConstraints {
@@ -489,6 +499,12 @@ function assertSubmittedProofMatches(
   submittedProof: PortableDisclosureProofV1,
   proofRecord: Awaited<ReturnType<typeof prisma.selectiveDisclosureProof.findUniqueOrThrow>>,
 ) {
+  const packageValidation = validatePortableDisclosureProofPackage(submittedProof)
+
+  if (!packageValidation.ok) {
+    throw new SelectiveDisclosureError(packageValidation.reason, 409)
+  }
+
   const storedPayload = getStoredProofPayload({
     proofId: proofRecord.proofId,
     contractProgram: proofRecord.contractProgram,
@@ -514,83 +530,157 @@ function assertSubmittedProofMatches(
     actorRole: storedPayload.actorRole,
     proofType: storedPayload.proofType,
     disclosedAmount: storedPayload.disclosedAmount,
-    thresholdAmount: storedPayload.thresholdAmount,
-    constraints: serializeConstraints(proofRecord.constraints),
+      thresholdAmount: storedPayload.thresholdAmount,
+      constraints: serializeConstraints(proofRecord.constraints),
   })
-  const submittedDigest = computeDisclosureDigest(
-    canonicalizePortableDisclosureProof({
-      kind: submittedProof.kind,
-      version: submittedProof.version,
-      program: submittedProof.program,
-      proofId: submittedProof.proofId,
-      subject: submittedProof.subject,
-      statement: submittedProof.statement,
-      chain: submittedProof.chain,
-    }),
-  )
-
-  if (submittedProof.proofDigest !== submittedDigest) {
-    throw new SelectiveDisclosureError("Submitted proof package failed its integrity check", 409)
-  }
 
   if (submittedProof.chain.paymentTxHash !== proofRecord.paymentTxHash) {
-    throw new SelectiveDisclosureError("Submitted proof payment transaction hash does not match the stored proof", 409)
+    throw new SelectiveDisclosureError(
+      "This proof package does not match the payment linked to this proof.",
+      409,
+    )
   }
 
   if (submittedProof.chain.requestId !== proofRecord.requestId) {
-    throw new SelectiveDisclosureError("Submitted proof requestId does not match the stored proof", 409)
+    throw new SelectiveDisclosureError(
+      "This proof package does not match the request linked to this proof.",
+      409,
+    )
   }
 
   if (submittedProof.subject.ownerAddress !== proofRecord.ownerAddress) {
-    throw new SelectiveDisclosureError("Submitted proof owner does not match the stored proof", 409)
+    throw new SelectiveDisclosureError(
+      "This proof package does not match the wallet that owns this proof.",
+      409,
+    )
   }
 
   if (submittedProof.chain.commitment !== proofRecord.commitment) {
-    throw new SelectiveDisclosureError("Submitted proof commitment does not match the stored proof", 409)
+    throw new SelectiveDisclosureError(
+      "This proof package does not match the original proof record.",
+      409,
+    )
   }
 
   if (
     typeof submittedProof.chain.disclosureTxHash !== "undefined" &&
     submittedProof.chain.disclosureTxHash !== proofRecord.disclosureTxHash
   ) {
-    throw new SelectiveDisclosureError("Submitted proof disclosure transaction hash does not match the stored proof", 409)
+    throw new SelectiveDisclosureError(
+      "This proof package does not match the original proof transaction.",
+      409,
+    )
   }
 
   if (submittedProof.statement.actorRole !== storedPayload.actorRole) {
-    throw new SelectiveDisclosureError("Submitted proof actor role does not match the stored proof", 409)
+    throw new SelectiveDisclosureError(
+      "This proof package does not match the original proof details.",
+      409,
+    )
   }
 
   if (submittedProof.statement.proofType !== storedPayload.proofType) {
-    throw new SelectiveDisclosureError("Submitted proof type does not match the stored proof", 409)
+    throw new SelectiveDisclosureError(
+      "This proof package does not match the original proof details.",
+      409,
+    )
   }
 
   if (submittedProof.program !== storedProof.program) {
-    throw new SelectiveDisclosureError("Submitted proof program does not match the stored proof", 409)
+    throw new SelectiveDisclosureError(
+      "This proof package was created for a different program.",
+      409,
+    )
   }
 
   if (
     typeof submittedProof.subject.proverAddress === "string" &&
     submittedProof.subject.proverAddress !== proofRecord.proverAddress
   ) {
-    throw new SelectiveDisclosureError("Submitted proof prover does not match the stored proof", 409)
+    throw new SelectiveDisclosureError(
+      "This proof package does not match the original proof details.",
+      409,
+    )
   }
 
   if (
     submittedProof.statement.disclosedAmount !== storedProof.statement.disclosedAmount ||
     submittedProof.statement.thresholdAmount !== storedProof.statement.thresholdAmount
   ) {
-    throw new SelectiveDisclosureError("Submitted proof disclosure amounts do not match the stored proof", 409)
+    throw new SelectiveDisclosureError(
+      "This proof package does not match the original disclosed amount.",
+      409,
+    )
   }
 
   if (
     canonicalizeDisclosureStatement(submittedProof.statement) !==
     canonicalizeDisclosureStatement(storedProof.statement)
   ) {
-    throw new SelectiveDisclosureError("Submitted proof statement does not match the stored proof", 409)
+    throw new SelectiveDisclosureError(
+      "This proof package does not match the original disclosure statement.",
+      409,
+    )
   }
 
   if (submittedProof.proofDigest !== storedProof.proofDigest) {
-    throw new SelectiveDisclosureError("Submitted proof digest does not match the stored proof", 409)
+    throw new SelectiveDisclosureError(
+      "This proof package does not match the original proof record.",
+      409,
+    )
+  }
+}
+
+async function buildPortablePackageVerificationResult(input: {
+  proof: PortableDisclosureProofV1
+}) {
+  const publicChain = await verifyProofPackageAgainstPublicChain(input.proof)
+
+  return {
+    valid: publicChain.status !== "mismatch",
+    verificationMode: "portable-package" as const,
+    kloakVerified: false,
+    publicChainStatus: publicChain.status,
+    publicChainMessage: publicChain.message,
+    recordStatus: "missing" as const,
+    recordMessage:
+      "Kloak could not find a matching proof record, so revocation and verification history were not checked here.",
+    verificationChecks: {
+      packageIntegrity: true,
+      publicChainPaymentTransaction: publicChain.checks.paymentTransactionFound,
+      publicChainDisclosureTransaction: publicChain.checks.disclosureTransactionFound,
+      publicChainDisclosureMatch: publicChain.checks.disclosureFunctionMatched,
+      kloakRecordFound: false,
+      kloakRevocationChecked: false,
+      kloakPaymentHistoryChecked: false,
+    } satisfies VerificationChecks,
+    proofId: input.proof.proofId,
+    paymentTxHash: input.proof.chain.paymentTxHash,
+    disclosureTxHash: input.proof.chain.disclosureTxHash || null,
+    requestId: input.proof.chain.requestId,
+    ownerAddress: input.proof.subject.ownerAddress,
+    counterpartyAddress: null,
+    actorRole: input.proof.statement.actorRole,
+    proofType: input.proof.statement.proofType,
+    disclosedAmount: input.proof.statement.disclosedAmount
+      ? parseMicroUnitsToDisplay(input.proof.statement.disclosedAmount)
+      : null,
+    thresholdAmount: input.proof.statement.thresholdAmount
+      ? parseMicroUnitsToDisplay(input.proof.statement.thresholdAmount)
+      : null,
+    proverAddress: input.proof.subject.proverAddress || input.proof.subject.ownerAddress,
+    commitment: input.proof.chain.commitment,
+    nullifier: null,
+    revoked: false,
+    verifiedAt: new Date().toISOString(),
+    paymentTimestamp: null,
+    constraints: input.proof.statement.constraints,
+    message:
+      publicChain.status === "verified"
+        ? "The proof package passed its integrity check, and the referenced payment and disclosure transactions were confirmed on the public chain."
+        : publicChain.status === "unavailable"
+          ? "The proof package passed its integrity check. Public chain checks were temporarily unavailable, so Kloak could only confirm the package itself in this mode."
+          : publicChain.message,
   }
 }
 
@@ -726,22 +816,6 @@ function validateProofShape(input: {
   if (input.proofType === "threshold" && !input.thresholdAmount) {
     throw new SelectiveDisclosureError("Threshold proof requires a minimum amount")
   }
-}
-
-function getProofFunctionName(actorRole: DisclosureActorRole, proofType: DisclosureProofType, hasTimebox: boolean) {
-  if (hasTimebox) {
-    return actorRole === "payer" ? "prove_payment_timebox" : "prove_receipt_timebox"
-  }
-
-  if (actorRole === "payer") {
-    if (proofType === "amount") return "prove_payment_amount"
-    if (proofType === "threshold") return "prove_payment_threshold"
-    return "prove_payment_basic"
-  }
-
-  if (proofType === "amount") return "prove_receipt_amount"
-  if (proofType === "threshold") return "prove_receipt_threshold"
-  return "prove_receipt_basic"
 }
 
 export async function listSelectiveDisclosureProofs(viewerAddress: string) {
@@ -945,7 +1019,7 @@ export async function prepareSelectiveDisclosureProof(input: {
     paymentTxHash: payment.txHash,
     commitment: walletReceipt.commitment.trim(),
     constraints,
-    proofFunction: getProofFunctionName(
+    proofFunction: getDisclosureProofFunctionName(
       actorRole,
       proofType,
       Boolean(constraints.timestampFrom || constraints.timestampTo),
@@ -1065,15 +1139,21 @@ export async function verifySelectiveDisclosureProof(input: {
   verifier?: string
   proof?: unknown
 }) {
-  const submittedProof = input.proof ? parsePortableDisclosureProof(input.proof) : null
+  const packageValidation = input.proof
+    ? validatePortableDisclosureProofPackage(input.proof)
+    : null
+  const submittedProof = packageValidation?.ok ? packageValidation.proof : null
+
+  if (input.proof && packageValidation && !packageValidation.ok) {
+    throw new SelectiveDisclosureError(packageValidation.reason, 400, {
+      code: packageValidation.code,
+    })
+  }
+
   const proofId = input.proofId || submittedProof?.proofId
 
   if (!proofId) {
     throw new SelectiveDisclosureError("proofId is required")
-  }
-
-  if (input.proof && !submittedProof) {
-    throw new SelectiveDisclosureError("Proof package is not in a supported format", 400)
   }
 
   const proofRecord = await prisma.selectiveDisclosureProof.findUnique({
@@ -1088,7 +1168,14 @@ export async function verifySelectiveDisclosureProof(input: {
   })
 
   if (!proofRecord) {
-    throw new SelectiveDisclosureError("Proof not found", 404)
+    if (submittedProof) {
+      return await buildPortablePackageVerificationResult({ proof: submittedProof })
+    }
+
+    throw new SelectiveDisclosureError(
+      "We could not find this proof in Kloak.",
+      404,
+    )
   }
 
   if (submittedProof) {
@@ -1102,11 +1189,14 @@ export async function verifySelectiveDisclosureProof(input: {
         verifier: input.verifier,
         success: false,
         revoked: true,
-        details: { reason: "Proof has been revoked" },
+        details: { reason: "This proof is no longer active" },
       },
     })
 
-    throw new SelectiveDisclosureError("Proof has been revoked", 410)
+    throw new SelectiveDisclosureError(
+      "This proof was revoked and can no longer be used.",
+      410,
+    )
   }
 
   const payload = getStoredProofPayload({
@@ -1127,38 +1217,70 @@ export async function verifySelectiveDisclosureProof(input: {
     payload.constraints.timestampFrom || payload.constraints.timestampTo,
   )
   const shouldHideExactTimestamp = payload.proofType !== "amount" || hasDisclosedTimeRange
+  const storedProofPackage = buildSharedDisclosureProof({
+    program: proofRecord.contractProgram,
+    proofId: proofRecord.proofId,
+    paymentTxHash: proofRecord.paymentTxHash,
+    disclosureTxHash: proofRecord.disclosureTxHash,
+    requestId: proofRecord.requestId,
+    ownerAddress: proofRecord.ownerAddress,
+    proverAddress: proofRecord.proverAddress,
+    commitment: proofRecord.commitment,
+    actorRole: payload.actorRole,
+    proofType: payload.proofType,
+    disclosedAmount: payload.disclosedAmount,
+    thresholdAmount: payload.thresholdAmount,
+    constraints: serializeConstraints(proofRecord.constraints),
+  })
+  const publicChain = await verifyProofPackageAgainstPublicChain(submittedProof || storedProofPackage)
+  const paymentRowAvailable =
+    Boolean(payment?.txHash) &&
+    payment.txHash === proofRecord.paymentTxHash &&
+    formatRequestId(payment.PaymentLink.requestId) === proofRecord.requestId
+  const paymentHistoryMessage = paymentRowAvailable
+    ? "Kloak could also match the proof to its payment history for extra context."
+    : "Kloak could not fully re-check the linked payment history, so this result leaned on the public chain and the active proof record."
 
-  if (!payment.txHash || payment.txHash !== proofRecord.paymentTxHash) {
-    throw new SelectiveDisclosureError("Underlying payment transaction is unavailable", 404)
-  }
-
-  if (formatRequestId(payment.PaymentLink.requestId) !== proofRecord.requestId) {
-    throw new SelectiveDisclosureError("Proof requestId no longer matches the underlying payment", 409)
-  }
-
-  if (payment.receiptCommitment && payment.receiptCommitment !== proofRecord.commitment) {
+  if (paymentRowAvailable && payment.receiptCommitment && payment.receiptCommitment !== proofRecord.commitment) {
     // Older payments may have a commitment persisted from a buggy client-side hash implementation.
     // We trust the wallet-owned receipt commitment captured during proof generation instead.
   }
 
-  const amountMicro = toMicroUnits(payment.amount)
+  const paymentConsistency = paymentRowAvailable
+    ? (() => {
+        const amountMicro = toMicroUnits(payment.amount)
 
-  if (payload.proofType === "amount" && payload.disclosedAmount !== amountMicro) {
-    throw new SelectiveDisclosureError("Amount proof no longer matches the payment amount", 409)
-  }
+        if (payload.proofType === "amount" && payload.disclosedAmount !== amountMicro) {
+          return {
+            ok: false,
+            reason: "Kloak's payment history no longer matches the amount disclosed in this proof.",
+          }
+        }
 
-  if (payload.proofType === "threshold" && payload.thresholdAmount && BigInt(amountMicro) < BigInt(payload.thresholdAmount)) {
-    throw new SelectiveDisclosureError("Threshold proof no longer satisfies the payment amount", 409)
-  }
+        if (
+          payload.proofType === "threshold" &&
+          payload.thresholdAmount &&
+          BigInt(amountMicro) < BigInt(payload.thresholdAmount)
+        ) {
+          return {
+            ok: false,
+            reason: "Kloak's payment history no longer satisfies the threshold disclosed in this proof.",
+          }
+        }
 
-  const evaluation = evaluateDisclosureConstraints(
-    Number(payment.amount),
-    payment.createdAt,
-    proofRecord.requestId,
-    serializeConstraints(proofRecord.constraints),
-  )
+        return evaluateDisclosureConstraints(
+          Number(payment.amount),
+          payment.createdAt,
+          proofRecord.requestId,
+          serializeConstraints(proofRecord.constraints),
+        )
+      })()
+    : null
 
-  const success = evaluation.ok && Boolean(proofRecord.disclosureTxHash)
+  const success =
+    Boolean(proofRecord.disclosureTxHash) &&
+    publicChain.status !== "mismatch" &&
+    (publicChain.status === "verified" || Boolean(paymentConsistency?.ok))
 
   await prisma.selectiveDisclosureVerification.create({
     data: {
@@ -1175,6 +1297,10 @@ export async function verifySelectiveDisclosureProof(input: {
             actorRole: payload.actorRole,
             proofType: payload.proofType,
             matched: true,
+            publicChainStatus: publicChain.status,
+            publicChainMessage: publicChain.message,
+            paymentHistoryChecked: paymentRowAvailable,
+            paymentHistoryMessage,
           }
         : {
             requestId: proofRecord.requestId,
@@ -1182,13 +1308,40 @@ export async function verifySelectiveDisclosureProof(input: {
             actorRole: payload.actorRole,
             proofType: payload.proofType,
             matched: false,
-            reason: evaluation.ok ? "Missing finalized disclosure transaction" : evaluation.reason,
+            publicChainStatus: publicChain.status,
+            publicChainMessage: publicChain.message,
+            paymentHistoryChecked: paymentRowAvailable,
+            paymentHistoryMessage,
+            reason:
+              paymentConsistency && !paymentConsistency.ok && publicChain.status !== "verified"
+                ? paymentConsistency.reason
+                : publicChain.status === "mismatch"
+                  ? publicChain.message
+                  : publicChain.status === "unavailable" && !paymentRowAvailable
+                    ? "We could not confirm this proof on the public chain, and Kloak no longer has enough payment history to back it up here."
+                  : "We found the proof record, but the proof transaction has not been finalized yet.",
           },
     },
   })
 
   return {
     valid: success,
+    verificationMode: "kloak-backed" as const,
+    kloakVerified: true,
+    publicChainStatus: publicChain.status,
+    publicChainMessage: publicChain.message,
+    recordStatus: "active" as const,
+    recordMessage:
+      `Kloak found this proof record and it is still active, so revocation and verification history could be checked. ${paymentHistoryMessage}`,
+    verificationChecks: {
+      packageIntegrity: true,
+      publicChainPaymentTransaction: publicChain.checks.paymentTransactionFound,
+      publicChainDisclosureTransaction: publicChain.checks.disclosureTransactionFound,
+      publicChainDisclosureMatch: publicChain.checks.disclosureFunctionMatched,
+      kloakRecordFound: true,
+      kloakRevocationChecked: true,
+      kloakPaymentHistoryChecked: paymentRowAvailable,
+    } satisfies VerificationChecks,
     proofId: proofRecord.proofId,
     paymentTxHash: proofRecord.paymentTxHash,
     disclosureTxHash: proofRecord.disclosureTxHash,
@@ -1204,13 +1357,20 @@ export async function verifySelectiveDisclosureProof(input: {
     nullifier: proofRecord.nullifier,
     revoked: false,
     verifiedAt: new Date().toISOString(),
-    paymentTimestamp: shouldHideExactTimestamp ? null : payment.createdAt.toISOString(),
+    paymentTimestamp:
+      paymentRowAvailable && !shouldHideExactTimestamp ? payment.createdAt.toISOString() : null,
     constraints: serializeConstraints(proofRecord.constraints),
     message: success
-      ? "Selective disclosure proof verified successfully"
-      : evaluation.ok
-        ? "Proof record exists but no finalized disclosure transaction was stored"
-        : evaluation.reason,
+      ? publicChain.status === "verified"
+        ? "Selective disclosure proof verified successfully, and the referenced public chain transactions matched the proof package."
+        : "Selective disclosure proof verified successfully. Kloak records matched, but public chain checks were temporarily unavailable."
+      : paymentConsistency && !paymentConsistency.ok && publicChain.status !== "verified"
+        ? paymentConsistency.reason
+        : publicChain.status === "mismatch"
+          ? publicChain.message
+          : publicChain.status === "unavailable" && !paymentRowAvailable
+            ? "We could not confirm this proof on the public chain, and Kloak no longer has enough payment history to back it up here."
+          : "We found the proof record, but the proof transaction has not been finalized yet."
   }
 }
 

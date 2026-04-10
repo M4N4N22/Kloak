@@ -1,34 +1,19 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import Image from "next/image"
-import { Check, Globe, Loader2 } from "lucide-react"
+import { Check, Copy, ExternalLink } from "lucide-react"
 import { useWallet } from "@provablehq/aleo-wallet-adaptor-react"
 
 import { Button } from "@/components/ui/button"
-import { WalletConnect } from "@/components/wallet-connect"
-import PaymentStepper from "../components/payment-stepper"
+import { TrustLinksRow } from "@/features/trust/components/trust-links-row"
 import { cn } from "@/lib/utils"
 import { useHandlePay } from "@/hooks/use-handle-pay"
 import { useHandleStablePay } from "@/hooks/use-handle-stable-pay"
-import {
-  getPaymentLinkTemplate,
-  type PaymentLinkTemplateId,
-} from "@/features/payment-links/lib/templates"
-
-type PayClientLink = {
-  id: string
-  requestId: string
-  title: string
-  description: string | null
-  template: PaymentLinkTemplateId
-  successMessage: string | null
-  redirectUrl: string | null
-  suggestedAmounts: number[] | null
-  amount: number | null
-  token: "ALEO" | "USDCX" | "USAD"
-  allowCustomAmount: boolean
-}
+import { getPaymentLinkTemplate } from "@/features/payment-links/lib/templates"
+import { PayActionPanel } from "../components/pay-action-panel"
+import { PaySummaryPanel } from "../components/pay-summary-panel"
+import PaymentStepper from "../components/payment-stepper"
+import type { PayClientLink } from "../components/pay-types"
 
 export default function PayClient({ link }: { link: PayClientLink }) {
   const { connected } = useWallet()
@@ -45,34 +30,12 @@ export default function PayClient({ link }: { link: PayClientLink }) {
 
   useEffect(() => {
     fetch(`/api/payment-links/${link.id}/visit`, { method: "POST" }).catch(() => {
-      // Visit tracking is best-effort and should never block payment UX.
+      // Best effort only.
     })
   }, [link.id])
 
-  const getStatusLabel = (currentStatus: string) => {
-    switch (currentStatus) {
-      case "scanning":
-        return "Searching for records..."
-      case "consolidating":
-        return "Joining records (~30s)..."
-      case "signing":
-        return "Confirm in wallet..."
-      case "pending":
-        return "Generating ZK proof..."
-      case "broadcasting":
-        return "Broadcasting to network..."
-      case "finalized":
-        return "Success"
-      default:
-        return "Confirm Payment"
-    }
-  }
-
-  const isFinalized = status === "finalized"
-  const statusLabel = getStatusLabel(status)
-
   useEffect(() => {
-    if (!isFinalized || !link.redirectUrl) {
+    if (status !== "finalized" || !link.redirectUrl) {
       return
     }
 
@@ -89,245 +52,169 @@ export default function PayClient({ link }: { link: PayClientLink }) {
     }, 1000)
 
     return () => window.clearInterval(countdown)
-  }, [isFinalized, link.redirectUrl])
+  }, [link.redirectUrl, status])
 
   const payPageCopy = {
     invoice: {
       eyebrow: "Invoice payment",
       amountLabel: "Invoice total",
       buttonLabel: "Pay invoice",
-      helper: "Review the invoice details and complete payment securely.",
+      helper: "Review the invoice details, keep the payer address private by default, and confirm the payment in your wallet.",
     },
     freelance: {
       eyebrow: "Freelance payment",
       amountLabel: "Amount due",
       buttonLabel: "Pay now",
-      helper: "Complete this service payment securely with your wallet.",
+      helper: "Complete this service payment securely. The merchant does not see the payer address by default.",
     },
     "tip-jar": {
       eyebrow: "Support payment",
       amountLabel: "Choose an amount",
       buttonLabel: "Send support",
-      helper: "Pick any amount you want to send.",
+      helper: "Pick the amount you want to send. Settlement stays private by default.",
     },
     checkout: {
       eyebrow: "Checkout",
       amountLabel: "Order total",
       buttonLabel: "Complete payment",
-      helper: "Finish your payment to continue.",
+      helper: "Finish the payment and return to the merchant flow after confirmation.",
     },
     custom: {
       eyebrow: "Payment",
       amountLabel: "Amount to pay",
       buttonLabel: "Pay now",
-      helper: "Review the details and confirm the payment in your wallet.",
+      helper: "Review the payment details and confirm in your wallet. The payer identity stays private by default.",
     },
   }[template.id]
 
-  const handleCopy = () => {
+  const statusLabel = getStatusLabel(status)
+  const isFinalized = status === "finalized"
+
+  const handleCopy = async () => {
     if (!txId) return
-    navigator.clipboard.writeText(txId)
+    await navigator.clipboard.writeText(txId)
     setCopied(true)
-    window.setTimeout(() => setCopied(false), 2000)
+    window.setTimeout(() => setCopied(false), 1800)
+  }
+
+  if (isFinalized) {
+    return (
+      <div className="px-4 py-10 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-3xl rounded-[2.5rem] border border-foreground/8 bg-black/55 p-8 text-center shadow-[0_28px_90px_rgba(0,0,0,0.3)] backdrop-blur-2xl sm:p-10">
+          <div className="mx-auto flex h-18 w-18 items-center justify-center rounded-full bg-primary/10 ring-8 ring-primary/10">
+            <Check className="h-8 w-8 text-primary" />
+          </div>
+
+          <div className="mt-6 space-y-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">Payment complete</p>
+            <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+              Payment received successfully
+            </h1>
+            <p className="mx-auto max-w-xl text-sm leading-7 text-zinc-400">
+              {link.successMessage ||
+                "Your payment was confirmed privately. If you ever need to prove it later, the proof owner can choose exactly what to disclose."}
+            </p>
+          </div>
+
+          <div className="mt-8 rounded-[1.75rem] border border-foreground/8 bg-foreground/[0.03] p-5 text-left">
+            <div className="grid gap-3 text-sm sm:grid-cols-2">
+              <SuccessRow label="Amount paid" value={`${amount || link.amount} ${link.token}`} />
+              <SuccessRow label="Payer address" value="Private by default" />
+            </div>
+
+            {txId ? (
+              <div className="mt-4 flex flex-col gap-3 rounded-[1.25rem] border border-foreground/8 bg-black/20 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.18em] text-zinc-500">Transaction ID</p>
+                  <p className="mt-2 font-mono text-sm text-zinc-300">
+                    {txId.slice(0, 12)}...{txId.slice(-10)}
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  className={cn("rounded-full border-foreground/10 bg-foreground/[0.03]", copied && "border-primary/20 text-primary")}
+                  onClick={() => void handleCopy()}
+                >
+                  {copied ? "Copied" : "Copy transaction ID"}
+                  <Copy className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            ) : null}
+          </div>
+
+          {link.redirectUrl ? (
+            <div className="mt-8 space-y-3">
+              <p className="text-sm text-zinc-500">
+                You&apos;ll be sent back automatically in {redirectSeconds}s.
+              </p>
+              <Button className="rounded-full text-black" onClick={() => window.location.assign(link.redirectUrl as string)}>
+                Continue
+                <ExternalLink className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          ) : null}
+
+          <TrustLinksRow className="mt-8 justify-center" />
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="flex items-center justify-center p-6">
-      <div className="grid w-full max-w-5xl items-start gap-12 lg:grid-cols-2">
-        <div className="max-w-xs space-y-6">
-          <PaymentStepper status={status} />
+    <div className="px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-6xl space-y-6 ">
+        <PaymentStepper status={status} orientation="horizontal" />
 
-          {errorMessage && (
-            <div className="min-h-12">
-              <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-xs leading-relaxed text-red-400">
-                {errorMessage}
-              </div>
-            </div>
-          )}
+        <div className="grid items-start gap-0 lg:grid-cols-[0.75fr_0.75fr] xl:gap-0  bg-zinc-950/50 rounded-[2.25rem] ">
+        <PaySummaryPanel
+          link={link}
+          copy={payPageCopy}
+        />
 
-          <div className="space-y-2 text-xs text-muted-foreground">
-            <p>Payments are shielded using Aleo zero-knowledge proofs.</p>
-            <p>Your wallet address remains private.</p>
-            <p>Confirm the transaction in your wallet.</p>
-          </div>
+        <div className="space-y-5">
+          <PayActionPanel
+            link={link}
+            copy={payPageCopy}
+            amount={amount}
+            setAmount={setAmount}
+            connected={connected}
+            loading={loading}
+            status={status}
+            statusLabel={statusLabel}
+            errorMessage={errorMessage}
+            onPay={handlePay}
+          />
         </div>
-
-        <div className="flex w-full max-w-sm flex-col gap-6 rounded-[2.5rem] border bg-black/10 p-6 backdrop-blur-2xl">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Image src="/kloak_logo.png" alt="Kloak" height={36} width={36} className="rounded-full" />
-
-              <div className="flex flex-col">
-                <span className="text-sm font-medium">Kloak</span>
-                <span className="text-xs opacity-50">Private payments powered by Aleo</span>
-              </div>
-            </div>
-
-            <div className="flex gap-1 opacity-40">
-              <div className="h-2 w-2 rounded-full bg-foreground" />
-              <div className="h-2 w-2 rounded-full bg-foreground" />
-            </div>
-          </div>
-
-          {!isFinalized && (
-            <>
-              <div className="mt-6 space-y-3">
-                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                  {payPageCopy.eyebrow}
-                </p>
-                <h1 className="text-xl font-bold">{link.title}</h1>
-
-                {link.description ? (
-                  <p className="text-sm text-muted-foreground">{link.description}</p>
-                ) : (
-                  <p className="text-sm text-muted-foreground">{payPageCopy.helper}</p>
-                )}
-              </div>
-
-              <div className="border-t border-dashed border-foreground/20" />
-
-              <div className="space-y-2">
-                <span className="text-xs uppercase tracking-wide text-muted-foreground">
-                  {payPageCopy.amountLabel}
-                </span>
-
-                {link.allowCustomAmount ? (
-                  <div className="space-y-4">
-                    {template.id === "tip-jar" && link.suggestedAmounts?.length ? (
-                      <div className="flex flex-wrap gap-2">
-                        {link.suggestedAmounts.map((suggestedAmount) => (
-                          <button
-                            key={suggestedAmount}
-                            type="button"
-                            onClick={() => setAmount(String(suggestedAmount))}
-                            className={cn(
-                              "rounded-full border px-3 py-1.5 text-xs font-medium transition",
-                              String(suggestedAmount) === String(amount)
-                                ? "border-primary bg-primary/10 text-primary"
-                                : "border-foreground/10 bg-black/20 text-muted-foreground hover:border-foreground/20 hover:text-foreground",
-                            )}
-                          >
-                            {suggestedAmount} {link.token}
-                          </button>
-                        ))}
-                      </div>
-                    ) : null}
-
-                    <input
-                      type="number"
-                      placeholder="Enter amount"
-                      className="w-full bg-transparent text-3xl font-bold outline-none"
-                      value={amount}
-                      onChange={(event) => setAmount(event.target.value)}
-                    />
-                  </div>
-                ) : (
-                  <div className="text-3xl font-bold tracking-tight">
-                    {link.amount}
-                    <span className="ml-2 text-sm uppercase text-muted-foreground">{link.token}</span>
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-
-          <div className="mt-4 space-y-4 text-center">
-            {isFinalized ? (
-              <div className="space-y-2">
-                <div className="flex flex-col items-center gap-4">
-                  <span className="flex h-16 w-16 items-center justify-center rounded-full bg-flagship-gradient text-2xl font-bold text-primary-foreground ring-8 ring-primary/20">
-                    <Check className="h-8 w-8" />
-                  </span>
-                  <span className="text-xl">Payment Successful</span>
-                  {link.successMessage ? (
-                    <p className="max-w-xs text-sm leading-6 text-muted-foreground">
-                      {link.successMessage}
-                    </p>
-                  ) : null}
-                  {link.redirectUrl ? (
-                    <p className="max-w-xs text-xs leading-5 text-muted-foreground">
-                      You&apos;ll be sent back automatically in {redirectSeconds}s.
-                    </p>
-                  ) : null}
-                </div>
-
-                <div className="mt-6 space-y-3 rounded-xl border bg-black/60 p-4">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Amount Paid</span>
-                    <span className="font-semibold">
-                      {amount || link.amount} {link.token}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Transaction ID</span>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono">
-                        {txId?.slice(0, 8)}...{txId?.slice(-6)}
-                      </span>
-
-                      <button
-                        onClick={handleCopy}
-                        className={cn(
-                          "rounded px-2 py-1 text-[10px] font-bold uppercase transition-all duration-200",
-                          copied
-                            ? "border border-green-500/30 bg-green-500/20 text-green-400"
-                            : "bg-foreground/10 text-muted-foreground hover:bg-foreground/20",
-                        )}
-                      >
-                        {copied ? "Copied" : "Copy"}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {link.redirectUrl ? (
-                  <Button
-                    variant="outline"
-                    className="w-full rounded-full"
-                    onClick={() => window.location.assign(link.redirectUrl as string)}
-                  >
-                    Continue
-                  </Button>
-                ) : null}
-              </div>
-            ) : connected ? (
-              <div className="space-y-3">
-                <Button
-                  className={cn(
-                    "h-12 w-full rounded-full font-semibold transition-all duration-500",
-                    loading && "opacity-90 shadow-lg shadow-primary/20",
-                  )}
-                  onClick={handlePay}
-                  disabled={loading || ["signing", "pending", "broadcasting", "finalized"].includes(status)}
-                >
-                  {loading || status !== "idle" ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {statusLabel}
-                    </>
-                  ) : (
-                    payPageCopy.buttonLabel
-                  )}
-                </Button>
-
-                {status === "broadcasting" && (
-                  <p className="text-[10px] text-muted-foreground">
-                    Generating proof and broadcasting. Please do not close this tab.
-                  </p>
-                )}
-              </div>
-            ) : (
-              <WalletConnect />
-            )}
-          </div>
-
-          <div className="flex items-center justify-center gap-1.5 pt-2 opacity-40">
-            <Globe className="h-3 w-3" />
-            <span className="text-[10px] font-mono">{`kloak.vercel.app/pay/${link.id}`}</span>
-          </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+function getStatusLabel(currentStatus: string) {
+  switch (currentStatus) {
+    case "scanning":
+      return "Searching for wallet records..."
+    case "consolidating":
+      return "Preparing the payment..."
+    case "signing":
+      return "Confirm in wallet"
+    case "pending":
+      return "Generating private proof..."
+    case "broadcasting":
+      return "Submitting to Aleo..."
+    case "finalized":
+      return "Success"
+    default:
+      return "Confirm payment"
+  }
+}
+
+function SuccessRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="space-y-1">
+      <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">{label}</p>
+      <p className="text-base font-medium text-foreground">{value}</p>
     </div>
   )
 }
