@@ -34,12 +34,20 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
+import { CreatorAccessGate } from "@/features/trust/components/creator-access-gate"
 import { ContextHelpCard } from "@/features/trust/components/context-help-card"
+import {
+  clearCachedCreatorAccessPayload,
+  CREATOR_WEBHOOKS_READ_SCOPE,
+  CREATOR_WEBHOOKS_WRITE_SCOPE,
+  getOrCreateCreatorAccessPayload,
+} from "@/lib/creator-access"
 
 type Webhook = {
   id: string
   url: string
   secret?: string | null
+  hasSecret?: boolean
   isActive: boolean
   lastDelivery?: string | null
   deliveryStatus?: "success" | "failed" | null
@@ -50,7 +58,38 @@ function getErrorMessage(error: unknown, fallback: string) {
 }
 
 export default function WebhooksPage() {
-  const { connected, address } = useWallet()
+  const { connected } = useWallet()
+
+  if (!connected) {
+    return (
+      <div className="rounded-[2.5rem] border-2 border-dashed border-foreground/5 bg-foreground/2 p-20 text-center flex flex-col items-center">
+        <h1 className="text-3xl font-bold text-foreground mb-4">
+          Connect Shield Wallet
+        </h1>
+        <p className="text-muted-foreground max-w-sm mb-8">
+          Connect your wallet to manage creator-level webhook endpoints.
+        </p>
+        <WalletConnect />
+      </div>
+    )
+  }
+
+  return (
+    <CreatorAccessGate
+      eyebrow="Creator Workspace"
+      title="Unlock your webhook settings"
+      description="Webhook endpoints and delivery history are tied to this wallet. We ask for a quick wallet check before opening them."
+      actionLabel="Unlock webhooks"
+      dialogTitle="Confirm it’s you"
+      dialogDescription="We’re about to ask your wallet for a quick confirmation so we can open webhook settings tied to this wallet. This is only an access check."
+    >
+      <WebhooksWorkspace />
+    </CreatorAccessGate>
+  )
+}
+
+function WebhooksWorkspace() {
+  const { address, signMessage } = useWallet()
 
   const [webhooks, setWebhooks] = useState<Webhook[]>([])
   const [loading, setLoading] = useState(true)
@@ -63,7 +102,7 @@ export default function WebhooksPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!connected || !address) {
+    if (!address) {
       setLoading(false)
       return
     }
@@ -73,13 +112,21 @@ export default function WebhooksPage() {
       setErrorMessage(null)
 
       try {
-        const res = await fetch(
-          `/api/webhooks?creator=${encodeURIComponent(addr)}`
-        )
+        const auth = await getOrCreateCreatorAccessPayload({
+          scope: CREATOR_WEBHOOKS_READ_SCOPE,
+          viewerAddress: addr,
+          signMessage,
+        })
+        const query = new URLSearchParams(auth).toString()
+        const res = await fetch(`/api/webhooks?${query}`)
 
         const data = await res.json()
 
         if (!res.ok) {
+          if (res.status === 401 || res.status === 403) {
+            clearCachedCreatorAccessPayload(CREATOR_WEBHOOKS_READ_SCOPE, addr)
+          }
+
           throw new Error(data.error || "Failed to fetch webhooks")
         }
 
@@ -91,8 +138,8 @@ export default function WebhooksPage() {
       }
     }
 
-    fetchWebhooks(address)
-  }, [connected, address])
+    void fetchWebhooks(address)
+    }, [address, signMessage])
 
   const handleAddWebhook = async () => {
     if (!address || !newWebhook.url || saving) return
@@ -107,7 +154,11 @@ export default function WebhooksPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          creatorAddress: address,
+          ...(await getOrCreateCreatorAccessPayload({
+            scope: CREATOR_WEBHOOKS_WRITE_SCOPE,
+            viewerAddress: address,
+            signMessage,
+          })),
           url: newWebhook.url,
           secret: newWebhook.secret,
         }),
@@ -116,6 +167,10 @@ export default function WebhooksPage() {
       const data = await res.json()
 
       if (!res.ok) {
+        if (res.status === 401 || res.status === 403) {
+          clearCachedCreatorAccessPayload(CREATOR_WEBHOOKS_WRITE_SCOPE, address)
+        }
+
         throw new Error(data.error || "Failed to create webhook")
       }
 
@@ -124,6 +179,7 @@ export default function WebhooksPage() {
           id: data.id,
           url: data.url,
           secret: data.secret,
+          hasSecret: data.hasSecret,
           isActive: data.active,
           lastDelivery: null,
           deliveryStatus: null,
@@ -146,13 +202,25 @@ export default function WebhooksPage() {
     setErrorMessage(null)
 
     try {
-      const res = await fetch(`/api/webhooks/${id}?creator=${encodeURIComponent(address)}`, {
+      const res = await fetch(`/api/webhooks/${id}`, {
         method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(await getOrCreateCreatorAccessPayload({
+          scope: CREATOR_WEBHOOKS_WRITE_SCOPE,
+          viewerAddress: address,
+          signMessage,
+        })),
       })
 
       const data = await res.json()
 
       if (!res.ok) {
+        if (res.status === 401 || res.status === 403) {
+          clearCachedCreatorAccessPayload(CREATOR_WEBHOOKS_WRITE_SCOPE, address)
+        }
+
         throw new Error(data.error || "Failed to delete webhook")
       }
 
@@ -175,20 +243,6 @@ export default function WebhooksPage() {
       ...prev,
       [id]: !prev[id],
     }))
-  }
-
-  if (!connected) {
-    return (
-      <div className="rounded-[2.5rem] border-2 border-dashed border-foreground/5 bg-foreground/2 p-20 text-center flex flex-col items-center">
-        <h1 className="text-3xl font-bold text-foreground mb-4">
-          Connect Shield Wallet
-        </h1>
-        <p className="text-muted-foreground max-w-sm mb-8">
-          Connect your wallet to manage creator-level webhook endpoints.
-        </p>
-        <WalletConnect />
-      </div>
-    )
   }
 
   return (
@@ -401,7 +455,7 @@ export default function WebhooksPage() {
 
                     {webhook.secret && (
                       <div className="space-y-2">
-                        <Label className="text-xs text-muted-foreground">Secret</Label>
+                        <Label className="text-xs text-muted-foreground">Secret shown once</Label>
 
                         <div className="flex items-center gap-3">
                           <code className="flex-1 bg-black/50 rounded-full px-4 py-3 text-sm font-mono border border-foreground/10">
@@ -417,6 +471,18 @@ export default function WebhooksPage() {
                           >
                             {showSecret[webhook.id] ? <EyeOff size={16} /> : <Eye size={16} />}
                           </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Save this secret now. For security, Kloak won&apos;t show the full value again after this session.
+                        </p>
+                      </div>
+                    )}
+
+                    {!webhook.secret && webhook.hasSecret && (
+                      <div className="space-y-2">
+                        <Label className="text-xs text-muted-foreground">Signing secret</Label>
+                        <div className="rounded-full border border-foreground/10 bg-black/40 px-4 py-3 text-sm text-muted-foreground">
+                          Secret configured. Hidden after creation for security.
                         </div>
                       </div>
                     )}

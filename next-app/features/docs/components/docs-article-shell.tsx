@@ -46,7 +46,7 @@ export function DocsArticleShell({
 
           <div className="mt-5 max-w-3xl space-y-4">
             <h1 className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">{title}</h1>
-            <p className="text-sm leading-7 text-zinc-400 sm:text-base">{description}</p>
+            <p className="text-sm leading-7 text-neutral-400 sm:text-base">{description}</p>
           </div>
 
           {(primaryAction || secondaryAction) ? (

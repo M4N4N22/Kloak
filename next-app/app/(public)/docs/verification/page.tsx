@@ -165,13 +165,13 @@ export default function VerificationDocsPage() {
             <TabsTrigger value="link">Verify link</TabsTrigger>
           </TabsList>
           <TabsContent value="package" className="space-y-4">
-            <p className="text-sm leading-7 text-zinc-400">
+            <p className="text-sm leading-7 text-neutral-400">
               Best when a reviewer wants the actual portable proof payload and its shared statement directly.
             </p>
             <DocsCodeBlock code={packageExample} language="json" title="Portable proof package" />
           </TabsContent>
           <TabsContent value="link" className="space-y-4">
-            <p className="text-sm leading-7 text-zinc-400">
+            <p className="text-sm leading-7 text-neutral-400">
               Best for most reviewers because it is the simplest handoff into Kloak’s verify flow.
             </p>
             <DocsCodeBlock code={verifyLinkExample} language="txt" title="Verify link" />

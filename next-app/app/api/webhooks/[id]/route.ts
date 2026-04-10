@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server"
 
 import { deleteWebhookEndpoint } from "@/lib/services/webhook.service"
+import {
+  CREATOR_WEBHOOKS_WRITE_SCOPE,
+  isCreatorAccessError,
+  verifyCreatorAccessRequest,
+} from "@/lib/creator-access"
 
 export async function DELETE(
   req: Request,
@@ -8,15 +13,8 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
-    const { searchParams } = new URL(req.url)
-    const creator = searchParams.get("creator")
-
-    if (!creator) {
-      return NextResponse.json(
-        { error: "Missing creator address" },
-        { status: 400 }
-      )
-    }
+    const body = await req.json()
+    const creator = await verifyCreatorAccessRequest(body, CREATOR_WEBHOOKS_WRITE_SCOPE)
 
     const result = await deleteWebhookEndpoint(id, creator)
 
@@ -28,9 +26,16 @@ export async function DELETE(
     }
 
     return NextResponse.json({ success: true })
-  } catch (error: any) {
+  } catch (error: unknown) {
+    if (isCreatorAccessError(error)) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.status }
+      )
+    }
+
     return NextResponse.json(
-      { error: error.message || "Failed to delete webhook" },
+      { error: error instanceof Error ? error.message : "Failed to delete webhook" },
       { status: 500 }
     )
   }

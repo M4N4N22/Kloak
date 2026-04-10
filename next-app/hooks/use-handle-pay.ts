@@ -254,11 +254,22 @@ export function useHandlePay(link: PaymentLinkShape, amount: string) {
                             })
 
                             if (!dbResponse.ok) {
-                                throw new Error("Payment confirmed on-chain, but failed to update record.")
+                                const errorPayload = await dbResponse
+                                    .json()
+                                    .catch(() => ({ error: null }))
+                                throw new Error(
+                                    typeof errorPayload?.error === "string" && errorPayload.error.trim()
+                                        ? errorPayload.error
+                                        : "Payment confirmed on-chain, but failed to update record.",
+                                )
                             }
                         } catch (error) {
                             console.error("Payment was successful on-chain, but DB update failed:", error)
-                            setErrorMessage("Payment confirmed on-chain, but failed to update record. Please contact support.")
+                            setErrorMessage(
+                                error instanceof Error && error.message
+                                    ? error.message
+                                    : "Payment confirmed on-chain, but failed to update record. Please contact support.",
+                            )
                             setStatus("error")
                             return
                         }

@@ -15,7 +15,7 @@ export function DocsCallout({ title, children }: DocsCalloutProps) {
         </div>
         <div className="space-y-2">
           <h3 className="text-sm font-semibold text-primary">{title}</h3>
-          <div className="text-sm leading-7 text-zinc-300">{children}</div>
+          <div className="text-sm leading-7 text-neutral-300">{children}</div>
         </div>
       </div>
     </div>

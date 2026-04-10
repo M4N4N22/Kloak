@@ -60,12 +60,12 @@ export default function DocsPage() {
                 className="rounded-[1.75rem] border bg-foreground/[0.02] px-5 py-5 transition-colors hover:border-foreground hover:bg-foreground/[0.04]"
               >
                 <div className="flex items-start gap-4">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-full border border-foreground/10 bg-black/30 text-zinc-100">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-full border border-foreground/10 bg-black/30 text-neutral-100">
                     <Icon className="h-5 w-5 " />
                   </div>
                   <div className="min-w-0 flex-1">
                     <h3 className="text-lg font-semibold text-foreground">{item.title}</h3>
-                    <p className="mt-2 text-sm leading-7 text-zinc-400">{item.description}</p>
+                    <p className="mt-2 text-sm leading-7 text-neutral-400">{item.description}</p>
                     <div className="mt-4 flex items-center gap-2 text-sm font-medium text-primary">
                       Open guide
                       <ArrowRight className="h-4 w-4" />

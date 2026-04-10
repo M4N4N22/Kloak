@@ -39,13 +39,13 @@ export function LandingStorySection() {
             return (
               <div key={item.step} className="rounded-[2.5rem] border p-7 text-center backdrop-blur-xl">
                 <div className="flex flex-col items-center gap-5">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-foreground/10 bg-black/30 text-zinc-200">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-foreground/10 bg-black/30 text-neutral-200">
                     <Icon className="h-5 w-5" />
                   </div>
                   <div className="space-y-2">
                     <p className="text-[10px] font-bold uppercase  text-primary">Step {item.step}</p>
                     <h3 className="text-2xl font-semibold tracking-tight text-foreground">{item.title}</h3>
-                    <p className="text-sm leading-relaxed text-zinc-400">{item.body}</p>
+                    <p className="text-sm leading-relaxed text-neutral-400">{item.body}</p>
                   </div>
                 </div>
               </div>

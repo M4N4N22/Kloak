@@ -38,6 +38,7 @@ export async function createWebhookEndpoint(data: {
     id: endpoint.id,
     url: endpoint.url,
     secret: normalizedSecret,
+    hasSecret: Boolean(normalizedSecret),
     active: endpoint.active,
     createdAt: endpoint.createdAt,
     updatedAt: endpoint.updatedAt,
@@ -63,7 +64,7 @@ export async function getWebhookEndpoints(creatorAddress: string) {
   return endpoints.map((endpoint) => ({
     id: endpoint.id,
     url: endpoint.url,
-    secret: decryptTextAtRest(endpoint.secret),
+    hasSecret: Boolean(decryptTextAtRest(endpoint.secret)),
     isActive: endpoint.active,
     createdAt: endpoint.createdAt,
     updatedAt: endpoint.updatedAt,

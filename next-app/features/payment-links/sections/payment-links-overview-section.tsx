@@ -18,13 +18,19 @@ export function PaymentLinksOverviewSection() {
   const { connected, address } = useWallet()
   const creatorAddress = address || ""
 
+  return (
+    <PaymentLinksAccessGate connected={connected}>
+      <PaymentLinksOverviewContent creatorAddress={creatorAddress} />
+    </PaymentLinksAccessGate>
+  )
+}
+
+function PaymentLinksOverviewContent({ creatorAddress }: { creatorAddress: string }) {
   const { overview } = usePaymentLinksOverview(creatorAddress)
   const { links } = usePaymentLinks(creatorAddress)
-
   const recentLinks = useMemo(() => links.slice(0, 5), [links])
 
   return (
-    <PaymentLinksAccessGate connected={connected}>
       <div className="space-y-8">
         <PaymentLinksSectionHeader
           eyebrow="Overview"
@@ -171,7 +177,6 @@ export function PaymentLinksOverviewSection() {
           </Link>
         </div>
       </div>
-    </PaymentLinksAccessGate>
   )
 }
 

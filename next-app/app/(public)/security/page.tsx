@@ -38,7 +38,7 @@ export default function SecurityPage() {
           className=" py-2 backdrop-blur-xl"
         >
           <h2 className="text-xl font-semibold text-foreground">{section.title}</h2>
-          <p className="mt-2 text-sm leading-7 text-zinc-400">{section.body}</p>
+          <p className="mt-2 text-sm leading-7 text-neutral-400">{section.body}</p>
         </section>
       ))}
     </TrustPageShell>

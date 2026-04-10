@@ -13,6 +13,15 @@ import { usePaymentLinks } from "@/hooks/use-payment-links"
 export function PaymentLinksCreatedSection() {
   const { connected, address } = useWallet()
   const creatorAddress = address || ""
+
+  return (
+    <PaymentLinksAccessGate connected={connected}>
+      <PaymentLinksCreatedContent creatorAddress={creatorAddress} />
+    </PaymentLinksAccessGate>
+  )
+}
+
+function PaymentLinksCreatedContent({ creatorAddress }: { creatorAddress: string }) {
   const { links } = usePaymentLinks(creatorAddress)
 
   const summary = useMemo(() => {
@@ -28,7 +37,6 @@ export function PaymentLinksCreatedSection() {
   }, [links])
 
   return (
-    <PaymentLinksAccessGate connected={connected}>
       <div className="space-y-8">
         <PaymentLinksSectionHeader
           eyebrow="Created Links"
@@ -58,7 +66,6 @@ export function PaymentLinksCreatedSection() {
 
         <PaymentLinksTable links={links} />
       </div>
-    </PaymentLinksAccessGate>
   )
 }
 
@@ -95,7 +102,7 @@ function SummaryCard({
           <div className="flex items-baseline gap-2">
             <h3 className={cn(
               "font-mono text-4xl font-bold tracking-tighter tabular-nums",
-              variant === "primary" ? "text-foreground" : "text-zinc-200"
+              variant === "primary" ? "text-foreground" : "text-neutral-200"
             )}>
               {value}
             </h3>

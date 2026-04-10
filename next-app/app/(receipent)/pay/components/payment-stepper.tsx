@@ -62,7 +62,7 @@ export default function PaymentStepper({
 
     if (orientation === "horizontal") {
         return (
-            <div className=" px-4 py-4 backdrop-blur-xl sm:px-6 bg-zinc-950/50 rounded-full sticky top-4 z-10 shadow-lg ">
+            <div className=" px-4 py-4 backdrop-blur-xl sm:px-6 bg-neutral-950/50 rounded-full sticky top-4 z-10 shadow-lg ">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                     {steps.map((s, index) => (
                         <div key={s.n} className="flex min-w-60 flex-1 items-center gap-3">

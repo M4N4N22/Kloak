@@ -13,7 +13,7 @@ export function DocsTable({ headers, rows }: DocsTableProps) {
           <thead className="bg-white/[0.03]">
             <tr>
               {headers.map((header) => (
-                <th key={header} className="px-4 py-3 text-left font-medium text-zinc-300">
+                <th key={header} className="px-4 py-3 text-left font-medium text-neutral-300">
                   {header}
                 </th>
               ))}
@@ -23,7 +23,7 @@ export function DocsTable({ headers, rows }: DocsTableProps) {
             {rows.map((row, index) => (
               <tr key={index} className="align-top">
                 {row.map((cell, cellIndex) => (
-                  <td key={cellIndex} className="px-4 py-4 text-zinc-400">
+                  <td key={cellIndex} className="px-4 py-4 text-neutral-400">
                     {cell}
                   </td>
                 ))}

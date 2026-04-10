@@ -29,7 +29,7 @@ export function DocsCodeBlock({
   }
 
   return (
-    <div className="overflow-hidden rounded-[1.75rem] border border-foreground/10 bg-zinc-950 shadow-[0_16px_40px_rgba(0,0,0,0.22)]">
+    <div className="overflow-hidden rounded-[1.75rem] border border-foreground/10 bg-neutral-950 shadow-[0_16px_40px_rgba(0,0,0,0.22)]">
       <div className="flex items-center justify-between border-b border-foreground/6 px-4 py-3">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5">
@@ -44,14 +44,14 @@ export function DocsCodeBlock({
           </div>
 
           {title ? (
-            <span className="text-sm text-zinc-300">{title}</span>
+            <span className="text-sm text-neutral-300">{title}</span>
           ) : null}
         </div>
 
         <button
           type="button"
           onClick={handleCopy}
-          className="inline-flex items-center gap-2 rounded-full border border-foreground/10 px-3 py-1.5 text-xs text-zinc-400 transition-colors hover:bg-foreground/5 hover:text-foreground"
+          className="inline-flex items-center gap-2 rounded-full border border-foreground/10 px-3 py-1.5 text-xs text-neutral-400 transition-colors hover:bg-foreground/5 hover:text-foreground"
         >
           {copied ? (
             <Check className="h-3.5 w-3.5" />
@@ -63,7 +63,7 @@ export function DocsCodeBlock({
       </div>
 
       <div className="overflow-x-auto p-4">
-        <pre className="text-sm leading-7 text-zinc-200">
+        <pre className="text-sm leading-7 text-neutral-200">
           <code data-language={language}>{code}</code>
         </pre>
       </div>

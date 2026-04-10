@@ -32,7 +32,7 @@ export function TrustPageShell({
           <h1 className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
             {title}
           </h1>
-          <p className="max-w-2xl text-sm leading-7 text-zinc-400 sm:text-base">
+          <p className="max-w-2xl text-sm leading-7 text-neutral-400 sm:text-base">
             {description}
           </p>
         </div>
@@ -50,7 +50,7 @@ export function TrustPageShell({
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
             <p className="text-sm font-medium text-foreground">Need the full product flow?</p>
-            <p className="text-sm text-zinc-400">
+            <p className="text-sm text-neutral-400">
               Start with docs, then move into Payment Links or Compliance.
             </p>
           </div>
@@ -78,8 +78,8 @@ export function TrustPageShell({
 function MetaTile({ label, value }: { label: string; value: string }) {
   return (
     <div className=" px-4 py-4">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-500">{label}</p>
-      <p className="mt-2 text-sm leading-6 text-zinc-300">{value}</p>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500">{label}</p>
+      <p className="mt-2 text-sm leading-6 text-neutral-300">{value}</p>
     </div>
   )
 }

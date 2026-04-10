@@ -21,7 +21,7 @@ export function GeneratedProofsSection() {
   const handleDelete = async (proofId: string) => {
     if (!actorAddress) return
     try {
-      const revoked = await revokeProof(proofId, actorAddress)
+      const revoked = await revokeProof(proofId)
       setProofs((current) => current.map((p) => (p.proofId === proofId ? revoked : p)))
     } catch { return }
   }

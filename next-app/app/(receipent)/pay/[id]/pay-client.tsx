@@ -100,33 +100,33 @@ export default function PayClient({ link }: { link: PayClientLink }) {
   if (isFinalized) {
     return (
       <div className="px-4 py-10 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-3xl rounded-[2.5rem] border border-foreground/8 bg-black/55 p-8 text-center shadow-[0_28px_90px_rgba(0,0,0,0.3)] backdrop-blur-2xl sm:p-10">
-          <div className="mx-auto flex h-18 w-18 items-center justify-center rounded-full bg-primary/10 ring-8 ring-primary/10">
-            <Check className="h-8 w-8 text-primary" />
+        <div className="mx-auto max-w-3xl rounded-[2.5rem]   p-8 text-center backdrop-blur-2xl sm:p-10">
+          <div className="mx-auto flex h-18 w-18 items-center justify-center rounded-full bg-primary ring-8 ring-primary/10">
+            <Check className="h-8 w-8 text-primary-foreground" />
           </div>
 
           <div className="mt-6 space-y-3">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">Payment complete</p>
+            <p className="text-sm font-semibold  text-primary">Payment complete</p>
             <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
               Payment received successfully
             </h1>
-            <p className="mx-auto max-w-xl text-sm leading-7 text-zinc-400">
+            <p className="mx-auto max-w-xl text-sm leading-7 text-neutral-400">
               {link.successMessage ||
                 "Your payment was confirmed privately. If you ever need to prove it later, the proof owner can choose exactly what to disclose."}
             </p>
           </div>
 
-          <div className="mt-8 rounded-[1.75rem] border border-foreground/8 bg-foreground/[0.03] p-5 text-left">
+          <div className="mt-8 rounded-[1.75rem] bg-foreground/[0.03] p-5 text-left">
             <div className="grid gap-3 text-sm sm:grid-cols-2">
               <SuccessRow label="Amount paid" value={`${amount || link.amount} ${link.token}`} />
               <SuccessRow label="Payer address" value="Private by default" />
             </div>
 
             {txId ? (
-              <div className="mt-4 flex flex-col gap-3 rounded-[1.25rem] border border-foreground/8 bg-black/20 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="mt-4 flex flex-col gap-3 rounded-[1.25rem]  bg-neutral-900 p-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.18em] text-zinc-500">Transaction ID</p>
-                  <p className="mt-2 font-mono text-sm text-zinc-300">
+                  <p className="text-xs  text-neutral-500">Transaction ID</p>
+                  <p className="mt-2 font-mono text-sm text-neutral-300">
                     {txId.slice(0, 12)}...{txId.slice(-10)}
                   </p>
                 </div>
@@ -136,7 +136,7 @@ export default function PayClient({ link }: { link: PayClientLink }) {
                   onClick={() => void handleCopy()}
                 >
                   {copied ? "Copied" : "Copy transaction ID"}
-                  <Copy className="ml-2 h-4 w-4" />
+                
                 </Button>
               </div>
             ) : null}
@@ -144,7 +144,7 @@ export default function PayClient({ link }: { link: PayClientLink }) {
 
           {link.redirectUrl ? (
             <div className="mt-8 space-y-3">
-              <p className="text-sm text-zinc-500">
+              <p className="text-sm text-neutral-500">
                 You&apos;ll be sent back automatically in {redirectSeconds}s.
               </p>
               <Button className="rounded-full text-black" onClick={() => window.location.assign(link.redirectUrl as string)}>
@@ -165,7 +165,7 @@ export default function PayClient({ link }: { link: PayClientLink }) {
       <div className="mx-auto max-w-6xl space-y-6 ">
         <PaymentStepper status={status} orientation="horizontal" />
 
-        <div className="grid items-start gap-0 lg:grid-cols-[0.75fr_0.75fr] xl:gap-0  bg-zinc-950 rounded-[2.25rem] ">
+        <div className="grid items-start gap-0 lg:grid-cols-[0.75fr_0.75fr] xl:gap-0  bg-neutral-950 rounded-[2.25rem] ">
         <PaySummaryPanel
           link={link}
           copy={payPageCopy}
@@ -213,7 +213,7 @@ function getStatusLabel(currentStatus: string) {
 function SuccessRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="space-y-1">
-      <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">{label}</p>
+      <p className="text-xs  text-neutral-500">{label}</p>
       <p className="text-base font-medium text-foreground">{value}</p>
     </div>
   )

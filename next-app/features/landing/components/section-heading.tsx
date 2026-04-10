@@ -22,8 +22,8 @@ export function SectionHeading({ eyebrow, title, description, centered = false }
         <p
           className={
             centered
-              ? "mx-auto max-w-2xl text-sm leading-relaxed text-zinc-400 sm:text-base"
-              : "max-w-3xl text-sm leading-relaxed text-zinc-400 sm:text-base"
+              ? "mx-auto max-w-2xl text-sm leading-relaxed text-neutral-400 sm:text-base"
+              : "max-w-3xl text-sm leading-relaxed text-neutral-400 sm:text-base"
           }
         >
           {description}
