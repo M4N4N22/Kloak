@@ -7,42 +7,58 @@ import { Card, CardContent } from "@/components/ui/card"
 
 export function ComplianceDisconnectedState() {
   return (
-    <div className="space-y-6">
-      <div className="relative overflow-hidden rounded-[2rem] border border-foreground/10 bg-gradient-to-br from-neutral-900 via-background to-primary/10 p-8">
-        <div className="flex max-w-2xl flex-col gap-4">
+    <div className="space-y-8">
+      {/* 1. HERO SECTION */}
+      <div className="relative overflow-hidden p-4 sm:p-8">
+        <div className="flex flex-col gap-5">
           <div className="flex items-center gap-3 text-primary">
-            <ShieldEllipsis className="h-6 w-6" />
-            <span className="text-sm font-medium uppercase tracking-[0.2em]">Compliance Console</span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+              <ShieldEllipsis className="h-5 w-5" />
+            </div>
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Audit Center</span>
           </div>
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-            Connect the wallet that owns the compliance receipts.
-          </h1>
-          <p className="text-sm leading-6 text-muted-foreground sm:text-base">
-            Production disclosure flows depend on the operator wallet holding the payer or receiver receipt record.
-            Connect Shield to review proofs, issue new disclosures, and verify payloads.
-          </p>
-          <div className="pt-2">
+
+          <div className="space-y-3">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-5xl">
+              Create, Review and share your <br />
+              payment proofs.
+            </h1>
+            <p className="max-w-2xl text-base leading-relaxed text-zinc-400">
+              Connect the wallet you used for payments to generate private receipts.
+              You can share proof of payment with partners without revealing your full history or balance.
+            </p>
+          </div>
+
+          <div className="pt-4">
             <WalletConnect />
           </div>
         </div>
       </div>
 
-      <Card className="border-foreground/10 bg-black/20">
-        <CardContent className="grid gap-4 p-6 text-sm text-muted-foreground md:grid-cols-3">
-          <div>
-            <div className="font-medium text-foreground">Payer workflows</div>
-            <p className="mt-1">Show a payment exists, prove the exact amount, or satisfy a reimbursement threshold.</p>
-          </div>
-          <div>
-            <div className="font-medium text-foreground">Receiver workflows</div>
-            <p className="mt-1">Issue receipt-side proofs for accounting, tax reporting, or revenue reconciliation.</p>
-          </div>
-          <div>
-            <div className="font-medium text-foreground">Verification</div>
-            <p className="mt-1">Share compact JSON proofs with partners and verify them without exposing receipt secrets.</p>
-          </div>
-        </CardContent>
-      </Card>
+      {/* 2. CAPABILITY GRID */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <FeatureMiniCard
+          title="For Payers"
+          desc="Prove you made a payment or met a specific amount for reimbursements."
+        />
+        <FeatureMiniCard
+          title="For Receivers"
+          desc="Create reports for accounting, taxes, or income verification."
+        />
+        <FeatureMiniCard
+          title="Instant Verification"
+          desc="Share simple links that let others verify your proof in one click."
+        />
+      </div>
     </div>
   )
+  // Simple helper for the bottom grid
+  function FeatureMiniCard({ title, desc }: { title: string; desc: string }) {
+    return (
+      <div className="rounded-[2rem] border border-foreground/5 bg-zinc-900/40 p-6 transition-colors hover:bg-zinc-900/60">
+        <h3 className="text-sm font-bold text-foreground mb-2 tracking-tight">{title}</h3>
+        <p className="text-xs leading-relaxed text-zinc-500">{desc}</p>
+      </div>
+    )
+  }
 }

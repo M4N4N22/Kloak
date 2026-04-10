@@ -33,12 +33,27 @@ type DuplicateProofInfo = {
 
 type VerifyResponse = {
   valid: boolean
+  verificationMode: "portable-package" | "kloak-backed"
+  kloakVerified: boolean
+  publicChainStatus: "verified" | "mismatch" | "unavailable"
+  publicChainMessage: string
+  recordStatus: "active" | "missing"
+  recordMessage: string
+  verificationChecks: {
+    packageIntegrity: boolean
+    publicChainPaymentTransaction: boolean
+    publicChainDisclosureTransaction: boolean
+    publicChainDisclosureMatch: boolean
+    kloakRecordFound: boolean
+    kloakRevocationChecked: boolean
+    kloakPaymentHistoryChecked: boolean
+  }
   proofId: string
   paymentTxHash: string
   disclosureTxHash?: string | null
   requestId: string
   ownerAddress: string
-  counterpartyAddress: string
+  counterpartyAddress: string | null
   actorRole: DisclosureActorRole
   proofType: DisclosureProofType
   disclosedAmount?: string | null

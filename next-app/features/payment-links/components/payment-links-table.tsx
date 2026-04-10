@@ -115,7 +115,7 @@ export function PaymentLinksTable({
   }
 
   return (
-    <Card className="rounded-[2.5rem] border  bg-transparent text-foreground">
+    <Card>
       <CardHeader className="border-b ">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>

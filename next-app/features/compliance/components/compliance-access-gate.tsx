@@ -122,8 +122,8 @@ export function ComplianceAccessGate({
   if (requiresSignedAccess && !accessGranted) {
     return (
       <>
-        <div className="flex min-h-[calc(100vh-18rem)] items-center justify-center">
-          <div className="w-full max-w-2xl rounded-[2.5rem] border p-8 text-left shadow-[0_30px_120px_rgba(0,0,0,0.35)]">
+        <div className="flex min-h-[calc(100vh-18rem)] items-center justify-center ">
+          <div className="w-full max-w-2xl rounded-[2.5rem] border p-8 text-left shadow-[0_30px_120px_rgba(0,0,0,0.35)] backdrop-blur-xl">
             <div className="flex items-start gap-4">
               <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border text-primary">
                 <LockKeyhole className="h-6 w-6" />
@@ -160,7 +160,7 @@ export function ComplianceAccessGate({
             </div>
 
             {error ? (
-              <div className="mt-5 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+              <div className="mt-5 text-red-500 text-sm ml-2">
                 {error}
               </div>
             ) : null}

@@ -120,18 +120,47 @@ export function VerifyProofPanel({
               : null,
           timestampFrom:
             parsed.constraints &&
-            typeof parsed.constraints === "object" &&
-            typeof (parsed.constraints as Record<string, unknown>).timestampFrom === "string"
+              typeof parsed.constraints === "object" &&
+              typeof (parsed.constraints as Record<string, unknown>).timestampFrom === "string"
               ? ((parsed.constraints as Record<string, unknown>).timestampFrom as string)
               : undefined,
           timestampTo:
             parsed.constraints &&
-            typeof parsed.constraints === "object" &&
-            typeof (parsed.constraints as Record<string, unknown>).timestampTo === "string"
+              typeof parsed.constraints === "object" &&
+              typeof (parsed.constraints as Record<string, unknown>).timestampTo === "string"
               ? ((parsed.constraints as Record<string, unknown>).timestampTo as string)
               : undefined,
           ownerAddress: parsed.ownerAddress,
         }
+      }
+    } catch {
+      return null
+    }
+
+    return null
+  }, [value])
+
+  const verificationGuideNote = useMemo(() => {
+    if (!value) return null
+
+    try {
+      if (value.startsWith("http") || value.startsWith("/")) {
+        const url = new URL(value, "https://kloak.local")
+        if (url.searchParams.get("guide") === "chain-first") {
+          return "This shared link uses Kloak's chain-first verification model: package first, public chain second, Kloak record status on top."
+        }
+
+        return null
+      }
+
+      const parsed = JSON.parse(value) as Record<string, unknown>
+
+      if (
+        parsed.verificationGuide &&
+        typeof parsed.verificationGuide === "object" &&
+        typeof (parsed.verificationGuide as Record<string, unknown>).note === "string"
+      ) {
+        return (parsed.verificationGuide as Record<string, unknown>).note as string
       }
     } catch {
       return null
@@ -220,8 +249,8 @@ export function VerifyProofPanel({
         {detection?.type === 'link' && detection.id && (
           <div className="rounded-2xl border border-foreground/5 bg-foreground/2 p-4 animate-in slide-in-from-top-2">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-600">Extracted Proof ID</span>
-              <ShieldCheck className="h-3.5 w-3.5 text-primary/60" />
+              <span className="text-xs font-bold text-neutral-600">Extracted Proof ID</span>
+              <ShieldCheck className="h-3.5 w-3.5 text-primary" />
             </div>
             <code className="text-xs font-mono text-primary break-all">{detection.id}</code>
           </div>
@@ -238,7 +267,7 @@ export function VerifyProofPanel({
                   What this proof is claiming
                 </h4>
               </div>
-              <div className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary">
+              <div className="rounded-full  bg-primary/10 px-3 py-1 text-xs text-primary">
                 Ready to review
               </div>
             </div>
@@ -268,12 +297,12 @@ export function VerifyProofPanel({
 
             <div className="rounded-2xl border  p-4">
               <p className="text-xs text-neutral-500">
-                What will be checked
+                What will be checked in order
               </p>
-              <div className="mt-3 space-y-2 text-sm text-neutral-300">
-                <p>This package matches a real proof issued by Kloak.</p>
-                <p>The proof still points to a finalized disclosure transaction.</p>
-                <p>The disclosed statement still matches the linked payment record.</p>
+              <div className="mt-3 space-y-3 text-sm text-neutral-400">
+                <p>1. We first check that the shared package has not been modified.</p>
+                <p>2. We then try to confirm the payment and proof transactions on the public Aleo chain.</p>
+                <p>3. If Kloak still has the proof record, we also check whether it is still active.</p>
                 {parsedPreview.disclosedAmount ? (
                   <p>Disclosed exact amount: {parsedPreview.disclosedAmount}</p>
                 ) : null}
@@ -287,10 +316,12 @@ export function VerifyProofPanel({
                   </p>
                 ) : null}
                 {!parsedPreview.disclosedAmount &&
-                !parsedPreview.thresholdAmount &&
-                !parsedPreview.timestampFrom &&
-                !parsedPreview.timestampTo ? (
-                  <p>No extra payment details are disclosed in this package beyond the proof statement.</p>
+                  !parsedPreview.thresholdAmount &&
+                  !parsedPreview.timestampFrom &&
+                  !parsedPreview.timestampTo ? (
+                  <p>
+                    No extra payment details are disclosed beyond the proof statement. Verification relies on the public Aleo chain as the source of truth.
+                  </p>
                 ) : null}
               </div>
             </div>
@@ -326,7 +357,7 @@ export function VerifyProofPanel({
         <div className="flex items-start gap-3 rounded-2xl border border-foreground/5 bg-neutral-900/50 p-4">
           <Info className="mt-0.5 h-4 w-4 shrink-0 text-neutral-600" />
           <p className="text-xs leading-normal text-neutral-500">
-            Verification checks the shared proof package against Kloak&apos;s recorded proof and payment references. Your wallet is not asked to sign and no new on-chain transaction is created during this check.
+            Verification checks the proof package first, then confirms it against the public Aleo chain, which is the source of truth. If Kloak has a matching record, it adds status and revocation details. This process is read-only—no wallet signature or new transaction is required.
           </p>
         </div>
       </div>

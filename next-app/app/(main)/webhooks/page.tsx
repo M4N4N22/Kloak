@@ -34,6 +34,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
+import { ContextHelpCard } from "@/features/trust/components/context-help-card"
 
 type Webhook = {
   id: string
@@ -42,6 +43,10 @@ type Webhook = {
   isActive: boolean
   lastDelivery?: string | null
   deliveryStatus?: "success" | "failed" | null
+}
+
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback
 }
 
 export default function WebhooksPage() {
@@ -79,8 +84,8 @@ export default function WebhooksPage() {
         }
 
         setWebhooks(data)
-      } catch (error: any) {
-        setErrorMessage(error.message || "Failed to load webhooks")
+      } catch (error) {
+        setErrorMessage(getErrorMessage(error, "Failed to load webhooks"))
       } finally {
         setLoading(false)
       }
@@ -127,8 +132,8 @@ export default function WebhooksPage() {
       ])
       setNewWebhook({ url: "", secret: "" })
       setIsDialogOpen(false)
-    } catch (error: any) {
-      setErrorMessage(error.message || "Failed to create webhook")
+    } catch (error) {
+      setErrorMessage(getErrorMessage(error, "Failed to create webhook"))
     } finally {
       setSaving(false)
     }
@@ -152,8 +157,8 @@ export default function WebhooksPage() {
       }
 
       setWebhooks((current) => current.filter((webhook) => webhook.id !== id))
-    } catch (error: any) {
-      setErrorMessage(error.message || "Failed to delete webhook")
+    } catch (error) {
+      setErrorMessage(getErrorMessage(error, "Failed to delete webhook"))
     } finally {
       setDeletingId(null)
     }
@@ -342,6 +347,16 @@ export default function WebhooksPage() {
             </DialogContent>
           </Dialog>
         </div>
+
+        <ContextHelpCard
+          title="Need help before you connect your backend?"
+          description="Use docs for the setup path, security for signing and trust details, or support if deliveries are not reaching your endpoint."
+          links={[
+            { label: "Open docs", href: "/docs" },
+            { label: "Read security", href: "/security" },
+            { label: "Get support", href: "/support" },
+          ]}
+        />
 
         {errorMessage && (
           <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 p-3 rounded-lg">

@@ -18,11 +18,13 @@ const footerGroups = [
     ],
   },
   {
-    title: "Explore",
+    title: "Trust",
     links: [
-      { label: "GitHub", href: "https://github.com" },
-      { label: "Demo", href: "https://youtu.be/b1AdffOf_PM" },
-      { label: "Docs", href: "/compliance" },
+      { label: "Docs", href: "/docs" },
+      { label: "Privacy", href: "/privacy" },
+      { label: "Terms", href: "/terms" },
+      { label: "Security", href: "/security" },
+      { label: "Support", href: "/support" },
     ],
   },
 ]

@@ -5,17 +5,29 @@ import { KloakWalletProvider } from "./providers/AleoWalletProvider";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { BalanceProvider } from "./providers/balance-provider";
-import { AppHeader } from "@/components/app-header";
+import { AppShell } from "./providers/app-shell";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.APP_URL!),
+  applicationName: "Kloak",
   title: {
     default: "Kloak",
-    template: "%s",
+    template: "%s | Kloak",
   },
-  description: "Private distribution of value and access.",
+  description: "Payment links with private settlement, selective disclosure, and proof verification built on Aleo.",
+  openGraph: {
+    title: "Kloak",
+    description: "Payment links with private settlement, selective disclosure, and proof verification built on Aleo.",
+    siteName: "Kloak",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Kloak",
+    description: "Payment links with private settlement, selective disclosure, and proof verification built on Aleo.",
+  },
 };
 
 export default function RootLayout({
@@ -44,12 +56,7 @@ export default function RootLayout({
         />
         <KloakWalletProvider>
           <BalanceProvider>
-            <div className="relative min-h-screen">
-              <AppHeader />
-              <div className="pt-16">
-                {children}
-              </div>
-            </div>
+            <AppShell>{children}</AppShell>
           </BalanceProvider>
         </KloakWalletProvider>
       </body>

@@ -24,6 +24,7 @@ const NAV_ITEMS = [
   { href: "/webhooks", label: "Webhooks" },
   { href: "/automation", label: "Automation" },
   { href: "/pricing", label: "Pricing" },
+   { href: "/docs", label: "Docs" }
 ]
 
 /* ------------------ REUSABLE ITEM ------------------ */

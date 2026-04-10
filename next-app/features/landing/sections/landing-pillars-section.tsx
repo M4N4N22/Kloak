@@ -42,7 +42,7 @@ export function LandingPillarsSection() {
                 key={item.title}
                 href={item.href}
                 className={[
-                  "group rounded-[2.5rem] border  p-7 transition-colors hover:bg-zinc-900/50",
+                  "group rounded-[2.5rem] border backdrop-blur-xl  p-7 transition-colors hover:bg-zinc-900/50",
                   index === 0 ? "xl:min-h-[20rem]" : "",
                 ].join(" ")}
               >

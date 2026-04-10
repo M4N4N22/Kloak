@@ -19,7 +19,7 @@ export function LandingDisclosureSection() {
         />
 
         <div className="grid gap-4 xl:grid-cols-[0.95fr_1.05fr] items-center">
-          <div className="rounded-[2.5rem] border  p-7">
+          <div className="rounded-[2.5rem] border backdrop-blur-xl  p-7">
             <div className="space-y-6">
               <div className="flex h-12 w-12 items-center justify-center rounded-full  bg-primary/10 text-primary">
                 <Fingerprint className="h-5 w-5" />
@@ -44,7 +44,7 @@ export function LandingDisclosureSection() {
 
           <div className="flex flex-col gap-3">
             {proofs.map((proof) => (
-              <div key={proof.title} className="rounded-[2rem] border flex items-center gap-4  p-6 ">
+              <div key={proof.title} className="rounded-[2rem] border flex items-center gap-4  p-6 backdrop-blur-xl">
                 <div className="flex h-11 w-11 items-center justify-center rounded-full  bg-primary/10 text-zinc-100">
                   <Scale className="h-5 w-5 text-primary" />
                 </div>

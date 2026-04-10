@@ -1,6 +1,7 @@
 import { LandingFooter } from "@/features/landing/components/landing-footer"
 import { LandingCtaSection } from "@/features/landing/sections/landing-cta-section"
 import { LandingDisclosureSection } from "@/features/landing/sections/landing-disclosure-section"
+import { LandingFaqSection } from "@/features/landing/sections/landing-faq-section"
 import { LandingHeroSection } from "@/features/landing/sections/landing-hero-section"
 import { LandingOperationsSection } from "@/features/landing/sections/landing-operations-section"
 import { LandingPillarsSection } from "@/features/landing/sections/landing-pillars-section"
@@ -13,7 +14,7 @@ export function LandingPage() {
       <div className="pointer-events-none fixed inset-0 -z-10">
         {/* The Dot Matrix Layer */}
         <div
-          className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.15)_1px,transparent_1px)] bg-[size:40px_40px]"
+          className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.15)_1px,transparent_1px)] bg-size-[40px_40px] "
         />
 
         {/* The Glow/Vignette Layers */}
@@ -28,6 +29,7 @@ export function LandingPage() {
         <LandingDisclosureSection />
         <LandingOperationsSection />
         <LandingPrivacySection />
+        <LandingFaqSection />
         <LandingCtaSection />
       </main>
 

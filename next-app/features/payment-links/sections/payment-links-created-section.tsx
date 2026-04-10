@@ -95,7 +95,7 @@ function SummaryCard({
           <div className="flex items-baseline gap-2">
             <h3 className={cn(
               "font-mono text-4xl font-bold tracking-tighter tabular-nums",
-              variant === "primary" ? "text-white" : "text-zinc-200"
+              variant === "primary" ? "text-foreground" : "text-zinc-200"
             )}>
               {value}
             </h3>

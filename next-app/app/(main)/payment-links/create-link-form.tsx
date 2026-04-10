@@ -367,7 +367,7 @@ export default function CreateLinkForm() {
 
     return (
         <>
-            <div className="grid gap-3 md:grid-cols-3">
+            <div className="grid gap-1 md:grid-cols-3 rounded-full p-6 ">
                 {FORM_STEPS.map((step) => {
                     const active = currentStep === step.id
                     const complete = currentStep > step.id
@@ -376,8 +376,8 @@ export default function CreateLinkForm() {
                         <div
                             key={step.id}
                             className={cn(
-                                "rounded-[1.5rem] backdrop-blur-xl px-4 py-3 transition-colors",
-                                active ? "bg-primary/10 " : " bg-foreground/5",
+                                " transition-colors ",
+                                active ? "" : " ",
                             )}
                         >
                             <div className="flex items-center gap-3">
@@ -388,7 +388,7 @@ export default function CreateLinkForm() {
                                             ? " bg-primary/10 text-primary"
                                             : active
                                                 ? " bg-primary/10 text-primary"
-                                                : "bg-white/5 text-muted-foreground",
+                                                : "bg-foreground/5 text-muted-foreground",
                                     )}
                                 >
                                     {complete ? "OK" : step.id}
@@ -765,7 +765,7 @@ export default function CreateLinkForm() {
                             </button>
                         </div>
 
-                        <div className="rounded-[2rem] border border-foreground/8 bg-white/5 p-6">
+                        <div className="rounded-[2rem] border border-foreground/8 bg-foreground/5 p-6">
                             <div className="space-y-6">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">

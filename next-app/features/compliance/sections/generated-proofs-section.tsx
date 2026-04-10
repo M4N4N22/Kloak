@@ -31,7 +31,7 @@ export function GeneratedProofsSection() {
       <SectionHeader
         eyebrow="Compliance Ledger"
         title="Issued Proofs"
-        description="A complete history of your zero-knowledge disclosures. Manage active proofs and revoke access as needed."
+        description="A record of the proofs you have shared. Send the proof package when someone needs the raw proof data, or send the verify link when they can review it inside Kloak."
         action={
           <div className="flex gap-3">
             <Button variant="outline"  onClick={() => void refresh()} disabled={loading}>
@@ -48,6 +48,27 @@ export function GeneratedProofsSection() {
         </Alert>
       )}
 
+      <div className="">
+        <div className="grid gap-3 md:grid-cols-2">
+          <div className="rounded-2xl bg-neutral-900/50 p-4">
+            <p className="text-xs font-semibold  text-neutral-600">
+              Proof Package JSON
+            </p>
+            <p className="mt-2 text-sm text-neutral-400">
+              Best when an auditor, employer, or authority wants the full proof package to verify themselves.
+            </p>
+          </div>
+          <div className="rounded-2xl  bg-neutral-900/50 p-4">
+            <p className="text-xs font-semibold  text-neutral-600">
+              Verify Link
+            </p>
+            <p className="mt-2 text-sm text-neutral-400">
+              Best when the reviewer can open Kloak and check the proof in a guided flow.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {proofs.length === 0 && !loading ? (
         <div className="flex flex-col items-center justify-center py-20 rounded-[2.5rem] border border-dashed border-foreground/10 bg-neutral-900/20 text-center">
           <div className="h-12 w-12 rounded-2xl bg-neutral-800 flex items-center justify-center mb-4 text-neutral-500">
@@ -62,7 +83,7 @@ export function GeneratedProofsSection() {
         <div className="rounded-[2rem] border  overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-left">
-              <thead>
+              <thead className="bg-neutral-950">
                 <tr className="border-b  text-xs  text-neutral-500">
                   <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4">Proof Type & Role</th>
