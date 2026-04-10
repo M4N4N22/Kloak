@@ -165,7 +165,7 @@ export default function PayClient({ link }: { link: PayClientLink }) {
       <div className="mx-auto max-w-6xl space-y-6 ">
         <PaymentStepper status={status} orientation="horizontal" />
 
-        <div className="grid items-start gap-0 lg:grid-cols-[0.75fr_0.75fr] xl:gap-0  bg-zinc-950/50 rounded-[2.25rem] ">
+        <div className="grid items-start gap-0 lg:grid-cols-[0.75fr_0.75fr] xl:gap-0  bg-zinc-950 rounded-[2.25rem] ">
         <PaySummaryPanel
           link={link}
           copy={payPageCopy}

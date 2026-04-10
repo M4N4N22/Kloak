@@ -39,7 +39,7 @@ export function PayActionPanel({
         </p>
       </div>
 
-      <div className="mt-8 space-y-5 bg-zinc-950/70 rounded-[1.75rem] p-5">
+      <div className="mt-8 space-y-5 bg-zinc-950/70 rounded-xl p-5">
         <div className="space-y-4 ">
           <label className="text-sm font-medium text-foreground ">{copy.amountLabel}</label>
           {link.allowCustomAmount ? (
@@ -64,7 +64,7 @@ export function PayActionPanel({
                 </div>
               ) : null}
 
-              <div className="rounded-[1.5rem] border border-foreground/10 bg-foreground/[0.03] px-4 py-4">
+              <div className="rounded-xl border border-foreground/10 bg-foreground/[0.03] px-4 py-4">
                 <input
                   type="number"
                   placeholder="Enter amount"
@@ -75,7 +75,7 @@ export function PayActionPanel({
               </div>
             </div>
           ) : (
-            <div className="rounded-[1.5rem] mt-4 border-foreground/10 bg-foreground/[0.03] px-4 py-4">
+            <div className="rounded-xl mt-4 border-foreground/10 bg-foreground/[0.03] px-4 py-4">
               <div className="text-3xl font-semibold tracking-tight text-foreground">
                 {link.amount}
                 <span className="ml-2 text-sm uppercase tracking-[0.18em] text-zinc-500">{link.token}</span>
@@ -84,7 +84,7 @@ export function PayActionPanel({
           )}
         </div>
 
-        <div className="rounded-[1.5rem]  bg-foreground/[0.02] px-4 py-4">
+        <div className="rounded-xl  bg-foreground/[0.02] px-4 py-4">
           <div className="grid gap-3 text-xs">
             <LineItem label="Stored payer address" value="Private by default" strong />
             <LineItem label="Merchant-visible identity" value="Hidden unless you choose to disclose later" />

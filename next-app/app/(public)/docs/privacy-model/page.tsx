@@ -6,7 +6,7 @@ import { DocsCallout } from "@/features/docs/components/docs-callout"
 import { DocsSection } from "@/features/docs/components/docs-section"
 
 export const metadata: Metadata = {
-  title: "Privacy Model Docs | Kloak",
+  title: "Privacy Model Docs",
   description: "The practical privacy model behind Kloak payment links, wallet-held receipts, and selective disclosure.",
 }
 

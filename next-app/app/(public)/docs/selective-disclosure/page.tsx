@@ -7,7 +7,7 @@ import { DocsSection } from "@/features/docs/components/docs-section"
 import { DocsTable } from "@/features/docs/components/docs-table"
 
 export const metadata: Metadata = {
-  title: "Selective Disclosure Docs | Kloak",
+  title: "Selective Disclosure Docs",
   description: "How Kloak selective disclosure works, what proof types exist, and how duplicate prevention and revocation behave.",
 }
 

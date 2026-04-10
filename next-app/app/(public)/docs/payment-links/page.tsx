@@ -8,7 +8,7 @@ import { DocsSection } from "@/features/docs/components/docs-section"
 import { DocsTable } from "@/features/docs/components/docs-table"
 
 export const metadata: Metadata = {
-  title: "Payment Links Docs | Kloak",
+  title: "Payment Links Docs",
   description: "How Kloak payment links work, from creation and templates to expiry, analytics, and payer experience.",
 }
 

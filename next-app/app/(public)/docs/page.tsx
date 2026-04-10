@@ -12,7 +12,7 @@ import { FaqList } from "@/features/trust/components/faq-list"
 import { KLOAK_FAQ_ITEMS } from "@/features/trust/lib/faq"
 
 export const metadata: Metadata = {
-  title: "Docs | Kloak",
+  title: "Docs",
   description:
     "Detailed Kloak documentation for payment links, private settlement, selective disclosure, proof verification, and operational workflows.",
 }

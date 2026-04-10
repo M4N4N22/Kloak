@@ -39,9 +39,9 @@ export function DocsToc({ items }: { items: DocsTocItem[] }) {
   }, [items])
 
   return (
-    <aside className="hidden xl:block">
-      <div className="sticky top-24 rounded-[2rem] border border-foreground/8 bg-black/20 p-4 backdrop-blur-xl">
-        <p className="px-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">On this page</p>
+    <aside className="">
+      <div className="sticky top-24 rounded-[2rem]  p-4 backdrop-blur-xl">
+        <p className="px-2 text-[11px] font-semibold  text-zinc-500">On this page</p>
         <nav className="mt-3 space-y-1">
           {items.map((item) => (
             <a
@@ -50,7 +50,7 @@ export function DocsToc({ items }: { items: DocsTocItem[] }) {
               className={cn(
                 "block rounded-xl px-3 py-2 text-sm transition-colors",
                 activeId === item.id
-                  ? "bg-primary/10 text-primary"
+                  ? " text-primary"
                   : "text-zinc-400 hover:bg-white/[0.04] hover:text-foreground",
               )}
             >

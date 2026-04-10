@@ -8,7 +8,7 @@ import { DocsCodeBlock } from "@/features/docs/components/docs-code-block"
 import { DocsSection } from "@/features/docs/components/docs-section"
 
 export const metadata: Metadata = {
-  title: "Verification Docs | Kloak",
+  title: "Verification Docs",
   description: "How Kloak proof verification works across package checks, public Aleo references, and Kloak record status.",
 }
 
