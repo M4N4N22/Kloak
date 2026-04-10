@@ -17,7 +17,7 @@ export function DocsSection({ id, title, description, children }: DocsSectionPro
           <h2 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h2>
           
         </div>
-        {description ? <p className="max-w-3xl mt-1 text-sm leading-7 text-zinc-400">{description}</p> : null}
+        {description ? <p className="max-w-3xl mt-1 text-sm leading-7 text-neutral-400">{description}</p> : null}
       </div>
       <div className="mt-5">{children}</div>
     </section>

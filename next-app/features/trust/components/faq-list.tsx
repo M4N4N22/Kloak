@@ -38,11 +38,11 @@ export function FaqList({ items }: FaqListProps) {
                   open && "rotate-180",
                 )}
               >
-                <ChevronDown className="h-4 w-4 text-zinc-300" />
+                <ChevronDown className="h-4 w-4 text-neutral-300" />
               </span>
             </CollapsibleTrigger>
             <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
-              <p className="pt-4 text-sm leading-7 text-zinc-400">{item.answer}</p>
+              <p className="pt-4 text-sm leading-7 text-neutral-400">{item.answer}</p>
             </CollapsibleContent>
           </Collapsible>
         )

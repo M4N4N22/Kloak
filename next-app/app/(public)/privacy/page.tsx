@@ -51,7 +51,7 @@ export default function PrivacyPage() {
           <h2 className="text-xl font-semibold text-foreground">{section.title}</h2>
           <div className="mt-2 space-y-1">
             {section.points.map((point) => (
-              <p key={point} className="text-sm leading-7 text-zinc-400">
+              <p key={point} className="text-sm leading-7 text-neutral-400">
                 {point}
               </p>
             ))}

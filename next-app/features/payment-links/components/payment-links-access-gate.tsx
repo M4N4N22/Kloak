@@ -4,6 +4,7 @@ import type { ReactNode } from "react"
 import { Link2 } from "lucide-react"
 
 import { WalletConnect } from "@/components/wallet-connect"
+import { CreatorAccessGate } from "@/features/trust/components/creator-access-gate"
 
 export function PaymentLinksAccessGate({
   connected,
@@ -12,11 +13,9 @@ export function PaymentLinksAccessGate({
   connected: boolean
   children: ReactNode
 }) {
-  if (connected) {
-    return <>{children}</>
-  }
+  void connected
 
-  return (
+  const disconnectedFallback = (
     <div className=" bg-[radial-gradient(circle_at_top,rgba(241,246,106,0.12),transparent_30%),rgba(255,255,255,0.02)]  p-16 text-center ">
       <div className="mx-auto flex flex-col items-center gap-5">
         <div className="rounded-3xl bg-primary/10 p-4 text-primary">
@@ -31,5 +30,19 @@ export function PaymentLinksAccessGate({
         <WalletConnect />
       </div>
     </div>
+  )
+
+  return (
+    <CreatorAccessGate
+      disconnectedFallback={disconnectedFallback}
+      eyebrow="Creator Workspace"
+      title="Unlock your payment links workspace"
+      description="Before we open your payment links, analytics, and private creator settings, we ask your wallet to confirm that this is really you."
+      actionLabel="Unlock payment links"
+      dialogTitle="Confirm it’s you"
+      dialogDescription="We’re about to ask your wallet for a quick confirmation so we can open payment links and creator settings tied to this wallet. This is only an access check."
+    >
+      {children}
+    </CreatorAccessGate>
   )
 }

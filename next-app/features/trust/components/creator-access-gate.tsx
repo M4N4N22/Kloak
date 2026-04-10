@@ -2,9 +2,10 @@
 
 import { useEffect, useMemo, useState, type ReactNode } from "react"
 import { useWallet } from "@provablehq/aleo-wallet-adaptor-react"
+import type { LucideIcon } from "lucide-react"
 import { Fingerprint, LockKeyhole, ShieldCheck, Wallet } from "lucide-react"
 
-import { ComplianceDisconnectedState } from "@/app/(main)/compliance/components/compliance-disconnected-state"
+import { WalletConnect } from "@/components/wallet-connect"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -15,12 +16,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import {
-  buildComplianceAccessMessage,
-  bytesToBase64,
-  COMPLIANCE_READ_SCOPE,
-  getCachedComplianceAccessPayload,
-  setCachedComplianceAccessPayload,
-} from "@/lib/compliance-access"
+  CREATOR_READ_SCOPE,
+  getCachedCreatorAccessPayload,
+  getOrCreateCreatorAccessPayload,
+} from "@/lib/creator-access"
 
 function getHumanAccessError(error: unknown) {
   const message = error instanceof Error ? error.message.toLowerCase() : ""
@@ -46,15 +45,53 @@ function getHumanAccessError(error: unknown) {
     return "We couldn't finish the wallet check. Please try again and approve the request in your wallet."
   }
 
-  return "We couldn't confirm that this wallet owns these records yet. Please try again."
+  return "We couldn't confirm that this wallet owns these creator settings yet. Please try again."
 }
 
-export function ComplianceAccessGate({
+type AccessPoint = {
+  icon: LucideIcon
+  title: string
+  description: string
+}
+
+const DEFAULT_ACCESS_POINTS: AccessPoint[] = [
+  {
+    icon: Fingerprint,
+    title: "Quick identity check",
+    description: "This only confirms that you control the wallet tied to this workspace.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "No funds move",
+    description: "Nothing is paid, sent, or posted on-chain during this step.",
+  },
+  {
+    icon: Wallet,
+    title: "Needed for private settings",
+    description: "It protects creator dashboards, link settings, and automations from opening under the wrong wallet.",
+  },
+]
+
+export function CreatorAccessGate({
   children,
-  requiresSignedAccess = false,
+  disconnectedFallback,
+  eyebrow,
+  title,
+  description,
+  actionLabel,
+  dialogTitle,
+  dialogDescription,
+  accessPoints = DEFAULT_ACCESS_POINTS,
 }: {
   children: ReactNode
-  requiresSignedAccess?: boolean
+  disconnectedFallback?: ReactNode
+  eyebrow: string
+  title: string
+  description: string
+  actionLabel: string
+  dialogTitle: string
+  dialogDescription: string
+  accessPoints?: AccessPoint[]
 }) {
   const { connected, address, signMessage } = useWallet()
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -65,10 +102,10 @@ export function ComplianceAccessGate({
   const viewerAddress = address?.trim() || ""
   const hasCachedAccess = useMemo(
     () =>
-      requiresSignedAccess && viewerAddress
-        ? Boolean(getCachedComplianceAccessPayload(COMPLIANCE_READ_SCOPE, viewerAddress))
+      viewerAddress
+        ? Boolean(getCachedCreatorAccessPayload(CREATOR_READ_SCOPE, viewerAddress))
         : false,
-    [requiresSignedAccess, viewerAddress],
+    [viewerAddress],
   )
 
   useEffect(() => {
@@ -78,12 +115,12 @@ export function ComplianceAccessGate({
   }, [viewerAddress, hasCachedAccess])
 
   if (!connected) {
-    return <ComplianceDisconnectedState />
+    return disconnectedFallback ? <>{disconnectedFallback}</> : <WalletConnect />
   }
 
   const requestAccess = async () => {
     if (!viewerAddress) {
-      setError("Connect the wallet that owns these payments or proofs first.")
+      setError("Connect the wallet that owns this workspace first.")
       return
     }
 
@@ -91,23 +128,10 @@ export function ComplianceAccessGate({
       setAuthorizing(true)
       setError(null)
 
-      const issuedAt = Date.now().toString()
-      const message = buildComplianceAccessMessage({
-        scope: COMPLIANCE_READ_SCOPE,
+      await getOrCreateCreatorAccessPayload({
+        scope: CREATOR_READ_SCOPE,
         viewerAddress,
-        issuedAt,
-      })
-      const signatureBytes = await signMessage(new TextEncoder().encode(message))
-
-      if (!signatureBytes) {
-        throw new Error("Wallet did not return a signature.")
-      }
-
-      setCachedComplianceAccessPayload({
-        viewerAddress,
-        scope: COMPLIANCE_READ_SCOPE,
-        issuedAt,
-        signature: bytesToBase64(signatureBytes),
+        signMessage,
       })
 
       setAccessGranted(true)
@@ -119,54 +143,38 @@ export function ComplianceAccessGate({
     }
   }
 
-  if (requiresSignedAccess && !accessGranted) {
+  if (!accessGranted) {
     return (
       <>
-        <div className="flex min-h-[calc(100vh-18rem)] items-center justify-center ">
+        <div className="flex min-h-[calc(100vh-18rem)] items-center justify-center">
           <div className="w-full max-w-2xl rounded-[2.5rem] border p-8 text-left shadow-[0_30px_120px_rgba(0,0,0,0.35)] backdrop-blur-xl">
             <div className="flex items-start gap-4">
               <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border text-primary">
                 <LockKeyhole className="h-6 w-6" />
               </div>
               <div className="space-y-3">
-                <p className="text-xs  text-primary/80">
-                  Sensitive Workspace
-                </p>
-                <h2 className="text-2xl font-semibold tracking-tight text-foreground">
-                  Unlock your compliance records
-                </h2>
-                <p className="max-w-xl text-sm leading-6 text-neutral-400">
-                  These pages show payments and proof records tied to your wallet. Before we show them, we ask your wallet to confirm that this is really you.
-                </p>
+                <p className="text-xs text-primary/80">{eyebrow}</p>
+                <h2 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h2>
+                <p className="max-w-xl text-sm leading-6 text-neutral-400">{description}</p>
               </div>
             </div>
 
             <div className="mt-6 grid gap-3 text-sm text-neutral-300 md:grid-cols-3">
-              <AccessPoint
-                icon={Fingerprint}
-                title="Quick identity check"
-                description="This only confirms that you control the wallet tied to these records."
-              />
-              <AccessPoint
-                icon={ShieldCheck}
-                title="No funds move"
-                description="Nothing is paid, sent, or posted on-chain during this step."
-              />
-              <AccessPoint
-                icon={Wallet}
-                title="Needed for private records"
-                description="It protects sent and received payment history from being opened by the wrong wallet."
-              />
+              {accessPoints.map((item) => (
+                <div key={item.title} className="rounded-3xl border p-6">
+                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <item.icon className="h-4 w-4" />
+                  </div>
+                  <p className="text-sm font-medium text-foreground">{item.title}</p>
+                  <p className="mt-1 text-xs leading-5 text-neutral-500">{item.description}</p>
+                </div>
+              ))}
             </div>
 
-            {error ? (
-              <div className="mt-5 text-red-500 text-sm ml-2">
-                {error}
-              </div>
-            ) : null}
+            {error ? <div className="mt-5 ml-2 text-sm text-red-500">{error}</div> : null}
 
             <div className="mt-6 flex flex-col items-center gap-3">
-              <Button onClick={() => setDialogOpen(true)}>Unlock compliance records</Button>
+              <Button onClick={() => setDialogOpen(true)}>{actionLabel}</Button>
               <p className="text-xs text-neutral-500">
                 You&apos;ll review the request before the wallet opens.
               </p>
@@ -175,16 +183,14 @@ export function ComplianceAccessGate({
         </div>
 
         <Dialog open={dialogOpen} onOpenChange={(open) => !authorizing && setDialogOpen(open)}>
-          <DialogContent className="max-w-xl min-w-xl bg-neutral-950/50 p-0" showCloseButton={!authorizing}>
+          <DialogContent className="min-w-xl max-w-xl bg-neutral-950/50 p-0" showCloseButton={!authorizing}>
             <DialogHeader className="px-8 pt-8">
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                 <ShieldCheck className="h-5 w-5" />
               </div>
-              <DialogTitle className="text-xl font-semibold text-foreground">
-                Confirm it&apos;s you
-              </DialogTitle>
+              <DialogTitle className="text-xl font-semibold text-foreground">{dialogTitle}</DialogTitle>
               <DialogDescription className="mt-2 text-sm leading-6 text-neutral-400">
-                We&apos;re about to ask your wallet for a quick confirmation so we can open payments and proofs that belong to this wallet. This is just an access check.
+                {dialogDescription}
               </DialogDescription>
             </DialogHeader>
 
@@ -214,24 +220,4 @@ export function ComplianceAccessGate({
   }
 
   return <>{children}</>
-}
-
-function AccessPoint({
-  icon: Icon,
-  title,
-  description,
-}: {
-  icon: typeof Fingerprint
-  title: string
-  description: string
-}) {
-  return (
-    <div className="rounded-3xl border  p-6">
-      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-        <Icon className="h-4 w-4" />
-      </div>
-      <p className="text-sm font-medium text-foreground">{title}</p>
-      <p className="mt-1 text-xs leading-5 text-neutral-500">{description}</p>
-    </div>
-  )
 }

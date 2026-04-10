@@ -9,6 +9,7 @@ import { DashboardDisconnectedState } from "./components/dashboard-disconnected-
 import { DashboardKpiBento } from "./components/dashboard-kpi-bento"
 import { DashboardLedger } from "./components/dashboard-ledger"
 import { DashboardPulseHeader } from "./components/dashboard-pulse-header"
+import { CreatorAccessGate } from "@/features/trust/components/creator-access-gate"
 import { useDashboardOverview } from "@/hooks/use-dashboard-overview"
 import { useSelectiveDisclosureProofs } from "@/hooks/use-selective-disclosure-proofs"
 import {
@@ -37,6 +38,27 @@ function DashboardLoadingState() {
 export default function DashboardPage() {
   const { address, connected } = useWallet()
   const actorAddress = address || ""
+
+  if (!connected) {
+    return <DashboardDisconnectedState />
+  }
+
+  return (
+    <CreatorAccessGate
+      disconnectedFallback={<DashboardDisconnectedState />}
+      eyebrow="Creator Workspace"
+      title="Unlock your dashboard"
+      description="Your dashboard includes payment performance, link activity, and creator settings tied to this wallet. We ask for a quick wallet check before opening it."
+      actionLabel="Unlock dashboard"
+      dialogTitle="Confirm it’s you"
+      dialogDescription="We’re about to ask your wallet for a quick confirmation so we can open dashboard data tied to this wallet. This is only an access check."
+    >
+      <DashboardWorkspace actorAddress={actorAddress} />
+    </CreatorAccessGate>
+  )
+}
+
+function DashboardWorkspace({ actorAddress }: { actorAddress: string }) {
   const { overview, loading, error } = useDashboardOverview(actorAddress)
   const { proofs, loading: proofsLoading } = useSelectiveDisclosureProofs(actorAddress)
   const hasProofAccess = useSyncExternalStore(
@@ -64,10 +86,6 @@ export default function DashboardPage() {
           : 0,
     }
   }, [overview, proofs])
-
-  if (!connected) {
-    return <DashboardDisconnectedState />
-  }
 
   if (loading && !overview) {
     return <DashboardLoadingState />

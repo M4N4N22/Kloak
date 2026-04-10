@@ -25,7 +25,7 @@ export function TrustLinksRow({
     <div
       className={cn(
         "flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs",
-        tone === "muted" ? "text-zinc-500" : "text-zinc-300",
+        tone === "muted" ? "text-neutral-500" : "text-neutral-300",
         className,
       )}
     >
@@ -35,13 +35,13 @@ export function TrustLinksRow({
             href={link.href}
             className={cn(
               "transition-colors hover:text-foreground",
-              tone === "muted" ? "text-zinc-500" : "text-zinc-300",
+              tone === "muted" ? "text-neutral-500" : "text-neutral-300",
               linkClassName,
             )}
           >
             {link.label}
           </Link>
-          {index < TRUST_LINKS.length - 1 ? <span className="text-zinc-700">/</span> : null}
+          {index < TRUST_LINKS.length - 1 ? <span className="text-neutral-700">/</span> : null}
         </div>
       ))}
     </div>

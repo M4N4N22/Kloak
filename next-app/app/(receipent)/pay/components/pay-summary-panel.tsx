@@ -24,7 +24,7 @@ export function PaySummaryPanel({
         </div>
         <div>
           <p className="text-sm font-semibold text-foreground">Kloak</p>
-          <p className="text-xs text-zinc-500">Private payment checkout</p>
+          <p className="text-xs text-neutral-500">Private payment checkout</p>
         </div>
       </div>
 
@@ -32,7 +32,7 @@ export function PaySummaryPanel({
         <p className="text-[11px] font-semibold text-primary">{copy.eyebrow}</p>
         <div className="space-y-2">
           <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">{link.title}</h1>
-          <p className="max-w-md text-xs leading-7 text-zinc-400">
+          <p className="max-w-md text-sm leading-7 text-neutral-400">
             {link.description || copy.helper}
           </p>
         </div>
@@ -53,7 +53,7 @@ export function PaySummaryPanel({
         </div>
       </div>
 
-      <div className="mt-8 flex items-center gap-2 text-xs text-zinc-500">
+      <div className="mt-8 flex items-center gap-2 text-xs text-neutral-500">
         <Globe className="h-4 w-4" />
         <span className="font-mono">{`kloak.vercel.app/pay/${link.id}`}</span>
       </div>
@@ -72,12 +72,12 @@ function SummaryRow({
 }) {
   return (
     <div className="flex items-start gap-3 rounded-2xl p-2">
-      <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-xl border bg-black/30 text-zinc-200">
+      <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-xl border bg-black/30 text-neutral-200">
         <Icon className="h-4 w-4 text-primary" />
       </div>
       <div>
         <p className="text-sm font-medium text-foreground">{label}</p>
-        <p className="text-xs leading-6 text-zinc-500">{value}</p>
+        <p className="text-xs leading-6 text-neutral-500">{value}</p>
       </div>
     </div>
   )

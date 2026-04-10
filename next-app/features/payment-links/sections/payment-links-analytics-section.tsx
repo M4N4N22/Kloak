@@ -15,6 +15,15 @@ import { usePaymentLinksOverview } from "@/hooks/use-payment-links-overview"
 export function PaymentLinksAnalyticsSection() {
   const { connected, address } = useWallet()
   const creatorAddress = address || ""
+
+  return (
+    <PaymentLinksAccessGate connected={connected}>
+      <PaymentLinksAnalyticsContent creatorAddress={creatorAddress} />
+    </PaymentLinksAccessGate>
+  )
+}
+
+function PaymentLinksAnalyticsContent({ creatorAddress }: { creatorAddress: string }) {
   const { overview } = usePaymentLinksOverview(creatorAddress)
   const { profile } = useCreatorProfile(creatorAddress)
 
@@ -25,7 +34,6 @@ export function PaymentLinksAnalyticsSection() {
     })) || []
 
   return (
-    <PaymentLinksAccessGate connected={connected}>
       <div className="space-y-8">
         <PaymentLinksSectionHeader
           eyebrow="Analytics"
@@ -135,7 +143,6 @@ export function PaymentLinksAnalyticsSection() {
           </div>
         )}
       </div>
-    </PaymentLinksAccessGate>
   )
 }
 

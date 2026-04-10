@@ -23,7 +23,7 @@ export function LandingHeroSection() {
               <br />
               <span className="opacity-50">Disclose Selectively.</span>
             </h1>
-            <p className="mx-auto max-w-3xl text-base leading-relaxed text-zinc-400 sm:text-lg">
+            <p className="mx-auto max-w-3xl text-base leading-relaxed text-neutral-400 sm:text-lg">
               Create a payment link, get paid privately, and share a proof only when you need to.
             </p>
           </div>
@@ -55,7 +55,7 @@ export function LandingHeroSection() {
               <div className="rounded-[2rem] border  p-6 sm:p-8">
                 <div className="flex items-center justify-between">
                   <p className="text-[10px] font-bold uppercase text-primary">Payment link</p>
-                  <div className="rounded-full border border-foreground/10 px-3 py-1 text-xs font-semibold uppercase  text-zinc-400">
+                  <div className="rounded-full border border-foreground/10 px-3 py-1 text-xs font-semibold uppercase  text-neutral-400">
                     shareable
                   </div>
                 </div>
@@ -73,7 +73,7 @@ export function LandingHeroSection() {
                         </div>
                         <div>
                           <p className="text-sm font-semibold text-foreground">Request</p>
-                          <p className="text-xs text-zinc-500">Payment link</p>
+                          <p className="text-xs text-neutral-500">Payment link</p>
                         </div>
                       </div>
                     </div>
@@ -84,18 +84,18 @@ export function LandingHeroSection() {
                         </div>
                         <div>
                           <p className="text-sm font-semibold text-foreground">Settle</p>
-                          <p className="text-xs text-zinc-500">Private</p>
+                          <p className="text-xs text-neutral-500">Private</p>
                         </div>
                       </div>
                     </div>
                   </div>
                   <div className="rounded-[2rem] border border-foreground/5 bg-foreground/[0.02] p-5">
-                    <p className="text-sm text-zinc-500">Proof package</p>
+                    <p className="text-sm text-neutral-500">Proof package</p>
                     <p className="mt-2 text-xl font-semibold text-foreground">Share only what needs to be shared.</p>
                     <div className="mt-4 flex flex-wrap gap-2">
-                      <div className="rounded-full border border-foreground/10 px-3 py-1 text-[10px] font-bold uppercase  text-zinc-400">Basic</div>
-                      <div className="rounded-full border border-foreground/10 px-3 py-1 text-[10px] font-bold uppercase  text-zinc-400">Amount</div>
-                      <div className="rounded-full border border-foreground/10 px-3 py-1 text-[10px] font-bold uppercase  text-zinc-400">Threshold</div>
+                      <div className="rounded-full border border-foreground/10 px-3 py-1 text-[10px] font-bold uppercase  text-neutral-400">Basic</div>
+                      <div className="rounded-full border border-foreground/10 px-3 py-1 text-[10px] font-bold uppercase  text-neutral-400">Amount</div>
+                      <div className="rounded-full border border-foreground/10 px-3 py-1 text-[10px] font-bold uppercase  text-neutral-400">Threshold</div>
                     </div>
                   </div>
                 </div>
@@ -104,12 +104,12 @@ export function LandingHeroSection() {
               <div className="grid gap-4">
                 <div className="rounded-[2rem] border p-6">
                   <div className="flex items-center justify-between">
-                    <p className="text-[10px] font-bold uppercase text-zinc-500">Operator layer</p>
+                    <p className="text-[10px] font-bold uppercase text-neutral-500">Operator layer</p>
                     <div className="flex items-center gap-2">
-                      <div className="rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-2 text-zinc-300">
+                      <div className="rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-2 text-neutral-300">
                         <Bot className="h-4 w-4" />
                       </div>
-                      <div className="rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-2 text-zinc-300">
+                      <div className="rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-2 text-neutral-300">
                         <Webhook className="h-4 w-4" />
                       </div>
                     </div>
@@ -117,9 +117,9 @@ export function LandingHeroSection() {
                   <div className="mt-8 space-y-4">
                     <p className="text-2xl font-semibold tracking-tight text-foreground">Works with the tools around you.</p>
                     <div className="space-y-3">
-                      <div className="rounded-2xl border border-foreground/5  px-4 py-3 text-sm text-zinc-300">Get paid alerts in Telegram</div>
-                      <div className="rounded-2xl border border-foreground/5 px-4 py-3 text-sm text-zinc-300">Send payment events to your backend</div>
-                      <div className="rounded-2xl border border-foreground/5  px-4 py-3 text-sm text-zinc-300">Connect your existing workflows</div>
+                      <div className="rounded-2xl border border-foreground/5  px-4 py-3 text-sm text-neutral-300">Get paid alerts in Telegram</div>
+                      <div className="rounded-2xl border border-foreground/5 px-4 py-3 text-sm text-neutral-300">Send payment events to your backend</div>
+                      <div className="rounded-2xl border border-foreground/5  px-4 py-3 text-sm text-neutral-300">Connect your existing workflows</div>
                     </div>
                   </div>
                 </div>

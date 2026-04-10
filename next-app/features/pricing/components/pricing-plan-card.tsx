@@ -37,8 +37,8 @@ export function PricingPlanCard({
         "group relative flex flex-col border-0 overflow-hidden rounded-[2rem]  transition-all duration-500 p-7 before:absolute before:inset-0 before:pointer-events-none before:opacity-100",
         toneClasses,
         featured
-          ? " bg-zinc-950 shadow-[0_24px_90px_rgba(0,0,0,0.36)]"
-          : " bg-zinc-950/80 hover:border-foreground/12 shadow-[0_20px_70px_rgba(0,0,0,0.26)]"
+          ? " bg-neutral-950 shadow-[0_24px_90px_rgba(0,0,0,0.36)]"
+          : " bg-neutral-950/80 hover:border-foreground/12 shadow-[0_20px_70px_rgba(0,0,0,0.26)]"
       )}
     >
       <div className="relative flex h-full flex-col gap-7">
@@ -49,13 +49,13 @@ export function PricingPlanCard({
                 "rounded-full px-3 py-1 text-xs border-none transition-colors ",
                 featured
                   ? "bg-primary/10 text-blue-300"
-                  : "bg-foreground/5 text-zinc-400 group-hover:bg-foreground/10"
+                  : "bg-foreground/5 text-neutral-400 group-hover:bg-foreground/10"
               )}
             >
               {plan.eyebrow}
             </Badge>
             {planStateLabel && (
-              <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-600">
                 {planStateLabel}
               </span>
             )}
@@ -84,7 +84,7 @@ export function PricingPlanCard({
 
         {/* 2. Features List */}
         <div className="space-y-4">
-          <p className="text-xs text-zinc-600">Includes</p>
+          <p className="text-xs text-neutral-600">Includes</p>
           <div className="space-y-3">
             {plan.highlights.map((feature) => (
               <div key={feature} className="group/item flex items-start gap-3">
@@ -92,11 +92,11 @@ export function PricingPlanCard({
                   "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full  transition-all",
                   featured
                     ? "border-primary/30 bg-primary/10 text-primary"
-                    : "border-foreground/10 bg-foreground/5 text-zinc-500 group-hover/item:border-primary/50 group-hover/item:text-primary"
+                    : "border-foreground/10 bg-foreground/5 text-neutral-500 group-hover/item:border-primary/50 group-hover/item:text-primary"
                 )}>
                   <Check className="h-3 w-3" strokeWidth={3} />
                 </div>
-                <span className="text-sm font-medium text-zinc-400 transition-colors group-hover/item:text-zinc-200">
+                <span className="text-sm font-medium text-neutral-400 transition-colors group-hover/item:text-neutral-200">
                   {feature}
                 </span>
               </div>

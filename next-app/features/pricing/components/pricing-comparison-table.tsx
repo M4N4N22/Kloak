@@ -26,7 +26,7 @@ export function PricingComparisonTable({ rows }: PricingComparisonTableProps) {
       <div className="overflow-x-auto">
         <div className="min-w-[760px]">
           <div className="grid grid-cols-[1.5fr_0.75fr_0.75fr] gap-4 border-b  ">
-            <div className="text-xs font-semibold  text-zinc-500 p-8 sm:px-7 bg-neutral-950/50">
+            <div className="text-xs font-semibold  text-neutral-500 p-8 sm:px-7 bg-neutral-950/50">
               Features
             </div>
 
@@ -53,12 +53,12 @@ export function PricingComparisonTable({ rows }: PricingComparisonTableProps) {
                 >
                   <div className="pr-3 bg-neutral-950/50  p-4 sm:px-7">
                     <div className="flex items-start gap-3">
-                      <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full  bg-foreground/[0.03] text-zinc-300">
+                      <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full  bg-foreground/[0.03] text-neutral-300">
                         <Icon className="h-4 w-4" />
                       </div>
                       <div className="space-y-1 ">
                         <div className="font-medium text-foreground">{row.label}</div>
-                        <p className="text-sm leading-6 text-zinc-500">{row.description}</p>
+                        <p className="text-sm leading-6 text-neutral-500">{row.description}</p>
                       </div>
                     </div>
                   </div>
@@ -93,14 +93,14 @@ function PlanColumnHeader({
   return (
     <div
       className={cn(
-        "rounded-2xl  text-center text-xs font-semibold  text-zinc-500 p-8 sm:px-7 ",
+        "rounded-2xl  text-center text-xs font-semibold  text-neutral-500 p-8 sm:px-7 ",
         featured && ""
       )}
     >
-      <div className={cn("text-sm font-semibold", featured ? "text-primary" : "text-zinc-200")}>
+      <div className={cn("text-sm font-semibold", featured ? "text-primary" : "text-neutral-200")}>
         {label}
       </div>
-      <div className="mt-1 text-[11px] uppercase tracking-[0.14em] text-zinc-500">
+      <div className="mt-1 text-[11px] uppercase tracking-[0.14em] text-neutral-500">
         {note}
       </div>
     </div>
@@ -122,7 +122,7 @@ function PlanValue({
             "flex h-9 w-9 items-center justify-center rounded-full ",
             featured
               ? "border-primary/20 text-primary"
-              : "border-foreground/10  text-zinc-100"
+              : "border-foreground/10  text-neutral-100"
           )}
         >
           <Check className="h-4 w-4" strokeWidth={3} />
@@ -131,7 +131,7 @@ function PlanValue({
     }
 
     return (
-      <span className="inline-flex items-center gap-2 rounded-full  px-3 py-1.5 text-xs font-medium text-zinc-500">
+      <span className="inline-flex items-center gap-2 rounded-full  px-3 py-1.5 text-xs font-medium text-neutral-500">
 
         Not included
       </span>
@@ -144,7 +144,7 @@ function PlanValue({
         "inline-flex items-center justify-center rounded-full  px-3 py-1.5 text-xs font-medium",
         featured
           ? " text-primary"
-          : " text-zinc-300"
+          : " text-neutral-300"
       )}
     >
       {value}

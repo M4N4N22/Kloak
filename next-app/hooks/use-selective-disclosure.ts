@@ -3,6 +3,11 @@
 import { useState } from "react"
 import { useWallet } from "@provablehq/aleo-wallet-adaptor-react"
 import type { SelectiveDisclosureProof } from "@/hooks/use-selective-disclosure-proofs"
+import {
+  clearCachedComplianceAccessPayload,
+  COMPLIANCE_READ_SCOPE,
+  getCachedComplianceAccessPayload,
+} from "@/lib/compliance-access"
 
 type DisclosureConstraints = {
   minAmount?: number
@@ -384,20 +389,35 @@ export function useSelectiveDisclosure() {
     }
   }
 
-  const revokeProof = async (proofId: string, actorAddress: string) => {
+  const revokeProof = async (proofId: string) => {
     try {
       setBusyAction("revoke")
       setError(null)
 
+      const viewerAddress = address?.trim()
+
+      if (!viewerAddress) {
+        throw new Error("Connect the wallet that owns this proof first.")
+      }
+
+      const accessPayload = getCachedComplianceAccessPayload(COMPLIANCE_READ_SCOPE, viewerAddress)
+
+      if (!accessPayload) {
+        throw new Error("Unlock your compliance records before revoking a proof.")
+      }
+
       const res = await fetch(`/api/proof/${encodeURIComponent(proofId)}/revoke`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ actorAddress }),
+        body: JSON.stringify(accessPayload),
       })
 
       const data = await res.json()
 
       if (!res.ok) {
+        if (res.status === 401 || res.status === 403) {
+          clearCachedComplianceAccessPayload(COMPLIANCE_READ_SCOPE, viewerAddress)
+        }
         throw new Error(data.error || "Failed to revoke proof")
       }
 

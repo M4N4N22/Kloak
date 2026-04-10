@@ -48,6 +48,10 @@ import {
     PAYMENT_LINK_TEMPLATE_TO_DB,
     type PaymentLinkTemplateId,
 } from "@/features/payment-links/lib/templates"
+import {
+    CREATOR_WRITE_SCOPE,
+    getOrCreateCreatorAccessPayload,
+} from "@/lib/creator-access"
 
 type CreateStatus = "idle" | "signing" | "proving" | "broadcasting" | "finalizing" | "saving"
 type FormStep = 1 | 2 | 3
@@ -108,7 +112,7 @@ const TEMPLATE_ICONS = {
 
 export default function CreateLinkForm() {
     const [loading, setLoading] = useState(false)
-    const { address, connected, executeTransaction, transactionStatus } = useWallet()
+    const { address, connected, executeTransaction, transactionStatus, signMessage } = useWallet()
 
     const [txId, setTxId] = useState<string | null>(null)
     const [successOpen, setSuccessOpen] = useState(false)
@@ -324,11 +328,23 @@ export default function CreateLinkForm() {
             }
 
             setStatus("saving")
+            if (!address) {
+                throw new Error("Connect your wallet to create payment links.")
+            }
+
+            const access = await getOrCreateCreatorAccessPayload({
+                scope: CREATOR_WRITE_SCOPE,
+                viewerAddress: address,
+                signMessage,
+            })
             const res = await fetch("/api/payment-links", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    creatorAddress: address,
+                    viewerAddress: access.viewerAddress,
+                    scope: access.scope,
+                    issuedAt: access.issuedAt,
+                    signature: access.signature,
                     requestId,
                     title,
                     description,

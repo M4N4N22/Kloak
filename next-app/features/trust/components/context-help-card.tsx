@@ -26,7 +26,7 @@ export function ContextHelpCard({
             {eyebrow}
           </p>
           <h2 className="text-lg font-semibold tracking-tight text-foreground">{title}</h2>
-          <p className="text-sm leading-6 text-zinc-400">{description}</p>
+          <p className="text-sm leading-6 text-neutral-400">{description}</p>
         </div>
 
         <div className="flex flex-wrap gap-2">

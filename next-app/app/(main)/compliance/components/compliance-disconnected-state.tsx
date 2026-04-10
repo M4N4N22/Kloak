@@ -23,7 +23,7 @@ export function ComplianceDisconnectedState() {
               Create, Review and share your <br />
               payment proofs.
             </h1>
-            <p className="max-w-2xl text-base leading-relaxed text-zinc-400">
+            <p className="max-w-2xl text-base leading-relaxed text-neutral-400">
               Connect the wallet you used for payments to generate private receipts.
               You can share proof of payment with partners without revealing your full history or balance.
             </p>
@@ -55,9 +55,9 @@ export function ComplianceDisconnectedState() {
   // Simple helper for the bottom grid
   function FeatureMiniCard({ title, desc }: { title: string; desc: string }) {
     return (
-      <div className="rounded-[2rem] border border-foreground/5 bg-zinc-900/40 p-6 transition-colors hover:bg-zinc-900/60">
+      <div className="rounded-[2rem] border border-foreground/5 bg-neutral-900/40 p-6 transition-colors hover:bg-neutral-900/60">
         <h3 className="text-sm font-bold text-foreground mb-2 tracking-tight">{title}</h3>
-        <p className="text-xs leading-relaxed text-zinc-500">{desc}</p>
+        <p className="text-xs leading-relaxed text-neutral-500">{desc}</p>
       </div>
     )
   }

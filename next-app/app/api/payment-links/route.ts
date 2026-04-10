@@ -1,13 +1,27 @@
 import { NextResponse } from "next/server"
 import { createPaymentLink, getPaymentLinks } from "@/lib/services/paymentLink.service"
+import {
+  CREATOR_READ_SCOPE,
+  CREATOR_WRITE_SCOPE,
+  isCreatorAccessError,
+  verifyCreatorAccessRequest,
+} from "@/lib/creator-access"
 
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const link = await createPaymentLink(body)
+    const creatorAddress = await verifyCreatorAccessRequest(body, CREATOR_WRITE_SCOPE)
+    const link = await createPaymentLink({
+      ...body,
+      creatorAddress,
+    })
     return NextResponse.json(link)
 
   } catch (error: unknown) {
+    if (isCreatorAccessError(error)) {
+      return NextResponse.json({ error: error.message }, { status: error.status })
+    }
+
     const message = error instanceof Error ? error.message : "Failed to create payment link"
     const stack = error instanceof Error ? error.stack : undefined
     const prismaEngine =
@@ -34,20 +48,25 @@ export async function POST(req: Request) {
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url)
-    const creator = searchParams.get("creator")
-
-    if (!creator) {
-      return NextResponse.json(
-        { error: "Missing creator address" },
-        { status: 400 }
-      )
-    }
+    const creator = await verifyCreatorAccessRequest(
+      {
+        viewerAddress: searchParams.get("viewerAddress") || undefined,
+        scope: searchParams.get("scope") || undefined,
+        issuedAt: searchParams.get("issuedAt") || undefined,
+        signature: searchParams.get("signature") || undefined,
+      },
+      CREATOR_READ_SCOPE,
+    )
 
     const links = await getPaymentLinks(creator)
 
     return NextResponse.json(links)
 
   } catch (error: unknown) {
+    if (isCreatorAccessError(error)) {
+      return NextResponse.json({ error: error.message }, { status: error.status })
+    }
+
     const message = error instanceof Error ? error.message : "Failed to fetch payment links"
     console.error("GET Error Details:", message)
 

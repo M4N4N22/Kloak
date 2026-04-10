@@ -14,7 +14,7 @@ export function LandingCtaSection() {
               <br />
               Selective disclosure.
             </h2>
-            <p className="mx-auto max-w-xl text-sm leading-relaxed text-zinc-300 sm:text-base">
+            <p className="mx-auto max-w-xl text-sm leading-relaxed text-neutral-300 sm:text-base">
               Start with a link. Stay in control after the payment arrives.
             </p>
           </div>

@@ -42,7 +42,7 @@ export function LandingPillarsSection() {
                 key={item.title}
                 href={item.href}
                 className={[
-                  "group rounded-[2.5rem] border backdrop-blur-xl  p-7 transition-colors hover:bg-zinc-900/50",
+                  "group rounded-[2.5rem] border backdrop-blur-xl  p-7 transition-colors hover:bg-neutral-900/50",
                   index === 0 ? "xl:min-h-[20rem]" : "",
                 ].join(" ")}
               >
@@ -53,11 +53,11 @@ export function LandingPillarsSection() {
                     </div>
                     <div className="space-y-2">
                       <h3 className="text-2xl font-semibold tracking-tight text-foreground">{item.title}</h3>
-                      <p className="text-sm leading-relaxed text-zinc-400">{item.body}</p>
+                      <p className="text-sm leading-relaxed text-neutral-400">{item.body}</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 text-[11px] font-bold uppercase  text-zinc-400 transition-colors group-hover:text-primary">
+                  <div className="flex items-center gap-2 text-[11px] font-bold uppercase  text-neutral-400 transition-colors group-hover:text-primary">
                     Open
                     <ArrowUpRight className="h-4 w-4" />
                   </div>

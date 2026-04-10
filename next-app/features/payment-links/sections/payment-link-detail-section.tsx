@@ -4,7 +4,7 @@ import Link from "next/link"
 import { useState } from "react"
 import { useWallet } from "@provablehq/aleo-wallet-adaptor-react"
 import type { LucideIcon } from "lucide-react"
-import { Copy, ExternalLink, ArrowLeft, Globe, Activity, Fingerprint, BarChart3, Clock3 } from "lucide-react"
+import { Globe, Activity, Fingerprint, BarChart3 } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -23,6 +23,21 @@ import { usePaymentLinkDetails } from "@/hooks/use-payment-link-details"
 export function PaymentLinkDetailSection({ linkId }: { linkId: string }) {
   const { connected, address } = useWallet()
   const creatorAddress = address || ""
+
+  return (
+    <PaymentLinksAccessGate connected={connected}>
+      <PaymentLinkDetailContent creatorAddress={creatorAddress} linkId={linkId} />
+    </PaymentLinksAccessGate>
+  )
+}
+
+function PaymentLinkDetailContent({
+  linkId,
+  creatorAddress,
+}: {
+  linkId: string
+  creatorAddress: string
+}) {
   const { detail, error, loading } = usePaymentLinkDetails(linkId, creatorAddress)
   const [copied, setCopied] = useState(false)
 
@@ -35,9 +50,7 @@ export function PaymentLinkDetailSection({ linkId }: { linkId: string }) {
   if (loading) return <LoadingState />
   if (!detail) return <ErrorState error={error} />
 
-
   return (
-    <PaymentLinksAccessGate connected={connected}>
       <div className="space-y-8 animate-in fade-in duration-500">
 
         {/* 1. TOP CONTROL BAR */}
@@ -53,7 +66,7 @@ export function PaymentLinkDetailSection({ linkId }: { linkId: string }) {
                 <h1 className="text-2xl font-bold tracking-tight text-foreground">{detail.title}</h1>
                 <LinkStatusBadge active={detail.active} expiresAt={detail.expiresAt} />
               </div>
-              <p className="text-sm text-zinc-500 font-mono tracking-tight">{shortHash(detail.requestId, 12, 10)}</p>
+              <p className="text-sm text-neutral-500 font-mono tracking-tight">{shortHash(detail.requestId, 12, 10)}</p>
             </div>
           </div>
 
@@ -106,7 +119,7 @@ export function PaymentLinkDetailSection({ linkId }: { linkId: string }) {
             {/* Primary Details Card */}
             <Card>
               <CardContent className="p-8">
-                <div className="mb-6 flex items-center gap-2 text-sm text-zinc-500">
+                <div className="mb-6 flex items-center gap-2 text-sm text-neutral-500">
                   Configuration & Settings
                 </div>
                 <div className="grid gap-8 sm:grid-cols-2">
@@ -123,7 +136,7 @@ export function PaymentLinkDetailSection({ linkId }: { linkId: string }) {
               <div className="pt-6 border-t border-foreground/5">
                   <div className="rounded-2xl p-4 bg-foreground/2">
                     <p className="text-xs font-bold text-primary mb-1">Privacy Notice</p>
-                    <p className="text-xs leading-relaxed text-zinc-400">
+                    <p className="text-xs leading-relaxed text-neutral-400">
                       Who paid stays private by default. Selective disclosure lets the owner reveal only specific payment proofs.
                     </p>
                   </div>
@@ -138,7 +151,7 @@ export function PaymentLinkDetailSection({ linkId }: { linkId: string }) {
             <Card>
               <CardContent className="p-8 space-y-6">
                 <div>
-                  <h3 className="text-sm text-zinc-500 mb-4">Internal Metadata</h3>
+                  <h3 className="text-sm text-neutral-500 mb-4">Internal Metadata</h3>
                   <div className="space-y-4">
                     <MetaRow label="Created At" value={formatDateTime(detail.createdAt)} />
                     <MetaRow label="Request ID" value={detail.requestId} mono />
@@ -155,22 +168,21 @@ export function PaymentLinkDetailSection({ linkId }: { linkId: string }) {
         </div>
           <PaymentLinkPaymentsTable payments={detail.payments} requestId={detail.requestId} />
       </div>
-    </PaymentLinksAccessGate>
   )
 }
 
 function LoadingState() {
   return (
     <div className="space-y-4">
-      <div className="h-20 animate-pulse rounded-[2.5rem] border border-foreground/5 bg-zinc-900/40" />
+      <div className="h-20 animate-pulse rounded-[2.5rem] border border-foreground/5 bg-neutral-900/40" />
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, index) => (
-          <div key={index} className="h-36 animate-pulse rounded-[2rem] border border-foreground/5 bg-zinc-900/40" />
+          <div key={index} className="h-36 animate-pulse rounded-[2rem] border border-foreground/5 bg-neutral-900/40" />
         ))}
       </div>
       <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
-        <div className="h-[440px] animate-pulse rounded-[2.5rem] border border-foreground/5 bg-zinc-900/40" />
-        <div className="h-[320px] animate-pulse rounded-[2.5rem] border border-foreground/5 bg-zinc-900/40" />
+        <div className="h-[440px] animate-pulse rounded-[2.5rem] border border-foreground/5 bg-neutral-900/40" />
+        <div className="h-[320px] animate-pulse rounded-[2.5rem] border border-foreground/5 bg-neutral-900/40" />
       </div>
     </div>
   )
@@ -199,14 +211,14 @@ function MetricCard({
     <Card>
       <CardContent className="p-6">
         <div className="flex justify-between items-start ">
-          <p className="text-base  text-zinc-500">{label}</p>
-          <div className={cn("p-4 border rounded-full", primary ? "border-primary/10 text-primary" : "border text-zinc-500")}>
+          <p className="text-base  text-neutral-500">{label}</p>
+          <div className={cn("p-4 border rounded-full", primary ? "border-primary/10 text-primary" : "border text-neutral-500")}>
 
             <Icon className="h-4 w-4" />
           </div>
         </div>
 
-        <h3 className={cn("mt-1 font-mono text-2xl font-bold tracking-tight", primary ? "text-foreground" : "text-zinc-200")}>
+        <h3 className={cn("mt-1 font-mono text-2xl font-bold tracking-tight", primary ? "text-foreground" : "text-neutral-200")}>
           {value}
         </h3>
       </CardContent>
@@ -225,8 +237,8 @@ function DetailItem({
 }) {
   return (
     <div className="space-y-1">
-      <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">{label}</p>
-      <p className={cn("text-lg font-medium text-zinc-200", capitalized && "capitalize")}>{value}</p>
+      <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-600">{label}</p>
+      <p className={cn("text-lg font-medium text-neutral-200", capitalized && "capitalize")}>{value}</p>
     </div>
   )
 }
@@ -242,8 +254,8 @@ function MetaRow({
 }) {
   return (
     <div className="space-y-1 bg-foreground/2 p-3 rounded-2xl">
-      <p className="text-[10px] font-bold text-zinc-600 tracking-tight">{label}</p>
-      <p className={cn("text-xs break-all leading-relaxed text-zinc-400", mono && "font-mono")}>{value}</p>
+      <p className="text-[10px] font-bold text-neutral-600 tracking-tight">{label}</p>
+      <p className={cn("text-xs break-all leading-relaxed text-neutral-400", mono && "font-mono")}>{value}</p>
     </div>
   )
 }

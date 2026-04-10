@@ -26,14 +26,14 @@ export function LandingDisclosureSection() {
               </div>
               <div className="space-y-3">
                 <h3 className="text-3xl font-semibold tracking-tight text-foreground">Create a proof when you need one.</h3>
-                <p className="text-sm leading-relaxed text-zinc-400">
+                <p className="text-sm leading-relaxed text-neutral-400">
                   Start from a payment, choose what you want to show, and keep the rest private.
                 </p>
               </div>
 
               <div className="rounded-3xl border border-foreground/5 bg-black/25 p-5">
-                <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-zinc-500">Still private</p>
-                <div className="mt-3 space-y-2 text-sm text-zinc-400">
+                <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-neutral-500">Still private</p>
+                <div className="mt-3 space-y-2 text-sm text-neutral-400">
                   <p>Most payment details</p>
                   <p>Payer identity</p>
                   <p>Unrelated wallet history</p>
@@ -45,12 +45,12 @@ export function LandingDisclosureSection() {
           <div className="flex flex-col gap-3">
             {proofs.map((proof) => (
               <div key={proof.title} className="rounded-[2rem] border flex items-center gap-4  p-6 backdrop-blur-xl">
-                <div className="flex h-11 w-11 items-center justify-center rounded-full  bg-primary/10 text-zinc-100">
+                <div className="flex h-11 w-11 items-center justify-center rounded-full  bg-primary/10 text-neutral-100">
                   <Scale className="h-5 w-5 text-primary" />
                 </div>
                 <div className="space-y-2">
                   <h3 className="text-xl font-semibold text-foreground">{proof.title}</h3>
-                  <p className="text-sm leading-relaxed text-zinc-400">{proof.body}</p>
+                  <p className="text-sm leading-relaxed text-neutral-400">{proof.body}</p>
                 </div>
               </div>
             ))}

@@ -11,6 +11,7 @@ import { BotsActivityLedger } from "./components/bots-activity-ledger"
 import { BotsCommandCenter } from "./components/bots-command-center"
 import { BotsKpiGrid } from "./components/bots-kpi-grid"
 import { BotsPulseHeader } from "./components/bots-pulse-header"
+import { CreatorAccessGate } from "@/features/trust/components/creator-access-gate"
 import { ContextHelpCard } from "@/features/trust/components/context-help-card"
 import { useBotsOverview } from "@/hooks/use-bots-overview"
 
@@ -60,11 +61,28 @@ function BotsLoadingState() {
 export default function BotsPage() {
   const { connected, address } = useWallet()
   const actorAddress = address || ""
-  const { overview, loading, error } = useBotsOverview(actorAddress)
 
   if (!connected) {
     return <BotsDisconnectedState />
   }
+
+  return (
+    <CreatorAccessGate
+      disconnectedFallback={<BotsDisconnectedState />}
+      eyebrow="Creator Workspace"
+      title="Unlock your Telegram workspace"
+      description="Your Telegram activity, linked users, and bot settings are tied to this wallet. We ask for a quick wallet check before opening them."
+      actionLabel="Unlock Telegram workspace"
+      dialogTitle="Confirm it’s you"
+      dialogDescription="We’re about to ask your wallet for a quick confirmation so we can open Telegram activity and settings tied to this wallet. This is only an access check."
+    >
+      <BotsWorkspace actorAddress={actorAddress} />
+    </CreatorAccessGate>
+  )
+}
+
+function BotsWorkspace({ actorAddress }: { actorAddress: string }) {
+  const { overview, loading, error } = useBotsOverview(actorAddress)
 
   if (loading && !overview) {
     return <BotsLoadingState />

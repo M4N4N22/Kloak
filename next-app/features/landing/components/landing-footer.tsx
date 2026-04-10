@@ -43,7 +43,7 @@ export function LandingFooter() {
         <div className="grid gap-8 sm:grid-cols-3">
           {footerGroups.map((group) => (
             <div key={group.title} className="space-y-3">
-              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-zinc-500">
+              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-neutral-500">
                 {group.title}
               </p>
               <div className="space-y-2">
@@ -51,7 +51,7 @@ export function LandingFooter() {
                   <Link
                     key={link.label}
                     href={link.href}
-                    className="block text-sm text-zinc-400 transition-colors hover:text-foreground"
+                    className="block text-sm text-neutral-400 transition-colors hover:text-foreground"
                   >
                     {link.label}
                   </Link>
@@ -62,7 +62,7 @@ export function LandingFooter() {
         </div>
       </div>
 
-      <div className="mx-auto mt-12 flex max-w-7xl flex-col gap-3 border-t border-foreground/5 px-6 pt-6 text-xs text-zinc-500 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto mt-12 flex max-w-7xl flex-col gap-3 border-t border-foreground/5 px-6 pt-6 text-xs text-neutral-500 sm:flex-row sm:items-center sm:justify-between">
         <p>{"\u00A9"} 2026 Kloak Labs</p>
         <p>Built for payments that need privacy and proof.</p>
       </div>

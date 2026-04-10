@@ -54,12 +54,12 @@ export function DocsTopNav() {
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between gap-4">
           <Link href="/docs" className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-foreground/10 bg-zinc-950 text-[11px] font-bold tracking-[0.24em] text-primary">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-foreground/10 bg-neutral-950 text-[11px] font-bold tracking-[0.24em] text-primary">
               KL
             </div>
             <div>
               <p className="text-sm font-semibold tracking-tight text-foreground">Kloak Docs</p>
-              <p className="text-[11px] text-zinc-500">Guides, trust model, and verification</p>
+              <p className="text-[11px] text-neutral-500">Guides, trust model, and verification</p>
             </div>
           </Link>
 
@@ -68,7 +68,7 @@ export function DocsTopNav() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="rounded-full px-3 py-2 text-sm text-zinc-400 transition-colors hover:bg-white/5 hover:text-foreground"
+                className="rounded-full px-3 py-2 text-sm text-neutral-400 transition-colors hover:bg-white/5 hover:text-foreground"
               >
                 {link.label}
               </Link>
@@ -80,13 +80,13 @@ export function DocsTopNav() {
               <DialogTrigger asChild>
                 <Button
                   variant="outline"
-                  className="min-w-[160px] justify-between rounded-full border-foreground/10 bg-white/[0.03] text-zinc-300 hover:bg-white/[0.06]"
+                  className="min-w-[160px] justify-between rounded-full border-foreground/10 bg-white/[0.03] text-neutral-300 hover:bg-white/[0.06]"
                 >
                   <span className="flex items-center gap-2">
                     <Search className="h-4 w-4" />
                     Search docs
                   </span>
-                  <span className="hidden items-center gap-1 rounded-full border border-foreground/10 px-2 py-0.5 text-[11px] text-zinc-500 sm:flex">
+                  <span className="hidden items-center gap-1 rounded-full border border-foreground/10 px-2 py-0.5 text-[11px] text-neutral-500 sm:flex">
                     <Command className="h-3 w-3" />K
                   </span>
                 </Button>
@@ -109,7 +109,7 @@ export function DocsTopNav() {
 
                 <div className="grid gap-6 px-6 pb-6 md:grid-cols-[1.1fr_0.9fr]">
                   <div className="space-y-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">Guides</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-neutral-500">Guides</p>
                     <div className="space-y-2">
                       {searchResults.guides.map((item) => (
                         <button
@@ -123,14 +123,14 @@ export function DocsTopNav() {
                           className="w-full rounded-[1.25rem] border border-foreground/8 bg-white/[0.02] px-4 py-3 text-left transition-colors hover:border-foreground/12 hover:bg-white/[0.04]"
                         >
                           <p className="text-sm font-medium text-foreground">{item.title}</p>
-                          <p className="mt-1 text-xs leading-5 text-zinc-500">{item.description}</p>
+                          <p className="mt-1 text-xs leading-5 text-neutral-500">{item.description}</p>
                         </button>
                       ))}
                     </div>
                   </div>
 
                   <div className="space-y-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">Popular questions</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-neutral-500">Popular questions</p>
                     <div className="space-y-2">
                       {searchResults.faq.map((item) => (
                         <button
@@ -144,7 +144,7 @@ export function DocsTopNav() {
                           className="w-full rounded-[1.25rem] border border-foreground/8 bg-white/[0.02] px-4 py-3 text-left transition-colors hover:border-foreground/12 hover:bg-white/[0.04]"
                         >
                           <p className="text-sm font-medium text-foreground">{item.question}</p>
-                          <p className="mt-1 line-clamp-2 text-xs leading-5 text-zinc-500">{item.answer}</p>
+                          <p className="mt-1 line-clamp-2 text-xs leading-5 text-neutral-500">{item.answer}</p>
                         </button>
                       ))}
                     </div>
@@ -169,13 +169,13 @@ export function DocsTopNav() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="secondary" className="rounded-full border-foreground/10 bg-white/[0.03] text-zinc-300">
+          <Badge variant="secondary" className="rounded-full border-foreground/10 bg-white/[0.03] text-neutral-300">
             April 2026 docs
           </Badge>
-          <Badge variant="secondary" className="rounded-full border-foreground/10 bg-white/[0.03] text-zinc-300">
+          <Badge variant="secondary" className="rounded-full border-foreground/10 bg-white/[0.03] text-neutral-300">
             Chain-first verification
           </Badge>
-          <Badge variant="secondary" className="rounded-full border-foreground/10 bg-white/[0.03] text-zinc-300">
+          <Badge variant="secondary" className="rounded-full border-foreground/10 bg-white/[0.03] text-neutral-300">
             Private settlement
           </Badge>
         </div>

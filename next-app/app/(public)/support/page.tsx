@@ -49,7 +49,7 @@ export default function SupportPage() {
             className="rounded-[2rem] border border-foreground/8 bg-black/20 px-6 py-6 transition-colors hover:border-foreground/14 hover:bg-black/30"
           >
             <h2 className="text-xl font-semibold text-foreground">{path.title}</h2>
-            <p className="mt-3 text-sm leading-7 text-zinc-400">{path.description}</p>
+            <p className="mt-3 text-sm leading-7 text-neutral-400">{path.description}</p>
             <p className="mt-5 text-sm font-medium text-primary">{path.cta}</p>
           </Link>
         ))}
@@ -57,7 +57,7 @@ export default function SupportPage() {
 
       <section className=" py-6 backdrop-blur-xl">
         <h2 className="text-xl font-semibold text-foreground">What helps us help faster</h2>
-        <div className="mt-4 space-y-1 text-sm leading-7 text-zinc-400">
+        <div className="mt-4 space-y-1 text-sm leading-7 text-neutral-400">
           <p>Include the page you were on, what wallet you were using, and the exact message you saw.</p>
           <p>For proof issues, include whether the problem happened while generating, copying, or verifying the proof.</p>
           <p>For payment issues, include whether the payment reached the wallet, the pay page, or the Kloak history view.</p>

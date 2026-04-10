@@ -22,7 +22,7 @@ export function DocsSidebar() {
       <nav className="space-y-5">
         {Object.entries(groupedItems).map(([group, items]) => (
           <div key={group} className="space-y-2">
-            <p className="px-2 text-xs text-zinc-500">{group}</p>
+            <p className="px-2 text-xs text-neutral-500">{group}</p>
             <div className="space-y-2">
               {items.map((item) => {
                

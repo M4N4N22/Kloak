@@ -79,7 +79,7 @@ function ActionCard({
   return (
     <Link
       href={href}
-      className={`group rounded-[2rem] bg-zinc-950/50 py-8 px-6 transition hover:border-foreground/10 hover:bg-black/30 ${
+      className={`group rounded-[2rem] bg-neutral-950/50 py-8 px-6 transition hover:border-foreground/10 hover:bg-black/30 ${
         featured ? "md:col-span-2" : ""
       }`}
     >

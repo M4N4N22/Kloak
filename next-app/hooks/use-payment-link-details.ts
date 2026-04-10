@@ -1,6 +1,13 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import { useWallet } from "@provablehq/aleo-wallet-adaptor-react"
+
+import {
+  clearCachedCreatorAccessPayload,
+  CREATOR_READ_SCOPE,
+  getOrCreateCreatorAccessPayload,
+} from "@/lib/creator-access"
 
 import type { PaymentLinkTemplateId } from "@/features/payment-links/lib/templates"
 
@@ -41,6 +48,7 @@ export type PaymentLinkDetail = {
 }
 
 export function usePaymentLinkDetails(linkId?: string | null, creatorAddress?: string | null) {
+  const { signMessage } = useWallet()
   const [detail, setDetail] = useState<PaymentLinkDetail | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -55,10 +63,24 @@ export function usePaymentLinkDetails(linkId?: string | null, creatorAddress?: s
       setLoading(true)
       setError(null)
 
-      const res = await fetch(`/api/payment-links/${encodeURIComponent(linkId)}?creator=${encodeURIComponent(creatorAddress)}`)
+      const access = await getOrCreateCreatorAccessPayload({
+        scope: CREATOR_READ_SCOPE,
+        viewerAddress: creatorAddress,
+        signMessage,
+      })
+      const searchParams = new URLSearchParams({
+        viewerAddress: access.viewerAddress,
+        scope: access.scope,
+        issuedAt: access.issuedAt,
+        signature: access.signature,
+      })
+      const res = await fetch(`/api/payment-links/${encodeURIComponent(linkId)}?${searchParams.toString()}`)
       const data = await res.json()
 
       if (!res.ok) {
+        if (res.status === 401 || res.status === 403) {
+          clearCachedCreatorAccessPayload(CREATOR_READ_SCOPE, creatorAddress)
+        }
         throw new Error(data.error || "Failed to load payment link details")
       }
 
@@ -68,7 +90,7 @@ export function usePaymentLinkDetails(linkId?: string | null, creatorAddress?: s
     } finally {
       setLoading(false)
     }
-  }, [creatorAddress, linkId])
+  }, [creatorAddress, linkId, signMessage])
 
   useEffect(() => {
     void refresh()
