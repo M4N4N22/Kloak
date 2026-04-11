@@ -1,62 +1,87 @@
 import Link from "next/link"
-import { ArrowUpRight, Bot, Workflow, Webhook } from "lucide-react"
+import { ArrowUpRight, Bot, Workflow, Webhook, Zap } from "lucide-react"
 import { SectionHeading } from "@/features/landing/components/section-heading"
+import { cn } from "@/lib/utils"
 
 const surfaces = [
   {
-    title: "Telegram bot",
-    body: "Share links and get paid alerts in chat.",
+    title: "Telegram Bot",
+    body: "Share payment links and receive real-time privacy-safe alerts directly in your chat.",
     href: "/bots",
     icon: Bot,
+    tag: "Native",
   },
   {
     title: "Webhooks",
-    body: "Send payment events to your backend.",
+    body: "The bridge to your backend. Sync payment events with your existing databases instantly.",
     href: "/webhooks",
     icon: Webhook,
+    tag: "API",
   },
   {
     title: "Automation",
-    body: "Connect Kloak to your existing workflows.",
+    body: "Connect your private payment flow to Zapier or custom internal workflows.",
     href: "/dashboard",
     icon: Workflow,
+    tag: "Beta",
   },
 ]
 
 export function LandingOperationsSection() {
   return (
-    <section id="operations" className="px-6 py-20 sm:py-24">
-      <div className="mx-auto max-w-7xl space-y-10">
+    <section id="operations" className="relative px-6 py-24 sm:py-32">
+      {/* Background Pattern: Subtle Blueprint Grid */}
+      <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:44px_44px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
+
+      <div className="mx-auto max-w-7xl">
         <SectionHeading
-          eyebrow="Operator surfaces"
-          title="Built to work with the rest of your stack."
-          description="Telegram, webhooks, and automation around the payment."
+          eyebrow="Connectivity"
+          title="Operate at the speed of chat."
+          description="Kloak isn't a silo. It's the engine for your existing stack."
           centered
         />
 
-        <div className="grid gap-4 xl:grid-cols-3">
-          {surfaces.map((surface) => {
+        <div className="mt-20 grid gap-6 md:grid-cols-3">
+          {surfaces.map((surface, index) => {
             const Icon = surface.icon
             return (
               <Link
                 key={surface.title}
                 href={surface.href}
-                className="group rounded-[2.5rem] border backdrop-blur-xl p-7 transition-colors hover:bg-neutral-900/5"
+                className="group relative flex flex-col justify-between overflow-hidden rounded-[2.5rem] backdrop-blur-xl border border-white/5 bg-zinc-900/20 p-8 transition-all duration-500  hover:bg-zinc-900/40 hover:shadow-2xl"
               >
-                <div className="flex h-full flex-col justify-between gap-10">
-                  <div className="space-y-5">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full  bg-primary/10 text-primary">
+                {/* Schematic Corner: Indicates connectivity */}
+                <div className="absolute right-0 top-0 h-16 w-16 opacity-10 transition-opacity group-hover:opacity-30">
+         
+               
+                </div>
+
+                <div className="space-y-8">
+                  {/* Icon & Tag Row */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl  bg-white/5 text-primary shadow-inner  transition-transform">
                       <Icon className="h-5 w-5" />
                     </div>
-                    <div className="space-y-2">
-                      <h3 className="text-2xl font-semibold tracking-tight text-foreground">{surface.title}</h3>
-                      <p className="text-sm leading-relaxed text-neutral-400">{surface.body}</p>
-                    </div>
+                    <span className="rounded-lg bg-white/5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-zinc-500 group-hover:text-zinc-300 transition-colors">
+                      {surface.tag}
+                    </span>
                   </div>
-                  <div className="flex items-center gap-2 text-[11px] font-bold uppercase  text-neutral-400 transition-colors group-hover:text-primary">
-                    Open
-                    <ArrowUpRight className="h-4 w-4" />
+
+                  {/* Text Content */}
+                  <div className="space-y-3">
+                    <h3 className="text-2xl font-bold tracking-tight text-white group-hover:text-primary transition-colors">
+                      {surface.title}
+                    </h3>
+                    <p className="text-sm leading-relaxed text-zinc-500 transition-colors group-hover:text-zinc-400">
+                      {surface.body}
+                    </p>
                   </div>
+                </div>
+
+                {/* Bottom Action Bar */}
+                <div className="mt-12 flex items-center justify-between  pt-6 transition-colors group-hover:border-primary/10">
+                
+                  <ArrowUpRight className="h-4 w-4 text-zinc-700 transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary" />
                 </div>
               </Link>
             )

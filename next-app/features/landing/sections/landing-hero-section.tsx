@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Bot, Link2, ShieldCheck, Webhook } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import Image from "next/image"
 
 const heroStats = [
   { label: "Core", value: "Payment links + proofs" },
@@ -32,7 +33,7 @@ export function LandingHeroSection() {
             <Link href="/payment-links">
               <Button size="lg" className="w-full  sm:w-auto">
                 Create payment link
-               
+
               </Button>
             </Link>
             <Link href="/compliance">
@@ -45,97 +46,42 @@ export function LandingHeroSection() {
               </Button>
             </Link>
           </div>
-
-          
         </div>
 
-        <div className="rounded-[2.75rem] border p-3 shadow-2xl shadow-black/30 backdrop-blur-xl">
-          <div className="rounded-[2.2rem] border  p-5 sm:p-7">
-            <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
-              <div className="rounded-[2rem] border  p-6 sm:p-8">
-                <div className="flex items-center justify-between">
-                  <p className="text-[10px] font-bold uppercase text-primary">Payment link</p>
-                  <div className="rounded-full border border-foreground/10 px-3 py-1 text-xs font-semibold uppercase  text-neutral-400">
-                    shareable
-                  </div>
-                </div>
-                <div className="mt-8 space-y-4">
-                  <h2 className="max-w-lg text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-                    Share the payment page.
-                    <br />
-                    Keep the payment private.
-                  </h2>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="rounded-3xl border border-foreground/5 bg-foreground/[0.02] p-5">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full  bg-primary/10 text-primary">
-                          <Link2 className="h-4 w-4" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold text-foreground">Request</p>
-                          <p className="text-xs text-neutral-500">Payment link</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="rounded-3xl border border-foreground/5 bg-foreground/[0.02] p-5">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full  bg-primary/10 text-primary">
-                          <ShieldCheck className="h-4 w-4" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold text-foreground">Settle</p>
-                          <p className="text-xs text-neutral-500">Private</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="rounded-[2rem] border border-foreground/5 bg-foreground/[0.02] p-5">
-                    <p className="text-sm text-neutral-500">Proof package</p>
-                    <p className="mt-2 text-xl font-semibold text-foreground">Share only what needs to be shared.</p>
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      <div className="rounded-full border border-foreground/10 px-3 py-1 text-[10px] font-bold uppercase  text-neutral-400">Basic</div>
-                      <div className="rounded-full border border-foreground/10 px-3 py-1 text-[10px] font-bold uppercase  text-neutral-400">Amount</div>
-                      <div className="rounded-full border border-foreground/10 px-3 py-1 text-[10px] font-bold uppercase  text-neutral-400">Threshold</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+        <div className="relative mx-auto max-w-6xl">
+<div className="pointer-events-none absolute inset-x-0 bottom-0 h-60 z-20 bg-gradient-to-t from-background via-background to-transparent" />
+          {/* Background glow */}
+          
 
-              <div className="grid gap-4">
-                <div className="rounded-[2rem] border p-6">
-                  <div className="flex items-center justify-between">
-                    <p className="text-[10px] font-bold uppercase text-neutral-500">Operator layer</p>
-                    <div className="flex items-center gap-2">
-                      <div className="rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-2 text-neutral-300">
-                        <Bot className="h-4 w-4" />
-                      </div>
-                      <div className="rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-2 text-neutral-300">
-                        <Webhook className="h-4 w-4" />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-8 space-y-4">
-                    <p className="text-2xl font-semibold tracking-tight text-foreground">Works with the tools around you.</p>
-                    <div className="space-y-3">
-                      <div className="rounded-2xl border border-foreground/5  px-4 py-3 text-sm text-neutral-300">Get paid alerts in Telegram</div>
-                      <div className="rounded-2xl border border-foreground/5 px-4 py-3 text-sm text-neutral-300">Send payment events to your backend</div>
-                      <div className="rounded-2xl border border-foreground/5  px-4 py-3 text-sm text-neutral-300">Connect your existing workflows</div>
-                    </div>
-                  </div>
-                </div>
+          {/* Outer frame */}
+          <div className="rounded-[3rem]  bg-flagship-gradient  ">
 
-                <div className="rounded-[2rem] border  p-6">
-                  <p className="text-sm text-primary">Truthful privacy</p>
-                  <p className="mt-4 text-2xl font-semibold tracking-tight text-foreground">
-                    The page can be public.
-                    <br />
-                    The payer does not have to be.
-                  </p>
-                </div>
-              </div>
+            {/* Inner frame */}
+
+
+            {/* Screenshot container */}
+            <div className="relative overflow-hidden rounded-[3rem] border-8  ">
+
+              {/* Top gradient overlay */}
+              <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-24 " />
+
+              {/* Subtle reflection */}
+           
+{/* Bottom fade → blends into page */}
+
+              <Image
+                src="/landing/dashboard1.png"
+                alt="Private payments dashboard preview"
+                width={1600}
+                height={1000}
+                priority
+                className="h-auto w-full object-cover transition-transform duration-700 ease-out   "
+              />
+
             </div>
           </div>
         </div>
+
       </div>
     </section>
   )
