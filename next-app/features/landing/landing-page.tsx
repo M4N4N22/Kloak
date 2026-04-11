@@ -13,13 +13,11 @@ export function LandingPage() {
     <div className="min-h-screen  text-foreground selection:bg-primary/20 selection:text-foreground">
       <div className="pointer-events-none fixed inset-0 -z-10">
         {/* The Dot Matrix Layer */}
-        <div
-          className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.15)_1px,transparent_1px)] bg-size-[40px_40px] "
-        />
+
 
         {/* The Glow/Vignette Layers */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(241,246,106,0.08),transparent_28%)]" />
-        <div className="absolute inset-x-0 top-0 h-screen bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.06),transparent_65%)]" />
+      
       </div>
 
       <main className="relative">
@@ -28,7 +26,6 @@ export function LandingPage() {
         <LandingPillarsSection />
         <LandingDisclosureSection />
         <LandingOperationsSection />
-        <LandingPrivacySection />
         <LandingFaqSection />
         <LandingCtaSection />
       </main>

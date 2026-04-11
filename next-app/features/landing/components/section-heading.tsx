@@ -8,7 +8,7 @@ type SectionHeadingProps = {
 export function SectionHeading({ eyebrow, title, description, centered = false }: SectionHeadingProps) {
   return (
     <div className={centered ? "space-y-4 text-center" : "space-y-4"}>
-      <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-primary">{eyebrow}</p>
+      <p className="text-sm text-primary">{eyebrow}</p>
       <div className="space-y-3">
         <h2
           className={

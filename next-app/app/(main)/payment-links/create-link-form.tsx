@@ -427,9 +427,6 @@ export default function CreateLinkForm() {
                                 <CardDescription className="text-xs text-muted-foreground/70">
                                     Step {currentStep} of {FORM_STEPS.length}
                                 </CardDescription>
-                                <p className="max-w-xl text-sm text-muted-foreground">
-                                    Build the link in a few smaller steps so you can focus on one choice at a time.
-                                </p>
                             </div>
 
                             <Button
@@ -473,7 +470,7 @@ export default function CreateLinkForm() {
                                                 className={cn(
                                                     "rounded-[1.5rem] border  p-4 text-left transition-all",
                                                     active
-                                                        ? "border-transparent bg-primary/8"
+                                                        ? "border-transparent border-white/70"
                                                         : " bg-black/10 hover:border-foreground/15 hover:bg-foreground/5",
                                                 )}
                                             >
