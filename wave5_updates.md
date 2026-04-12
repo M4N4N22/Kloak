@@ -100,7 +100,6 @@ Relevant files:
 - [next-app/lib/portable-proof-verifier.ts](./next-app/lib/portable-proof-verifier.ts)
 - [next-app/lib/aleo-chain-verifier.ts](./next-app/lib/aleo-chain-verifier.ts)
 - [next-app/lib/services/selective-disclosure.service.ts](./next-app/lib/services/selective-disclosure.service.ts)
-- [internal-docs/portable-proof-package-v1.md](./internal-docs/portable-proof-package-v1.md)
 
 ### Portable proof package
 
@@ -170,8 +169,6 @@ Key references:
 
 - [next-app/lib/creator-access.ts](./next-app/lib/creator-access.ts)
 - [next-app/lib/compliance-access.ts](./next-app/lib/compliance-access.ts)
-- [internal-docs/api-security-hardening-plan.md](./internal-docs/api-security-hardening-plan.md)
-- [internal-docs/api-route-classification.md](./internal-docs/api-route-classification.md)
 
 ### Signed creator access
 
