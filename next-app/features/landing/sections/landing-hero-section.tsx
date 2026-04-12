@@ -49,26 +49,10 @@ export function LandingHeroSection() {
         </div>
 
         <div className="relative mx-auto max-w-6xl">
-<div className="pointer-events-none absolute inset-x-0 bottom-0 h-60 z-20 bg-gradient-to-t from-background via-background to-transparent" />
-          {/* Background glow */}
-          
-
-          {/* Outer frame */}
-          <div className="rounded-[3rem]  bg-flagship-gradient  ">
-
-            {/* Inner frame */}
-
-
-            {/* Screenshot container */}
-            <div className="relative overflow-hidden rounded-[3rem] border-8  ">
-
-              {/* Top gradient overlay */}
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-60 z-20 bg-gradient-to-t from-background via-background to-transparent" />
+          <div className="rounded-[2rem]  bg-flagship-gradient  ">
+            <div className="relative overflow-hidden rounded-[2rem] border-8  ">
               <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-24 " />
-
-              {/* Subtle reflection */}
-           
-{/* Bottom fade → blends into page */}
-
               <Image
                 src="/landing/dashboard1.png"
                 alt="Private payments dashboard preview"

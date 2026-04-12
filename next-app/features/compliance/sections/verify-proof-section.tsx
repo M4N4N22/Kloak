@@ -7,7 +7,7 @@ import { useWallet } from "@provablehq/aleo-wallet-adaptor-react"
 import { SectionHeader } from "@/features/compliance/components/section-header"
 import { VerifyProofPanel } from "@/features/compliance/components/verify-proof-panel"
 import { VerifyResultCard } from "@/features/compliance/components/verify-result-card"
-import { TrustLinksRow } from "@/features/trust/components/trust-links-row"
+import { ActionProgressOverlay } from "@/components/action-progress-overlay"
 import { useSelectiveDisclosure } from "@/hooks/use-selective-disclosure"
 
 function getProofIdFromLink(value: string) {
@@ -22,7 +22,7 @@ function getProofIdFromLink(value: string) {
 export function VerifyProofSection() {
   const searchParams = useSearchParams()
   const { address } = useWallet()
-  const { verifyProof, busyAction, error, lastVerified } = useSelectiveDisclosure()
+  const { verifyProof, busyAction, busyStage, error, lastVerified } = useSelectiveDisclosure()
   const [value, setValue] = useState("")
 
   const proofIdFromUrl = searchParams.get("proofId")
@@ -61,6 +61,13 @@ export function VerifyProofSection() {
 
   return (
     <div className="space-y-8">
+      <ActionProgressOverlay
+        open={busyAction === "verify"}
+        eyebrow="Verifying proof"
+        title="Checking proof validity"
+        description="Kloak is checking the proof package, confirming the public Aleo references, and then adding record status where available."
+        statusLabel={busyStage || "Checking proof package"}
+      />
       <SectionHeader
         eyebrow="Verify Proof"
         title="Validate a shared proof"

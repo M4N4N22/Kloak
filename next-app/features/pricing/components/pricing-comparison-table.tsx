@@ -119,10 +119,10 @@ function PlanValue({
       return (
         <span
           className={cn(
-            "flex h-9 w-9 items-center justify-center rounded-full ",
+            "flex h-9 w-9 items-center justify-center ",
             featured
-              ? "border-primary/20 text-primary"
-              : "border-foreground/10  text-neutral-100"
+              ? " border-primary/20  text-primary"
+              : " border-foreground/10  text-neutral-100"
           )}
         >
           <Check className="h-4 w-4" strokeWidth={3} />
@@ -131,8 +131,7 @@ function PlanValue({
     }
 
     return (
-      <span className="inline-flex items-center gap-2 rounded-full  px-3 py-1.5 text-xs font-medium text-neutral-500">
-
+      <span className="inline-flex items-center gap-2 rounded-full border border-foreground/8 bg-foreground/[0.02] px-3 py-1.5 text-xs font-medium text-neutral-500">
         Not included
       </span>
     )
@@ -141,7 +140,7 @@ function PlanValue({
   return (
     <span
       className={cn(
-        "inline-flex items-center justify-center rounded-full  px-3 py-1.5 text-xs font-medium",
+        "inline-flex items-center justify-center  text-center text-xs font-medium leading-5",
         featured
           ? " text-primary"
           : " text-neutral-300"

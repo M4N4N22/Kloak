@@ -292,7 +292,7 @@ function PaymentGrid({
                               }))
                             }
                             placeholder="Paste the original payment transaction hash"
-                            className="h-10 border-white/10 bg-black/30 text-sm text-foreground placeholder:text-neutral-500"
+                            className="h-10 border-foreground/10 bg-black/30 text-sm text-foreground placeholder:text-neutral-500"
                           />
                           <Button
                             type="button"

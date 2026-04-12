@@ -77,7 +77,7 @@ function StoryCard({ item, index }: StoryCardProps) {
   return (
     <div 
       className={cn(
-        "relative flex flex-col group overflow-hidden rounded-[2rem] transition-all duration-700 ease-out p-4 bg-gradient-to-b from-white/5 to-transparent sm:w-1/3",
+        "relative flex flex-col group overflow-hidden rounded-[2rem] transition-all duration-700 ease-out p-4 bg-gradient-to-b from-foreground/5 to-transparent sm:w-1/3",
         "backdrop-blur-xl shadow-2xl shadow-black/40"
       )}
       style={{ transitionDelay: `${index * 80}ms` }}
@@ -105,7 +105,7 @@ function StoryCard({ item, index }: StoryCardProps) {
 
       {/* Text */}
       <div className="relative z-20 space-y-2 py-8 px-4 text-left">
-        <h3 className="text-xl font-bold tracking-tight text-white">
+        <h3 className="text-xl font-bold tracking-tight text-foreground">
           {item.title}
         </h3>
         <p className="text-xs leading-relaxed text-neutral-400 group-hover:text-neutral-300">

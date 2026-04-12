@@ -70,7 +70,7 @@ export function LandingPillarsSection() {
 
                     <div className="space-y-3">
                       <h3 className={cn(
-                        " tracking-tight text-white",
+                        " tracking-tight text-foreground",
                         isLarge ? "text-3xl" : "text-xl"
                       )}>
                         {item.title}

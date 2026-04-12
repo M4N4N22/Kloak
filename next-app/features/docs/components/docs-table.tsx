@@ -10,7 +10,7 @@ export function DocsTable({ headers, rows }: DocsTableProps) {
     <div className="overflow-hidden rounded-[1.75rem] border border-foreground/8 bg-black/20">
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-foreground/8 text-sm">
-          <thead className="bg-white/[0.03]">
+          <thead className="bg-foreground/[0.03]">
             <tr>
               {headers.map((header) => (
                 <th key={header} className="px-4 py-3 text-left font-medium text-neutral-300">

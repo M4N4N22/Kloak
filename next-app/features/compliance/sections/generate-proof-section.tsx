@@ -9,6 +9,7 @@ import { shortHash } from "@/features/compliance/lib/presentation"
 import type { CompliancePayment } from "@/hooks/use-compliance-payments"
 import { useCompliancePayments } from "@/hooks/use-compliance-payments"
 import { useSelectiveDisclosure } from "@/hooks/use-selective-disclosure"
+import type { SelectiveDisclosureProof } from "@/hooks/use-selective-disclosure-proofs"
 import { PaymentSelector } from "@/features/compliance/components/payment-selector"
 import { ProofForm } from "@/features/compliance/components/proof-form"
 import { ProofPreview } from "@/features/compliance/components/proof-preview"
@@ -17,10 +18,15 @@ import { useProofForm } from "@/features/compliance/hooks/use-proof-form"
 import { buildDisclosurePreview, formatMoney, formatRoleLabel } from "@/features/compliance/lib/presentation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { ActionProgressOverlay } from "@/components/action-progress-overlay"
+import { ProofGeneratedDialog } from "@/features/compliance/components/proof-generated-dialog"
 import { cn } from "@/lib/utils"
 
 export function GenerateProofSection() {
   const [currentStep, setCurrentStep] = useState(1)
+  const [generatedProof, setGeneratedProof] = useState<SelectiveDisclosureProof | null>(null)
+  const [successOpen, setSuccessOpen] = useState(false)
+  const [copiedValue, setCopiedValue] = useState<"proofId" | "verifyLink" | null>(null)
   const { address } = useWallet()
   const searchParams = useSearchParams()
   const hasAppliedPrefill = useRef(false)
@@ -35,7 +41,7 @@ export function GenerateProofSection() {
     refresh,
     recoverPayment,
   } = useCompliancePayments(actorAddress)
-  const { generateProof, busyAction, error, duplicateProof, availableProofTypes } = useSelectiveDisclosure()
+  const { generateProof, busyAction, busyStage, error, duplicateProof, availableProofTypes } = useSelectiveDisclosure()
   const { form, error: formError, setError, setField, selectedPayment, selectPayment, validate } =
     useProofForm(payments)
   const activeDuplicateProof =
@@ -87,6 +93,15 @@ export function GenerateProofSection() {
     return items
   }, [form.proofType, form.timestampFrom, form.timestampTo])
 
+  const verifyLink = useMemo(() => {
+    if (!generatedProof) return ""
+
+    const path = `/compliance/verify?proofId=${encodeURIComponent(generatedProof.proofId)}&guide=chain-first`
+
+    if (typeof window === "undefined") return path
+    return `${window.location.origin}${path}`
+  }, [generatedProof])
+
   const handlePaymentPick = (payment: CompliancePayment) => {
     selectPayment(payment)
     setCurrentStep(2)
@@ -114,7 +129,7 @@ export function GenerateProofSection() {
 
     try {
       setError(null)
-      await generateProof({
+      const proof = await generateProof({
         txHash: form.paymentTxHash.trim(),
         requestId: form.requestId.trim(),
         actorRole: form.actorRole,
@@ -128,12 +143,37 @@ export function GenerateProofSection() {
         },
         walletReceipt: selectedPayment?.walletReceipt,
       })
+      setGeneratedProof(proof)
+      setCopiedValue(null)
+      setSuccessOpen(true)
     } catch {
       return
     }
   }
+
+  const handleCopy = async (value: string, kind: "proofId" | "verifyLink") => {
+    await navigator.clipboard.writeText(value)
+    setCopiedValue(kind)
+    window.setTimeout(() => setCopiedValue((current) => (current === kind ? null : current)), 1800)
+  }
+
   return (
     <div className="mx-auto max-w-6xl space-y-10 pb-20">
+      <ActionProgressOverlay
+        open={busyAction === "generate"}
+        eyebrow="Generating proof"
+        title="Creating selective disclosure proof"
+        description="Kloak is preparing your proof, waiting for Aleo confirmation, and storing the final proof record."
+        statusLabel={busyStage || "Preparing proof"}
+      />
+      <ProofGeneratedDialog
+        open={successOpen}
+        onOpenChange={setSuccessOpen}
+        proof={generatedProof}
+        verifyLink={verifyLink}
+        copiedValue={copiedValue}
+        onCopy={handleCopy}
+      />
       <SectionHeader
         eyebrow="Proof Generator"
         title="Verified Compliance Workflow"

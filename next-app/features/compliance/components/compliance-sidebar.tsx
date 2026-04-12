@@ -63,14 +63,13 @@ export function ComplianceSidebar() {
             <span className="text-xs font-semibold uppercase tracking-tight">Privacy Model</span>
           </div>
           <p className="text-[11px] leading-relaxed text-neutral-500">
-            Selective Disclosure v2.0 <br />
+            Selective Disclosure v1.2.4-PROD<br />
             Circuit-level audit trails enabled.
           </p>
         </div>
         
         <div className="flex items-center justify-between px-2 text-[10px] text-neutral-600 font-mono">
           <span>v1.2.4-PROD</span>
-          <span className="text-emerald-900">●</span>
         </div>
       </div>
     </aside>

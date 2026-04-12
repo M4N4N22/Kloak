@@ -51,7 +51,7 @@ export function DocsToc({ items }: { items: DocsTocItem[] }) {
                 "block rounded-xl px-3 py-2 text-sm transition-colors",
                 activeId === item.id
                   ? " text-primary"
-                  : "text-neutral-400 hover:bg-white/[0.04] hover:text-foreground",
+                  : "text-neutral-400 hover:bg-foreground/[0.04] hover:text-foreground",
               )}
             >
               {item.label}
