@@ -2,7 +2,9 @@ import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 import { decryptJsonAtRest, encryptJsonAtRest } from "@/lib/at-rest-encryption"
 import { verifyProofPackageAgainstPublicChain } from "@/lib/aleo-chain-verifier"
+import { validatePaymentTransactionForLink } from "@/lib/payment-chain-validation"
 import { validatePortableDisclosureProofPackage } from "@/lib/portable-proof-verifier"
+import { recordPayment } from "@/lib/services/payment.service"
 import {
   KLOAK_PROGRAM,
   buildSharedDisclosureProof,
@@ -70,6 +72,7 @@ type CompliancePaymentDiagnostic = {
   message: string
   actionLabel: string
   reasonCode: "REQUEST_NOT_INDEXED" | "PAYMENT_NOT_SYNCED" | "PAYMENT_NOT_READY"
+  walletReceipt: WalletReceiptInput
 }
 type WalletReceiptInput = {
   requestId?: string
@@ -178,6 +181,18 @@ function serializeCompliancePayment(
     paymentSource: options?.paymentSource || "server",
     walletReceipt: options?.walletReceipt,
   }
+}
+
+function normalizeWalletReceiptInput(input: WalletReceiptInput, actorRole: DisclosureActorRole) {
+  return {
+    requestId: formatRequestId(input.requestId?.trim() || ""),
+    actorRole,
+    ownerAddress: input.ownerAddress.trim(),
+    counterpartyAddress: input.counterpartyAddress.trim(),
+    commitment: input.commitment.trim(),
+    paymentTimestamp: input.paymentTimestamp.trim(),
+    amountMicro: input.amountMicro.trim(),
+  } satisfies WalletReceiptInput
 }
 
 async function getPaymentByCommitment(commitment: string) {
@@ -720,6 +735,7 @@ async function buildWalletReceiptDiagnostic(input: {
 }): Promise<CompliancePaymentDiagnostic | null> {
   const requestId = formatRequestId(input.walletReceipt.requestId?.trim() || "")
   const actorRole = input.walletReceipt.actorRole === "receiver" ? "receiver" : "payer"
+  const normalizedWalletReceipt = normalizeWalletReceiptInput(input.walletReceipt, actorRole)
 
   if (!requestId || input.walletReceipt.ownerAddress.trim() !== input.viewerAddress.trim()) {
     return null
@@ -774,6 +790,7 @@ async function buildWalletReceiptDiagnostic(input: {
         "We found the receipt in your wallet, but Kloak does not currently have the matching payment request indexed for it. This can happen if the payment came from older test data or a different app environment.",
       actionLabel: "Use a payment made through the current Kloak app, or resync after switching to the matching environment.",
       reasonCode: "REQUEST_NOT_INDEXED",
+      walletReceipt: normalizedWalletReceipt,
     }
   }
 
@@ -788,8 +805,9 @@ async function buildWalletReceiptDiagnostic(input: {
       title: "This payment has not finished syncing into Kloak yet",
       message:
         "The receipt exists in your wallet and the request is known to Kloak, but the settled payment row is not recorded yet. This usually happens if the app was closed before the post-payment sync finished.",
-      actionLabel: "Open the original payment page if possible, or make a fresh payment and wait for the success screen before leaving.",
+      actionLabel: "Paste the original payment transaction hash below to recover this payment into Kloak without paying again.",
       reasonCode: "PAYMENT_NOT_SYNCED",
+      walletReceipt: normalizedWalletReceipt,
     }
   }
 
@@ -805,6 +823,7 @@ async function buildWalletReceiptDiagnostic(input: {
       "Kloak can see a related payment record, but it is still pending, failed, or missing the finalized transaction data needed for compliance proofs.",
     actionLabel: "Wait for the payment to fully settle, then refresh this page and try again.",
     reasonCode: "PAYMENT_NOT_READY",
+    walletReceipt: normalizedWalletReceipt,
   }
 }
 
@@ -877,6 +896,112 @@ export async function listCompliancePayments(viewerAddress: string, walletReceip
       received: diagnostics.filter((item) => item.direction === "received"),
     },
   }
+}
+
+export async function recoverCompliancePayment(input: {
+  viewerAddress: string
+  walletReceipt: WalletReceiptInput
+  txHash: string
+}) {
+  const viewerAddress = input.viewerAddress.trim()
+  const txHash = input.txHash.trim()
+  const actorRole = input.walletReceipt.actorRole === "receiver" ? "receiver" : "payer"
+  const normalizedWalletReceipt = normalizeWalletReceiptInput(input.walletReceipt, actorRole)
+  const requestId = normalizedWalletReceipt.requestId?.trim() || ""
+
+  if (!viewerAddress || !txHash) {
+    throw new SelectiveDisclosureError("Wallet confirmation and transaction hash are required.", 400)
+  }
+
+  if (!requestId || normalizedWalletReceipt.ownerAddress !== viewerAddress) {
+    throw new SelectiveDisclosureError("This wallet receipt does not belong to the connected wallet.", 403)
+  }
+
+  const linkedRequest = await getPaymentLinkByWalletReceipt({
+    requestId,
+    actorRole,
+    walletReceipt: normalizedWalletReceipt,
+  })
+
+  if (!linkedRequest) {
+    throw new SelectiveDisclosureError(
+      "We could not match this receipt to a Kloak payment request in this environment.",
+      404,
+    )
+  }
+
+  const existingRecoveredPayment = await getPaymentByWalletReceipt({
+    requestId,
+    actorRole,
+    walletReceipt: normalizedWalletReceipt,
+  })
+
+  if (existingRecoveredPayment?.txHash && existingRecoveredPayment.status === "SUCCESS") {
+    return serializeCompliancePayment(
+      existingRecoveredPayment,
+      actorRole === "receiver" ? "received" : "sent",
+      {
+        paymentSource: "wallet",
+        walletReceipt: normalizedWalletReceipt,
+      },
+    )
+  }
+
+  const existingByTxHash = await getPaymentByTxHash(txHash)
+
+  if (existingByTxHash && existingByTxHash.PaymentLink.id !== linkedRequest.id) {
+    throw new SelectiveDisclosureError(
+      "This transaction is already attached to a different payment in Kloak.",
+      409,
+    )
+  }
+
+  const submittedAmount = parseMicroUnitsToDisplay(normalizedWalletReceipt.amountMicro)
+  const validation = await validatePaymentTransactionForLink({
+    txHash,
+    link: {
+      id: linkedRequest.id,
+      requestId: linkedRequest.requestId,
+      creatorAddress: linkedRequest.creatorAddress,
+      amount: linkedRequest.amount,
+      allowCustomAmount: linkedRequest.allowCustomAmount,
+      token: linkedRequest.token,
+    },
+    submittedToken: linkedRequest.token,
+    submittedAmount,
+  })
+
+  if (!validation.ok) {
+    throw new SelectiveDisclosureError(validation.message, validation.status)
+  }
+
+  const recoveredPayment = await recordPayment(
+    linkedRequest.id,
+    {
+      merchantAddress: validation.merchantAddress,
+      amount: submittedAmount,
+      token: validation.token,
+      txHash: validation.txHash,
+      receiptCommitment: normalizedWalletReceipt.commitment || null,
+    },
+    { notify: false },
+  )
+
+  const hydratedPayment = await prisma.payment.findUnique({
+    where: { id: recoveredPayment.id },
+    include: {
+      PaymentLink: true,
+    },
+  })
+
+  if (!hydratedPayment) {
+    throw new SelectiveDisclosureError("Payment recovery succeeded, but the rebuilt record could not be loaded.", 500)
+  }
+
+  return serializeCompliancePayment(hydratedPayment, actorRole === "receiver" ? "received" : "sent", {
+    paymentSource: "wallet",
+    walletReceipt: normalizedWalletReceipt,
+  })
 }
 
 export async function prepareSelectiveDisclosureProof(input: {

@@ -27,7 +27,14 @@ export function GenerateProofSection() {
   const actorAddress = address || ""
   const preselectedTxHash = searchParams.get("txHash")?.trim() || ""
 
-  const { payments, loading, error: paymentsError, refresh } = useCompliancePayments(actorAddress)
+  const {
+    payments,
+    loading,
+    recoveringCommitment,
+    error: paymentsError,
+    refresh,
+    recoverPayment,
+  } = useCompliancePayments(actorAddress)
   const { generateProof, busyAction, error, duplicateProof, availableProofTypes } = useSelectiveDisclosure()
   const { form, error: formError, setError, setField, selectedPayment, selectPayment, validate } =
     useProofForm(payments)
@@ -85,6 +92,18 @@ export function GenerateProofSection() {
     setCurrentStep(2)
   }
 
+  const handleRecovery = async (input: {
+    diagnostic: (typeof payments.diagnostics.sent)[number]
+    txHash: string
+  }) => {
+    const recoveredPayment = await recoverPayment({
+      walletReceipt: input.diagnostic.walletReceipt,
+      txHash: input.txHash,
+    })
+
+    handlePaymentPick(recoveredPayment)
+  }
+
   const handleReview = () => {
     if (!validate()) return
     setCurrentStep(3)
@@ -113,7 +132,6 @@ export function GenerateProofSection() {
       return
     }
   }
-console.log(payments)
   return (
     <div className="mx-auto max-w-6xl space-y-10 pb-20">
       <SectionHeader
@@ -154,9 +172,11 @@ console.log(payments)
             payments={payments}
             selectedTxHash={form.paymentTxHash}
             loading={loading}
+            recoveringCommitment={recoveringCommitment}
             error={paymentsError}
             onRefresh={() => void refresh()}
             onSelect={handlePaymentPick}
+            onRecover={handleRecovery}
           />
         </div>
       ) : (

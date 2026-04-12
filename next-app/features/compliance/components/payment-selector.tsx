@@ -5,10 +5,12 @@ import { AlertCircle, ArrowDownLeft, ArrowUpRight, RefreshCw, ListFilter } from 
 import type { CompliancePayment, CompliancePaymentDiagnostic } from "@/hooks/use-compliance-payments"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { formatDateTime, formatMoney, shortHash } from "@/features/compliance/lib/presentation"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { cn } from "@/lib/utils"
+import { useState } from "react"
 
 
 
@@ -23,26 +25,54 @@ type PaymentSelectorProps = {
   }
   selectedTxHash: string
   loading: boolean
+  recoveringCommitment?: string | null
   error: string | null
   onRefresh: () => void
   onSelect: (payment: CompliancePayment) => void
+  onRecover?: (input: { diagnostic: CompliancePaymentDiagnostic; txHash: string }) => Promise<void>
 }
 
 type PaymentGridProps = {
   items: CompliancePayment[]
   diagnostics: CompliancePaymentDiagnostic[]
   selectedTxHash: string
+  recoveringCommitment?: string | null
   onSelect: (payment: CompliancePayment) => void
+  onRecover?: (input: { diagnostic: CompliancePaymentDiagnostic; txHash: string }) => Promise<void>
   emptyText: string
+}
+
+function dedupeCompliancePayments(items: CompliancePayment[]) {
+  const byTxHash = new Map<string, CompliancePayment>()
+
+  for (const item of items) {
+    const existing = byTxHash.get(item.txHash)
+
+    if (!existing) {
+      byTxHash.set(item.txHash, item)
+      continue
+    }
+
+    const existingIsWalletBacked = existing.paymentSource === "wallet" && Boolean(existing.walletReceipt)
+    const currentIsWalletBacked = item.paymentSource === "wallet" && Boolean(item.walletReceipt)
+
+    if (!existingIsWalletBacked && currentIsWalletBacked) {
+      byTxHash.set(item.txHash, item)
+    }
+  }
+
+  return Array.from(byTxHash.values())
 }
 
 export function PaymentSelector({
   payments,
   selectedTxHash,
   loading,
+  recoveringCommitment,
   error,
   onRefresh,
   onSelect,
+  onRecover,
 }: PaymentSelectorProps) {
  
   return (
@@ -92,7 +122,9 @@ export function PaymentSelector({
             items={payments.sent}
             diagnostics={payments.diagnostics.sent}
             selectedTxHash={selectedTxHash}
+            recoveringCommitment={recoveringCommitment}
             onSelect={onSelect}
+            onRecover={onRecover}
             emptyText="No outbound payments found."
           />
         </TabsContent>
@@ -101,7 +133,9 @@ export function PaymentSelector({
             items={payments.received}
             diagnostics={payments.diagnostics.received}
             selectedTxHash={selectedTxHash}
+            recoveringCommitment={recoveringCommitment}
             onSelect={onSelect}
+            onRecover={onRecover}
             emptyText="No inbound payments found."
           />
         </TabsContent>
@@ -110,8 +144,19 @@ export function PaymentSelector({
   )
 }
 
-function PaymentGrid({ items, diagnostics, selectedTxHash, onSelect, emptyText }: PaymentGridProps) {
-  if (items.length === 0 && diagnostics.length === 0) {
+function PaymentGrid({
+  items,
+  diagnostics,
+  selectedTxHash,
+  recoveringCommitment,
+  onSelect,
+  onRecover,
+  emptyText,
+}: PaymentGridProps) {
+  const [recoveryInputs, setRecoveryInputs] = useState<Record<string, string>>({})
+  const uniqueItems = dedupeCompliancePayments(items)
+
+  if (uniqueItems.length === 0 && diagnostics.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 rounded-[2.5rem] border border-dashed border-foreground/10 bg-neutral-950/40">
         <p className="text-sm text-neutral-500 italic">{emptyText}</p>
@@ -121,7 +166,7 @@ function PaymentGrid({ items, diagnostics, selectedTxHash, onSelect, emptyText }
 
   return (
     <div className="space-y-4">
-      {items.length > 0 ? (
+      {uniqueItems.length > 0 ? (
         <div className="w-full overflow-hidden rounded-3xl border">
           {/* Table Header - Matching the Proofs Ledger */}
           <div className="grid grid-cols-[64px_1fr_120px_160px_140px] gap-4 border-b  px-6 py-6 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">
@@ -135,17 +180,17 @@ function PaymentGrid({ items, diagnostics, selectedTxHash, onSelect, emptyText }
         <RadioGroup
           value={selectedTxHash}
           onValueChange={(hash) => {
-            const item = items.find((candidate) => candidate.txHash === hash)
+            const item = uniqueItems.find((candidate) => candidate.txHash === hash)
             if (item) onSelect(item)
           }}
           className="gap-0"
         >
-          {items.map((payment) => {
+          {uniqueItems.map((payment) => {
             const isSelected = payment.txHash === selectedTxHash
 
             return (
               <div
-                key={payment.id}
+                key={`${payment.direction}:${payment.txHash}`}
                 onClick={() => onSelect(payment)}
                 className={cn(
                   "relative grid grid-cols-[64px_1fr_120px_160px_140px] items-center gap-4 px-6 py-5 cursor-pointer group transition-all duration-200",
@@ -235,6 +280,49 @@ function PaymentGrid({ items, diagnostics, selectedTxHash, onSelect, emptyText }
                     <p className="text-sm font-semibold text-foreground">{item.title}</p>
                     <p className="text-xs leading-relaxed text-neutral-400">{item.message}</p>
                     <p className="text-xs text-orange-100/80">{item.actionLabel}</p>
+                    {item.reasonCode === "PAYMENT_NOT_SYNCED" && onRecover ? (
+                      <div className="pt-2">
+                        <div className="flex flex-col gap-2 sm:flex-row">
+                          <Input
+                            value={recoveryInputs[item.id] || ""}
+                            onChange={(event) =>
+                              setRecoveryInputs((current) => ({
+                                ...current,
+                                [item.id]: event.target.value,
+                              }))
+                            }
+                            placeholder="Paste the original payment transaction hash"
+                            className="h-10 border-white/10 bg-black/30 text-sm text-foreground placeholder:text-neutral-500"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            disabled={recoveringCommitment === item.commitment}
+                            onClick={() =>
+                              void onRecover({
+                                diagnostic: item,
+                                txHash: recoveryInputs[item.id] || "",
+                              })
+                            }
+                            className="shrink-0"
+                          >
+                            <RefreshCw
+                              className={cn(
+                                "mr-2 h-3.5 w-3.5",
+                                recoveringCommitment === item.commitment && "animate-spin",
+                              )}
+                            />
+                            {recoveringCommitment === item.commitment ? "Recovering..." : "Recover payment"}
+                          </Button>
+                        </div>
+                        <p className="pt-2 text-[11px] leading-relaxed text-neutral-500">
+                          This rebuilds the missing payment row from your wallet receipt plus the original transaction hash. It does not ask you to pay again.
+                        </p>
+                        <p className="pt-1 text-[11px] leading-relaxed text-neutral-500">
+                          You can usually find the transaction hash in your wallet activity, the original payment success screen, or an Aleo explorer if you already opened the payment there.
+                        </p>
+                      </div>
+                    ) : null}
                   </div>
                   <div className="space-y-1 text-[11px] text-neutral-500 md:text-right">
                     <p>Req: <code className="font-mono">{shortHash(item.requestId, 6, 4)}</code></p>
