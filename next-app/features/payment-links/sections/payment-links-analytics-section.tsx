@@ -1,14 +1,23 @@
 "use client"
 
 import Link from "next/link"
+import { useState } from "react"
 import { useWallet } from "@provablehq/aleo-wallet-adaptor-react"
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { ArrowUpRight, Lock, Sparkles, TrendingUp } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { PaymentLinksAccessGate } from "@/features/payment-links/components/payment-links-access-gate"
 import { PaymentLinksSectionHeader } from "@/features/payment-links/components/payment-links-section-header"
+import { formatAmount } from "@/features/payment-links/lib/presentation"
 import { useCreatorProfile } from "@/hooks/use-creator-profile"
 import { usePaymentLinksOverview } from "@/hooks/use-payment-links-overview"
 
@@ -24,7 +33,8 @@ export function PaymentLinksAnalyticsSection() {
 }
 
 function PaymentLinksAnalyticsContent({ creatorAddress }: { creatorAddress: string }) {
-  const { overview } = usePaymentLinksOverview(creatorAddress)
+  const [selectedToken, setSelectedToken] = useState<"ALEO" | "USDCX" | "USAD">("ALEO")
+  const { overview } = usePaymentLinksOverview(creatorAddress, selectedToken)
   const { profile } = useCreatorProfile(creatorAddress)
 
   const chartData =
@@ -40,19 +50,31 @@ function PaymentLinksAnalyticsContent({ creatorAddress }: { creatorAddress: stri
           title="See how your payment links are performing"
           description="Free gives you the basics. Pro gives you a closer look at top links, weekly trends, and stronger performance insights."
           action={
-            !profile?.isProUser ? (
-              <Link href="/pricing">
-                <Button variant="default">
-                  Upgrade to Pro
-                  <ArrowUpRight className="h-4 w-4" />
-                </Button>
-              </Link>
-            ) : null
+            <div className="flex flex-wrap gap-3">
+              <Select value={selectedToken} onValueChange={(value) => setSelectedToken(value as "ALEO" | "USDCX" | "USAD")}>
+                <SelectTrigger className="w-[140px] rounded-full border border-foreground/8 bg-black/20 font-mono text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALEO">ALEO</SelectItem>
+                  <SelectItem value="USDCX">USDCX</SelectItem>
+                  <SelectItem value="USAD">USAD</SelectItem>
+                </SelectContent>
+              </Select>
+              {!profile?.isProUser ? (
+                <Link href="/pricing">
+                  <Button variant="default">
+                    Upgrade to Pro
+                    <ArrowUpRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+              ) : null}
+            </div>
           }
         />
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <AnalyticsMetric label="Volume" value={`${Number(overview?.totals.totalVolume ?? 0).toFixed(4)} ALEO`} />
+          <AnalyticsMetric label="Volume" value={formatAmount(overview?.totals.totalVolume ?? 0, selectedToken)} />
           <AnalyticsMetric label="Payments" value={String(overview?.totals.totalPayments ?? 0)} />
           <AnalyticsMetric label="Views" value={String(overview?.totals.totalViews ?? 0)} />
           <AnalyticsMetric label="Conversion" value={`${(((overview?.totals.conversionRate ?? 0) as number) * 100).toFixed(1)}%`} />
@@ -122,8 +144,8 @@ function PaymentLinksAnalyticsContent({ creatorAddress }: { creatorAddress: stri
                 title="Top earner"
                 body={
                   overview?.insights.highestRevenueLink
-                    ? `${overview.insights.highestRevenueLink.title} generated ${overview.insights.highestRevenueLink.revenue.toFixed(4)} ALEO.`
-                    : "We need a bit more payment activity before we can show a top earner."
+                    ? `${overview.insights.highestRevenueLink.title} generated ${formatAmount(overview.insights.highestRevenueLink.revenue, selectedToken)}.`
+                    : `We need a bit more ${selectedToken} payment activity before we can show a top earner.`
                 }
               />
               <InsightCard

@@ -5,8 +5,10 @@ import {
   verifyCreatorAccessRequest,
 } from "@/lib/creator-access"
 import { NextResponse } from "next/server"
+import type { Token } from "@prisma/client"
 
 export const revalidate = 60
+const VALID_TOKENS = new Set(["ALEO", "USDCX", "USAD"])
 
 export async function GET(req: Request) {
   try {
@@ -20,9 +22,12 @@ export async function GET(req: Request) {
       },
       CREATOR_READ_SCOPE,
     )
+    const requestedToken = searchParams.get("token")
+    const token: Token =
+      requestedToken && VALID_TOKENS.has(requestedToken) ? (requestedToken as Token) : "ALEO"
 
     const links = await prisma.paymentLink.findMany({
-      where: { creatorAddress: creator },
+      where: { creatorAddress: creator, token },
       include: {
         payments: true
       }

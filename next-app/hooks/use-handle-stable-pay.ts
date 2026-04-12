@@ -9,14 +9,19 @@ import type { Status } from "./use-handle-pay"
 type StableToken = "USDCX" | "USAD"
 
 type StableRecord = {
+  ciphertext?: string
   record?: string
   plaintext?: string
   recordCiphertext: string
   recordPlaintext?: string
   spent?: boolean
+  proof?: unknown
   proofs?: unknown
+  formattedProof?: unknown
   merkleProofs?: unknown
   merkleProof?: unknown
+  merkle_proof?: unknown
+  merkle_proofs?: unknown
   formattedProofs?: unknown
   originalIndex?: number
 }
@@ -32,17 +37,26 @@ const TOKEN_CONFIG: Record<
   {
     assetProgram: string
     payFunction: string
+    freezeListProgram: string
   }
 > = {
   USDCX: {
     assetProgram: "test_usdcx_stablecoin.aleo",
     payFunction: "pay_request_usdcx",
+    freezeListProgram: "test_usdcx_freezelist.aleo",
   },
   USAD: {
     assetProgram: "test_usad_stablecoin.aleo",
     payFunction: "pay_request_usad",
+    freezeListProgram: "test_usad_freezelist.aleo",
   },
 }
+
+const PROVABLE_API_HOST =
+  process.env.NEXT_PUBLIC_PROVABLE_API_HOST ||
+  process.env.PROVABLE_API_HOST ||
+  "https://api.provable.com/v2"
+const STABLECOIN_MERKLE_DEPTH = 16
 
 function parseStableAmount(record: StableRecord) {
   const text = record.recordPlaintext || record.plaintext || ""
@@ -61,6 +75,77 @@ function parseStableAmount(record: StableRecord) {
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+function getStableRecordIdentity(record: Partial<StableRecord>) {
+  return (
+    record.recordCiphertext ||
+    record.ciphertext ||
+    record.record ||
+    record.recordPlaintext ||
+    record.plaintext ||
+    null
+  )
+}
+
+function mergeStableRecordSources(
+  encryptedRecords: StableRecord[],
+  plaintextRecords: StableRecord[],
+) {
+  const merged = new Map<string, StableRecord>()
+
+  encryptedRecords.forEach((record, index) => {
+    const key = getStableRecordIdentity(record) || `encrypted-${index}`
+    merged.set(key, {
+      ...record,
+      originalIndex: index,
+    })
+  })
+
+  plaintextRecords.forEach((record, index) => {
+    const key =
+      getStableRecordIdentity(record) ||
+      getStableRecordIdentity(encryptedRecords[index]) ||
+      `plaintext-${index}`
+
+    const existing = merged.get(key)
+
+    merged.set(key, {
+      ...record,
+      ...existing,
+      recordPlaintext: record.recordPlaintext || record.plaintext || existing?.recordPlaintext,
+      plaintext: record.plaintext || existing?.plaintext,
+      recordCiphertext:
+        existing?.recordCiphertext || record.recordCiphertext || record.ciphertext || record.record || "",
+      originalIndex: existing?.originalIndex ?? index,
+    })
+  })
+
+  return Array.from(merged.values())
+}
+
+function getReadableErrorMessage(error: unknown) {
+  if (error instanceof Error && error.message.trim()) {
+    return error.message
+  }
+
+  if (typeof error === "string" && error.trim()) {
+    return error
+  }
+
+  if (error && typeof error === "object") {
+    const candidate = error as Record<string, unknown>
+
+    if (typeof candidate.message === "string" && candidate.message.trim()) {
+      return candidate.message
+    }
+
+    if (typeof candidate.error === "string" && candidate.error.trim()) {
+      return candidate.error
+    }
+  }
+
+  return null
 }
 
 function normalizeLeoValue(value: string | null) {
@@ -153,34 +238,137 @@ function formatMerkleProofStructs(
     .join(", ")}]`
 }
 
-function extractProofInput(record: StableRecord) {
-  const proofCandidate =
-    record.formattedProofs ??
-    record.proofs ??
-    record.merkleProofs ??
-    record.merkleProof
+function extractWalletProvidedProofInput(record: StableRecord) {
+  const proofCandidates = [
+    record.formattedProofs,
+    record.formattedProof,
+    record.proofs,
+    record.proof,
+    record.merkleProofs,
+    record.merkleProof,
+    record.merkle_proofs,
+    record.merkle_proof,
+  ]
 
-  if (typeof proofCandidate === "string" && proofCandidate.trim()) {
-    return proofCandidate.trim()
-  }
+  for (const proofCandidate of proofCandidates) {
+    if (typeof proofCandidate === "string" && proofCandidate.trim()) {
+      return proofCandidate.trim()
+    }
 
-  if (
-    Array.isArray(proofCandidate) &&
-    proofCandidate.length === 2 &&
-    proofCandidate.every(
-      (entry) =>
-        entry &&
-        typeof entry === "object" &&
-        "siblings" in entry &&
-        "leaf_index" in entry
-    )
-  ) {
-    return formatMerkleProofStructs(
-      proofCandidate as Array<{ siblings: unknown[]; leaf_index: unknown }>
-    )
+    if (
+      Array.isArray(proofCandidate) &&
+      proofCandidate.length === 2 &&
+      proofCandidate.every(
+        (entry) =>
+          entry &&
+          typeof entry === "object" &&
+          "siblings" in entry &&
+          "leaf_index" in entry
+      )
+    ) {
+      return formatMerkleProofStructs(
+        proofCandidate as Array<{ siblings: unknown[]; leaf_index: unknown }>
+      )
+    }
+
+    if (proofCandidate && typeof proofCandidate === "object") {
+      const nestedCandidate = proofCandidate as Record<string, unknown>
+      const nestedProof =
+        nestedCandidate.formattedProofs ??
+        nestedCandidate.formattedProof ??
+        nestedCandidate.proofs ??
+        nestedCandidate.proof ??
+        nestedCandidate.merkleProofs ??
+        nestedCandidate.merkleProof ??
+        nestedCandidate.merkle_proofs ??
+        nestedCandidate.merkle_proof
+
+      if (typeof nestedProof === "string" && nestedProof.trim()) {
+        return nestedProof.trim()
+      }
+
+      if (
+        Array.isArray(nestedProof) &&
+        nestedProof.length === 2 &&
+        nestedProof.every(
+          (entry) =>
+            entry &&
+            typeof entry === "object" &&
+            "siblings" in entry &&
+            "leaf_index" in entry
+        )
+      ) {
+        return formatMerkleProofStructs(
+          nestedProof as Array<{ siblings: unknown[]; leaf_index: unknown }>
+        )
+      }
+    }
   }
 
   return null
+}
+
+function parseU32Value(value: string | null) {
+  if (!value) {
+    return null
+  }
+
+  const match = value.trim().match(/^(\d+)u32$/)
+  return match ? Number(match[1]) : null
+}
+
+function normalizeMappingAddress(value: string | null) {
+  if (!value) {
+    return null
+  }
+
+  const normalized = normalizeLeoValue(value)
+  return normalized?.startsWith("aleo1") ? normalized : null
+}
+
+async function buildSealanceProofInput(input: {
+  walletAddress: string
+  freezeListProgram: string
+}) {
+  const { AleoNetworkClient, SealanceMerkleTree } = await import("@provablehq/sdk")
+
+  const client = new AleoNetworkClient(PROVABLE_API_HOST)
+
+  const lastIndexRaw = await client.getProgramMappingValue(
+    input.freezeListProgram,
+    "freeze_list_last_index",
+    "true",
+  )
+
+  const lastIndex = parseU32Value(lastIndexRaw)
+
+  if (lastIndex === null) {
+    throw new Error("Could not read the stablecoin compliance index from Aleo.")
+  }
+
+  const addresses = (
+    await Promise.all(
+      Array.from({ length: lastIndex + 1 }, (_, index) =>
+        client
+          .getProgramMappingValue(input.freezeListProgram, "freeze_list_index", `${index}u32`)
+          .then((value) => normalizeMappingAddress(value))
+          .catch(() => null),
+      ),
+    )
+  ).filter((value): value is string => Boolean(value))
+
+  if (addresses.length === 0) {
+    throw new Error("Could not load the stablecoin compliance tree from Aleo.")
+  }
+
+  const sealance = new SealanceMerkleTree()
+  const leaves = sealance.generateLeaves(addresses, STABLECOIN_MERKLE_DEPTH)
+  const tree = sealance.buildTree(leaves)
+  const [leftLeafIndex, rightLeafIndex] = sealance.getLeafIndices(tree, input.walletAddress)
+  const proofLeft = sealance.getSiblingPath(tree, leftLeafIndex, STABLECOIN_MERKLE_DEPTH)
+  const proofRight = sealance.getSiblingPath(tree, rightLeafIndex, STABLECOIN_MERKLE_DEPTH)
+
+  return sealance.formatMerkleProof([proofLeft, proofRight])
 }
 
 type StablePaymentLink = {
@@ -215,22 +403,30 @@ export function useHandleStablePay(link: StablePaymentLink, amount: string) {
     }
 
     setErrorMessage(null)
+    setTxId(null)
 
     try {
       setStatus("scanning")
       setLoading(true)
 
-      const rawRecords = await requestRecords(tokenConfig.assetProgram, true)
-      const records = (rawRecords as StableRecord[]).map((record, index) => ({
-        ...record,
-        originalIndex: index,
-      }))
+      const [encryptedRecords, plaintextRecords] = await Promise.all([
+        requestRecords(tokenConfig.assetProgram, false).catch(() => []),
+        requestRecords(tokenConfig.assetProgram, true),
+      ])
+
+      const records = mergeStableRecordSources(
+        encryptedRecords as StableRecord[],
+        plaintextRecords as StableRecord[],
+      )
+
       const unspent = records.filter((record) => !record.spent)
 
       const requiredAmount = BigInt(Math.floor(Number(amount) * 1_000_000))
 
       if (unspent.length === 0) {
-        setErrorMessage(`No private ${token} records found in this wallet.`)
+        setErrorMessage(
+          `No private ${token} records were found in this wallet. If you already hold public ${token}, shield it first so it becomes a private record, then retry this payment.`,
+        )
         setStatus("error")
         return
       }
@@ -260,11 +456,16 @@ export function useHandleStablePay(link: StablePaymentLink, amount: string) {
         return
       }
 
-      const proofInput = extractProofInput(selectedRecord)
+      const proofInput =
+        extractWalletProvidedProofInput(selectedRecord) ||
+        (await buildSealanceProofInput({
+          walletAddress: address,
+          freezeListProgram: tokenConfig.freezeListProgram,
+        }))
 
       if (!proofInput) {
         setErrorMessage(
-          `Missing Merkle proof data for ${token} transfer. Refresh your wallet records and try again.`
+          `Could not prepare the ${token} compliance proof needed for this private transfer. Please try again in a moment.`
         )
         setStatus("error")
         return
@@ -330,27 +531,24 @@ export function useHandleStablePay(link: StablePaymentLink, amount: string) {
       }
 
       const optimisticTxId = result.transactionId
+      let finalTransactionId = optimisticTxId
+
       setTxId(optimisticTxId)
       setStatus("broadcasting")
 
-      let attempts = 0
-      const poll = setInterval(async () => {
-        attempts++
-
+      for (let attempt = 0; attempt < 150; attempt++) {
         try {
           const response = await transactionStatus(optimisticTxId)
           const realTxId = response.transactionId
 
-          if (realTxId && realTxId !== optimisticTxId) {
+          if (realTxId) {
+            finalTransactionId = realTxId
             setTxId(realTxId)
           }
 
           const currentStatus = (typeof response === "string" ? response : response.status)?.toLowerCase()
 
           if (["finalized", "completed", "accepted"].includes(currentStatus)) {
-            clearInterval(poll)
-            const finalId = realTxId || optimisticTxId
-
             try {
               const actualReceiptCommitment =
                 await findWalletReceiptCommitment({
@@ -369,7 +567,7 @@ export function useHandleStablePay(link: StablePaymentLink, amount: string) {
                   merchantAddress,
                   amount,
                   token: link.token,
-                  txHash: finalId,
+                  txHash: finalTransactionId,
                   receiptCommitment: actualReceiptCommitment,
                 }),
               })
@@ -385,41 +583,46 @@ export function useHandleStablePay(link: StablePaymentLink, amount: string) {
                     : "Payment confirmed on-chain, but failed to update record.",
                 )
               }
-
-              setStatus("finalized")
             } catch (error) {
               console.error("Stablecoin payment was successful on-chain, but DB update failed:", error)
               setErrorMessage(
-                error instanceof Error && error.message
-                  ? error.message
-                  : "Payment confirmed on-chain, but failed to update record. Please contact support.",
+                getReadableErrorMessage(error) ||
+                  "Payment confirmed on-chain, but failed to update record. Please contact support.",
               )
               setStatus("error")
+              return
             }
-          } else if (["failed", "rejected"].includes(currentStatus)) {
-            clearInterval(poll)
-            setErrorMessage(`Transaction ${currentStatus} on network.`)
-            setStatus("error")
+
+            setStatus("finalized")
+            return
           }
 
-          if (attempts > 150) {
-            clearInterval(poll)
-            setErrorMessage("Network confirmation timeout. Check your wallet for status.")
+          if (["failed", "rejected"].includes(currentStatus)) {
+            setErrorMessage(`Transaction ${currentStatus} on network.`)
             setStatus("error")
+            return
           }
         } catch (error) {
           console.warn("Stablecoin polling error (waiting for propagation...):", error)
         }
-      }, 5000)
+
+        await sleep(5000)
+      }
+
+      setErrorMessage("Network confirmation timeout. Check your wallet for status.")
+      setStatus("error")
     } catch (error: unknown) {
-      const message = (error as ErrorWithMessage)?.message || ""
+      const message = getReadableErrorMessage(error) || (error as ErrorWithMessage)?.message || ""
 
       if (message.toLowerCase().includes("cancel")) {
         setErrorMessage("Transaction cancelled in wallet.")
+      } else if (message) {
+        setErrorMessage(message)
       } else {
         setErrorMessage(`Unexpected error during ${link.token} payment.`)
       }
 
+      console.error(`Stablecoin payment error (${link.token})`, error)
       setStatus("error")
     } finally {
       setLoading(false)

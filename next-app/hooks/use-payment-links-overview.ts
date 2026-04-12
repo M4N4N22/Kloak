@@ -37,7 +37,10 @@ export type PaymentLinksOverview = {
   }
 }
 
-export function usePaymentLinksOverview(creatorAddress?: string | null) {
+export function usePaymentLinksOverview(
+  creatorAddress?: string | null,
+  selectedToken: "ALEO" | "USDCX" | "USAD" = "ALEO",
+) {
   const { signMessage } = useWallet()
   const [overview, setOverview] = useState<PaymentLinksOverview | null>(null)
   const [loading, setLoading] = useState(false)
@@ -63,6 +66,7 @@ export function usePaymentLinksOverview(creatorAddress?: string | null) {
         scope: access.scope,
         issuedAt: access.issuedAt,
         signature: access.signature,
+        token: selectedToken,
       })
       const res = await fetch(`/api/analytics/payment-links?${searchParams.toString()}`)
       const data = await res.json()
@@ -80,7 +84,7 @@ export function usePaymentLinksOverview(creatorAddress?: string | null) {
     } finally {
       setLoading(false)
     }
-  }, [creatorAddress, signMessage])
+  }, [creatorAddress, signMessage, selectedToken])
 
   useEffect(() => {
     void refresh()

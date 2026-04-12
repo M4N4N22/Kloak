@@ -1,6 +1,13 @@
 "use client"
 
 import Link from "next/link"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Activity, Bot, LockKeyhole, ShieldCheck } from "lucide-react"
 import {
   Area,
@@ -31,6 +38,8 @@ type DashboardKpiBentoProps = {
     label: string
     volume: number
   }>
+  selectedToken: "ALEO" | "USDCX" | "USAD"
+  onTokenChange: (token: "ALEO" | "USDCX" | "USAD") => void
 }
 
 function DenseLabel({ label }: { label: string }) {
@@ -51,26 +60,42 @@ export function DashboardKpiBento({
   proofAccessGranted,
   proofAccessLoading,
   chart,
+  selectedToken,
+  onTokenChange,
 }: DashboardKpiBentoProps) {
   return (
     <div className="grid gap-4 xl:grid-cols-[1.4fr_0.6fr_0.6fr]">
       <Card className="bg-transparent">
         <CardHeader className="border-b border-foreground/5">
-          <DenseLabel label="Net Volume" />
+          <div className="flex justify-between items-center">
+            <DenseLabel label="Net Volume" />
+            <div>
+              <Select value={selectedToken} onValueChange={(value) => onTokenChange(value as "ALEO" | "USDCX" | "USAD")}>
+                <SelectTrigger className="">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALEO">ALEO</SelectItem>
+                  <SelectItem value="USDCX">USDCX</SelectItem>
+                  <SelectItem value="USAD">USAD</SelectItem>
+                </SelectContent>
+              </Select>
+            </div></div>
           <div className="mt-3 flex items-end justify-between gap-4">
             <div>
               <div className="font-mono text-4xl font-semibold tracking-tight ">
                 {totalVolume.toFixed(4)}
               </div>
-              <div className="mt-2 text-xs text-neutral-500">ALEO over the last 7 days</div>
+              <div className="mt-2 text-xs text-neutral-500">{selectedToken} over the last 7 days</div>
             </div>
             <div className="grid gap-3 text-right">
-              <div>
-                <DenseLabel label="Active Links" />
+
+              <div className="flex gap-1 items-baseline">
+                <DenseLabel label="Active Links:" />
                 <div className="mt-1 font-mono text-sm ">{activeLinks}</div>
               </div>
-              <div>
-                <DenseLabel label="Conversion" />
+              <div  className="flex gap-1 items-baseline">
+                <DenseLabel label="Conversion:" />
                 <div className="mt-1 font-mono text-sm">{(conversionRate * 100).toFixed(1)}%</div>
               </div>
             </div>

@@ -29,7 +29,9 @@ export const KloakWalletProvider: FC<{ children: ReactNode }> = ({ children }) =
       localStorageKey="kloak:selected-wallet"
       programs={[
         "credits.aleo",
-        "kloak_protocol_v10.aleo"
+        "test_usdcx_stablecoin.aleo",
+        "test_usad_stablecoin.aleo",
+        "kloak_protocol_v10.aleo",
       ]}
       onError={(error) => {
         console.error(error.message);
