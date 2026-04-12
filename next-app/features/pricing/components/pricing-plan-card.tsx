@@ -48,7 +48,7 @@ export function PricingPlanCard({
               className={cn(
                 "rounded-full px-3 py-1 text-xs border-none transition-colors ",
                 featured
-                  ? "bg-primary/10 text-blue-300"
+                  ? "bg-indigo-500/10 text-indigo-300"
                   : "bg-foreground/5 text-neutral-400 group-hover:bg-foreground/10"
               )}
             >
@@ -76,10 +76,16 @@ export function PricingPlanCard({
               <p className="text-xs leading-6 text-neutral-500">
                 {plan.summary}
               </p>
-           
+
             </div>
 
           </div>
+          {/* 3. CTA Action */}
+          {action && (
+            <div className="relative mt-auto pt-2">
+              {action}
+            </div>
+          )}
         </div>
 
         {/* 2. Features List */}
@@ -104,12 +110,7 @@ export function PricingPlanCard({
           </div>
         </div>
 
-        {/* 3. CTA Action */}
-        {action && (
-          <div className="relative mt-auto pt-2">
-            {action}
-          </div>
-        )}
+
       </div>
     </Card>
   )
@@ -147,7 +148,7 @@ export function PricingActionButton({
         ) : (
           <>
             {label}
-          
+
           </>
         )}
       </div>

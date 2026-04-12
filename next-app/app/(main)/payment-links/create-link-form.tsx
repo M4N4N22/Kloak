@@ -6,14 +6,11 @@ import { useWallet } from "@provablehq/aleo-wallet-adaptor-react"
 import {
     Briefcase,
     Building2,
-    CheckCircle2,
-    Copy,
     Globe,
     Heart,
     Infinity,
     Loader2,
     Receipt,
-    Share2,
     ShoppingBag,
     SlidersHorizontal,
     X,
@@ -21,15 +18,9 @@ import {
 } from "lucide-react"
 
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { ActionProgressOverlay } from "@/components/action-progress-overlay"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card"
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -52,6 +43,7 @@ import {
     CREATOR_WRITE_SCOPE,
     getOrCreateCreatorAccessPayload,
 } from "@/lib/creator-access"
+import { PaymentLinkCreatedDialog } from "@/features/payment-links/components/payment-link-created-dialog"
 
 type CreateStatus = "idle" | "signing" | "proving" | "broadcasting" | "finalizing" | "saving"
 type FormStep = 1 | 2 | 3
@@ -269,6 +261,39 @@ export default function CreateLinkForm() {
         }
     }
 
+    const createOverlayCopy: Record<CreateStatus, { title: string; description: string; step: string }> = {
+        idle: {
+            title: "Creating payment link",
+            description: "We are preparing your on-chain request and saving the shareable payment link.",
+            step: "Preparing request",
+        },
+        signing: {
+            title: "Confirm in your wallet",
+            description: "Your wallet needs to approve the on-chain payment request before Kloak can create the link.",
+            step: "Waiting for wallet confirmation",
+        },
+        proving: {
+            title: "Creating private payment request",
+            description: "Your wallet is building the Aleo transaction for this payment link.",
+            step: "Generating transaction proof",
+        },
+        broadcasting: {
+            title: "Broadcasting payment request",
+            description: "The payment request has been signed and is now being sent to Aleo testnet.",
+            step: "Sending transaction",
+        },
+        finalizing: {
+            title: "Finalizing on Aleo",
+            description: "Kloak is waiting for the payment request transaction to finalize before saving the link.",
+            step: "Waiting for network finality",
+        },
+        saving: {
+            title: "Saving payment link",
+            description: "The transaction is done. Kloak is now saving the shareable link and its settings.",
+            step: "Writing link metadata",
+        },
+    }
+
     async function handleCreateLink() {
         if (!validateCurrentStep(3) || !isBasicsValid || loading || !connected) return
 
@@ -383,6 +408,13 @@ export default function CreateLinkForm() {
 
     return (
         <>
+            <ActionProgressOverlay
+                open={loading}
+                eyebrow="Creating link"
+                title={createOverlayCopy[status].title}
+                description={createOverlayCopy[status].description}
+                statusLabel={createOverlayCopy[status].step}
+            />
             <div className="grid gap-1 md:grid-cols-3 rounded-full p-6 ">
                 {FORM_STEPS.map((step) => {
                     const active = currentStep === step.id
@@ -470,7 +502,7 @@ export default function CreateLinkForm() {
                                                 className={cn(
                                                     "rounded-[1.5rem] border  p-4 text-left transition-all",
                                                     active
-                                                        ? "border-transparent border-white/70"
+                                                        ? "border-transparent border-foreground/70"
                                                         : " bg-black/10 hover:border-foreground/15 hover:bg-foreground/5",
                                                 )}
                                             >
@@ -839,65 +871,12 @@ export default function CreateLinkForm() {
                         </div>
                     </div>
                 </div>
-
-                <Dialog open={successOpen} onOpenChange={setSuccessOpen}>
-                    <DialogContent className="sm:max-w-md">
-                        <DialogHeader className="items-center text-center">
-                            <CheckCircle2 className="mb-2 h-10 w-10 text-primary" />
-                            <DialogTitle>Payment link created</DialogTitle>
-                            <DialogDescription>
-                                Share this link with the person you want to collect from.
-                            </DialogDescription>
-                        </DialogHeader>
-
-                        <div className="space-y-2">
-                            <p className="text-xs text-muted-foreground">Payment link</p>
-                            <Input className="truncate pr-16" value={generatedLink} readOnly />
-                        </div>
-
-                        {txId ? (
-                            <div className="space-y-2">
-                                <p className="text-xs text-muted-foreground">Transaction ID</p>
-                                <div className="flex items-center gap-2 rounded-md border bg-muted/20 px-3 py-2">
-                                    <span className="flex-1 truncate font-mono text-xs">
-                                        {txId.slice(0, 8)}...{txId.slice(-6)}
-                                    </span>
-
-                                    <button
-                                        onClick={() => navigator.clipboard.writeText(txId)}
-                                        className="rounded bg-foreground/10 px-2 py-1 text-xs hover:bg-foreground/20"
-                                    >
-                                        Copy
-                                    </button>
-                                </div>
-                            </div>
-                        ) : null}
-
-                        <div className="flex gap-4 pt-2">
-                            <Button
-                                className="flex-1"
-                                variant="secondary"
-                                onClick={() => navigator.clipboard.writeText(generatedLink)}
-                            >
-                                <Copy className="mr-2 h-4 w-4" />
-                                Copy link
-                            </Button>
-
-                            <Button
-                                className="flex-1"
-                                onClick={() =>
-                                    navigator.share?.({
-                                        title: "Payment Link",
-                                        url: generatedLink,
-                                    })
-                                }
-                            >
-                                <Share2 className="mr-2 h-4 w-4" />
-                                Share
-                            </Button>
-                        </div>
-                    </DialogContent>
-                </Dialog>
+                <PaymentLinkCreatedDialog
+                    open={successOpen}
+                    onOpenChange={setSuccessOpen}
+                    generatedLink={generatedLink}
+                    txId={txId}
+                />
             </div>
         </>
     )

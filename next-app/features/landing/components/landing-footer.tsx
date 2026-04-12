@@ -34,7 +34,7 @@ export function LandingFooter() {
     <footer className="border-t border-foreground/5 bg-black py-14">
       <div className="mx-auto grid max-w-7xl gap-12 px-6 lg:grid-cols-[1fr_1fr]">
         <div className="space-y-4">
-          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">Kloak</p>
+          <p className="text-[10px] text-primary">Kloak</p>
           <h2 className="max-w-lg text-2xl font-semibold tracking-tight text-foreground">
             Payment links with private settlement and selective disclosure when it matters.
           </h2>
@@ -43,7 +43,7 @@ export function LandingFooter() {
         <div className="grid gap-8 sm:grid-cols-3">
           {footerGroups.map((group) => (
             <div key={group.title} className="space-y-3">
-              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-neutral-500">
+              <p className="text-[10px] font-bold uppercase  text-neutral-500">
                 {group.title}
               </p>
               <div className="space-y-2">

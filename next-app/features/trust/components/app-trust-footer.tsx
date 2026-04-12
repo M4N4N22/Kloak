@@ -5,7 +5,7 @@ type AppTrustFooterProps = {
 }
 
 export function AppTrustFooter({
-  note = "Private settlement, clear proof, and the docs to understand both.",
+  note = "Settle Privately, Disclose Selectively.",
 }: AppTrustFooterProps) {
   return (
     <footer className="mx-auto w-full max-w-7xl px-6 pb-8 pt-2">

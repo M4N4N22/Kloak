@@ -133,14 +133,6 @@ export default function PricingPage() {
                 <Badge variant={"secondary"} >
                   Pricing
                 </Badge>
-                {pricingTrustBadges.map((badge) => (
-                  <Badge
-                    key={badge}
-                    variant={"outline"}
-                  >
-                    {badge}
-                  </Badge>
-                ))}
               </div>
 
               <div className="space-y-4">
@@ -154,10 +146,10 @@ export default function PricingPage() {
 
               <div className="flex flex-wrap items-center justify-center gap-2">
                 <div className="rounded-full border border-foreground/8 bg-foreground/[0.05] px-4 py-2 text-xs font-medium text-foreground">
-                  Testnet now
+                  Testnet Live
                 </div>
                 <div className="rounded-full border border-foreground/8 bg-transparent px-4 py-2 text-xs font-medium text-neutral-500">
-                  Mainnet next
+                  Mainnet Soon
                 </div>
               </div>
             </div>
@@ -239,7 +231,7 @@ export default function PricingPage() {
             <div className=" pt-10">
               <div className="space-y-5 text-center">
                 <p className="text-sm text-neutral-500">
-                  Built for payment links, proof verification, Telegram workflows, and backend automation.
+                  Built for payment links, proof verification, Telegram workflows, and automation.
                 </p>
               </div>
             </div>

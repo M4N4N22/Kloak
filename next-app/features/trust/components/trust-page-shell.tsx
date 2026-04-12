@@ -45,32 +45,6 @@ export function TrustPageShell({
       </section>
 
       <div className="grid gap-6">{children}</div>
-
-      <section className="rounded-[2rem] border border-foreground/8 bg-black/20 px-6 py-6 backdrop-blur-xl">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="space-y-1">
-            <p className="text-sm font-medium text-foreground">Need the full product flow?</p>
-            <p className="text-sm text-neutral-400">
-              Start with docs, then move into Payment Links or Compliance.
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <Link
-              href="/docs"
-              className="rounded-full border border-foreground/10 bg-foreground/[0.04] px-4 py-2 text-sm text-foreground transition-colors hover:bg-foreground/[0.07]"
-            >
-              Open Docs
-            </Link>
-            <Link
-              href="/payment-links"
-              className="rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90"
-            >
-              Get Started
-            </Link>
-          </div>
-        </div>
-        <TrustLinksRow className="mt-5 justify-start" />
-      </section>
     </div>
   )
 }

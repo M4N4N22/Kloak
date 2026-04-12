@@ -167,6 +167,7 @@ export function useSelectiveDisclosure() {
   const { address, connected, executeTransaction, transactionStatus, requestRecords } = useWallet()
 
   const [busyAction, setBusyAction] = useState<"generate" | "verify" | "revoke" | null>(null)
+  const [busyStage, setBusyStage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [lastVerified, setLastVerified] = useState<VerifyResponse | null>(null)
   const [duplicateProof, setDuplicateProof] = useState<DuplicateProofInfo | null>(null)
@@ -189,6 +190,7 @@ export function useSelectiveDisclosure() {
 
     try {
       setBusyAction("generate")
+      setBusyStage("Preparing disclosure request")
       setError(null)
       setDuplicateProof(null)
       setAvailableProofTypes([])
@@ -225,6 +227,7 @@ export function useSelectiveDisclosure() {
 
       const prepared = preparedData as PreparedDisclosure
       const roleCode = input.actorRole === "payer" ? "0u8" : "1u8"
+      setBusyStage("Finding the matching wallet receipt")
       const rawRecords = await (
         requestRecords as unknown as (
           program: string,
@@ -289,6 +292,7 @@ export function useSelectiveDisclosure() {
       let txId = txResult.transactionId
       let attempts = 0
       let finalized = false
+      setBusyStage("Waiting for Aleo finality")
 
       while (!finalized && attempts < 150) {
         const response = await transactionStatus(txId)
@@ -317,6 +321,7 @@ export function useSelectiveDisclosure() {
         throw new Error("Disclosure transaction confirmation timeout")
       }
 
+      setBusyStage("Saving the proof record")
       const finalizeRes = await fetch("/api/proof/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -355,6 +360,7 @@ export function useSelectiveDisclosure() {
       throw err
     } finally {
       setBusyAction(null)
+      setBusyStage(null)
     }
   }
 
@@ -365,6 +371,7 @@ export function useSelectiveDisclosure() {
   }) => {
     try {
       setBusyAction("verify")
+      setBusyStage("Checking the proof package and Aleo references")
       setError(null)
 
       const res = await fetch("/api/proof/verify", {
@@ -386,6 +393,7 @@ export function useSelectiveDisclosure() {
       throw err
     } finally {
       setBusyAction(null)
+      setBusyStage(null)
     }
   }
 
@@ -432,6 +440,7 @@ export function useSelectiveDisclosure() {
 
   return {
     busyAction,
+    busyStage,
     error,
     lastVerified,
     duplicateProof,

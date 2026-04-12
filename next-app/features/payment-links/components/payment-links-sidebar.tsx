@@ -54,7 +54,7 @@ export function PaymentLinksSidebar() {
       </nav>
 
       <div className="mt-auto space-y-4 px-2">
-        <div className="rounded-2xl border border-foreground/5 bg-neutral-900/50 p-4">
+        <div className="rounded-2xl  bg-neutral-900/50 p-4">
           <div className="mb-2 flex items-center gap-2 text-neutral-300">
             <Activity className="h-3.5 w-3.5 text-primary" />
             <span className="text-xs font-semibold uppercase tracking-tight">Payment Links</span>
@@ -65,8 +65,7 @@ export function PaymentLinksSidebar() {
         </div>
 
         <div className="flex items-center justify-between px-2 font-mono text-[10px] text-neutral-600">
-          <span>links-v4</span>
-          <span className="text-emerald-700">o</span>
+          <span>payment-links-v2</span>
         </div>
       </div>
     </aside>

@@ -68,7 +68,7 @@ export function DocsTopNav() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="rounded-full px-3 py-2 text-sm text-neutral-400 transition-colors hover:bg-white/5 hover:text-foreground"
+                className="rounded-full px-3 py-2 text-sm text-neutral-400 transition-colors hover:bg-foreground/5 hover:text-foreground"
               >
                 {link.label}
               </Link>
@@ -80,7 +80,7 @@ export function DocsTopNav() {
               <DialogTrigger asChild>
                 <Button
                   variant="outline"
-                  className="min-w-[160px] justify-between rounded-full border-foreground/10 bg-white/[0.03] text-neutral-300 hover:bg-white/[0.06]"
+                  className="min-w-[160px] justify-between rounded-full border-foreground/10 bg-foreground/[0.03] text-neutral-300 hover:bg-foreground/[0.06]"
                 >
                   <span className="flex items-center gap-2">
                     <Search className="h-4 w-4" />
@@ -103,7 +103,7 @@ export function DocsTopNav() {
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
                     placeholder="Search payment links, proofs, verification, webhooks..."
-                    className="mt-4 h-12 rounded-2xl border-foreground/10 bg-white/[0.03]"
+                    className="mt-4 h-12 rounded-2xl border-foreground/10 bg-foreground/[0.03]"
                   />
                 </div>
 
@@ -120,7 +120,7 @@ export function DocsTopNav() {
                             setQuery("")
                             router.push(item.href)
                           }}
-                          className="w-full rounded-[1.25rem] border border-foreground/8 bg-white/[0.02] px-4 py-3 text-left transition-colors hover:border-foreground/12 hover:bg-white/[0.04]"
+                          className="w-full rounded-[1.25rem] border border-foreground/8 bg-foreground/[0.02] px-4 py-3 text-left transition-colors hover:border-foreground/12 hover:bg-foreground/[0.04]"
                         >
                           <p className="text-sm font-medium text-foreground">{item.title}</p>
                           <p className="mt-1 text-xs leading-5 text-neutral-500">{item.description}</p>
@@ -141,7 +141,7 @@ export function DocsTopNav() {
                             setQuery("")
                             router.push("/docs#faq")
                           }}
-                          className="w-full rounded-[1.25rem] border border-foreground/8 bg-white/[0.02] px-4 py-3 text-left transition-colors hover:border-foreground/12 hover:bg-white/[0.04]"
+                          className="w-full rounded-[1.25rem] border border-foreground/8 bg-foreground/[0.02] px-4 py-3 text-left transition-colors hover:border-foreground/12 hover:bg-foreground/[0.04]"
                         >
                           <p className="text-sm font-medium text-foreground">{item.question}</p>
                           <p className="mt-1 line-clamp-2 text-xs leading-5 text-neutral-500">{item.answer}</p>
@@ -154,7 +154,7 @@ export function DocsTopNav() {
             </Dialog>
 
             <Link href="https://github.com/M4N4N22/Kloak" target="_blank" rel="noreferrer" className="hidden sm:block">
-              <Button variant="outline" className="rounded-full border-foreground/10 bg-white/[0.03]">
+              <Button variant="outline" className="rounded-full border-foreground/10 bg-foreground/[0.03]">
                 <Github className="mr-2 h-4 w-4" />
                 GitHub
               </Button>
@@ -169,13 +169,13 @@ export function DocsTopNav() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="secondary" className="rounded-full border-foreground/10 bg-white/[0.03] text-neutral-300">
+          <Badge variant="secondary" className="rounded-full border-foreground/10 bg-foreground/[0.03] text-neutral-300">
             April 2026 docs
           </Badge>
-          <Badge variant="secondary" className="rounded-full border-foreground/10 bg-white/[0.03] text-neutral-300">
+          <Badge variant="secondary" className="rounded-full border-foreground/10 bg-foreground/[0.03] text-neutral-300">
             Chain-first verification
           </Badge>
-          <Badge variant="secondary" className="rounded-full border-foreground/10 bg-white/[0.03] text-neutral-300">
+          <Badge variant="secondary" className="rounded-full border-foreground/10 bg-foreground/[0.03] text-neutral-300">
             Private settlement
           </Badge>
         </div>
