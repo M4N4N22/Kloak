@@ -4,15 +4,15 @@ import {
   isCreatorAccessError,
   verifyCreatorAccessRequest,
 } from "@/lib/creator-access"
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import type { Token } from "@prisma/client"
 
-export const revalidate = 60
+export const dynamic = "force-dynamic"
 const VALID_TOKENS = new Set(["ALEO", "USDCX", "USAD"])
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url)
+    const { searchParams } = req.nextUrl
     const creator = await verifyCreatorAccessRequest(
       {
         viewerAddress: searchParams.get("viewerAddress") || undefined,
