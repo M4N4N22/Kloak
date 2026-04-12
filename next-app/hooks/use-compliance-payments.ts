@@ -52,6 +52,7 @@ export type CompliancePaymentDiagnostic = {
   message: string
   actionLabel: string
   reasonCode: "REQUEST_NOT_INDEXED" | "PAYMENT_NOT_SYNCED" | "PAYMENT_NOT_READY"
+  walletReceipt: WalletReceiptSummary
 }
 
 type DisclosureReceiptRecord = {
@@ -124,6 +125,7 @@ export function useCompliancePayments(viewerAddress?: string | null) {
     diagnostics: { sent: [], received: [] },
   })
   const [loading, setLoading] = useState(false)
+  const [recoveringCommitment, setRecoveringCommitment] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const getErrorMessage = (err: unknown) =>
@@ -197,10 +199,68 @@ export function useCompliancePayments(viewerAddress?: string | null) {
     void refresh()
   }, [refresh])
 
+  const recoverPayment = useCallback(
+    async (input: { walletReceipt: WalletReceiptSummary; txHash: string }) => {
+      const viewer = viewerAddress?.trim()
+      const txHash = input.txHash.trim()
+
+      if (!viewer) {
+        throw new Error("Connect the wallet that owns this receipt first.")
+      }
+
+      if (!txHash) {
+        throw new Error("Paste the original payment transaction hash first.")
+      }
+
+      const accessPayload = getCachedComplianceAccessPayload(COMPLIANCE_READ_SCOPE, viewer)
+
+      if (!accessPayload) {
+        throw new Error("Unlock your compliance records before recovering a payment.")
+      }
+
+      try {
+        setRecoveringCommitment(input.walletReceipt.commitment)
+        setError(null)
+
+        const res = await fetch("/api/proof/payments/recover", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...accessPayload,
+            walletReceipt: input.walletReceipt,
+            txHash,
+          }),
+        })
+
+        const data = await res.json()
+
+        if (!res.ok) {
+          if (res.status === 401 || res.status === 403) {
+            clearCachedComplianceAccessPayload(COMPLIANCE_READ_SCOPE, viewer)
+          }
+
+          throw new Error(data.error || "Failed to recover this payment.")
+        }
+
+        await refresh()
+        return data as CompliancePayment
+      } catch (err: unknown) {
+        const message = getErrorMessage(err)
+        setError(message)
+        throw err
+      } finally {
+        setRecoveringCommitment(null)
+      }
+    },
+    [refresh, viewerAddress],
+  )
+
   return {
     payments,
     loading,
+    recoveringCommitment,
     error,
     refresh,
+    recoverPayment,
   }
 }

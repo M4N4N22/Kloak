@@ -1,24 +1,20 @@
 # Wave 5 Updates
 
-This document summarizes the technical direction of the `wave5` branch.
+This document summarizes what changed in the `wave5` branch and why those changes matter.
 
-Wave 5 is the point where Kloak stops being just a private payment-link demo and becomes a more complete Aleo-native payments and compliance system with stronger verification and a much better-defined trust model.
+Wave 5 is where Kloak becomes a more complete Aleo-native system for private payments, selective disclosure, and proof verification. The work in this branch tightens the product around how Aleo actually works, improves the security model across the app, and turns compliance into a serious, usable workflow.
 
-## Summary
+## What Wave 5 focused on
 
-Wave 5 focused on five major areas:
+Wave 5 centered on five areas:
 
-1. **Aleo nativeness**
+1. **Aleo-native payment architecture**
 2. **Compliance and selective disclosure**
-3. **Chain-first verification**
-4. **Security hardening across app routes**
-5. **Product maturity across payment links, docs, pricing, and trust UX**
+3. **Portable proofs and chain first verification**
+4. **Security hardening across the API layer**
+5. **Product maturity across payment flows, docs, pricing, and trust pages**
 
-## 1. Aleo nativeness
-
-The protocol and app were tightened around what Aleo actually provides instead of relying on assumptions better suited to transparent chains.
-
-### Program baseline
+## 1. Aleo-native payment architecture
 
 The current program is [programs/kloak_protocol/src/main.leo](./programs/kloak_protocol/src/main.leo) and is now defined as:
 
@@ -26,43 +22,49 @@ The current program is [programs/kloak_protocol/src/main.leo](./programs/kloak_p
 program kloak_protocol_v10.aleo
 ```
 
-This version centers on:
+This version is built around:
 
-- on-chain `payment_requests`
-- on-chain `payment_commitments`
+- on-chain payment requests
+- on-chain payment commitments
 - private payer and receiver receipts
-- proof generation from wallet-held receipts
+- receipt-backed selective disclosure
 
-### Why this matters
+That structure is important because it matches Aleo's strengths well. Kloak uses Aleo for what Aleo is best at:
 
-For private payments on Aleo, confirmed transaction payloads expose:
+- private settlement
+- private records held by the wallet
+- public confirmation of executed program logic
+- zero-knowledge proof flows built from private state
 
-- the transaction exists
-- the executed program and function
-- the transition shape
+### Why the app logic changed
 
-but do **not** reliably expose the private payment arguments in plaintext.
+Kloak now treats Aleo confirmed transactions the way they should be treated in a privacy-first system.
 
-That design reality directly shaped the app logic in:
+For private payments, the public chain is the place to verify:
+
+- that a transaction exists
+- that the expected Kloak program ran
+- that the correct transition executed
+
+The private payment details themselves remain inside the private receipt model, which is exactly the right place for them in an Aleo-native design.
+
+That understanding directly shaped:
 
 - [next-app/lib/payment-chain-validation.ts](./next-app/lib/payment-chain-validation.ts)
 - [next-app/lib/aleo-chain-verifier.ts](./next-app/lib/aleo-chain-verifier.ts)
 
-Wave 5 deliberately moved validation to the boundary of what the SDK actually exposes, rather than pretending the server can publicly inspect private request IDs, merchant addresses, or amounts when those values are ciphertext in confirmed private-payment transitions.
+Instead of trying to force transparent-chain assumptions onto Aleo, Kloak now validates against the public transaction shape Aleo intentionally exposes and uses wallet-held receipts as the private witness where deeper proof logic is required.
 
-## 2. Compliance as a first-class product surface
+## 2. Compliance is now a first-class workflow
 
-Wave 5 introduced compliance as a real product workflow instead of a side capability.
+Wave 5 turned compliance into a core part of the product.
 
-Key implementation files:
+Key files:
 
 - [next-app/lib/selective-disclosure.ts](./next-app/lib/selective-disclosure.ts)
 - [next-app/lib/services/selective-disclosure.service.ts](./next-app/lib/services/selective-disclosure.service.ts)
-- [next-app/lib/portable-proof-verifier.ts](./next-app/lib/portable-proof-verifier.ts)
 - [next-app/app/api/proof/verify/route.ts](./next-app/app/api/proof/verify/route.ts)
 - [next-app/app/api/proof/payments/route.ts](./next-app/app/api/proof/payments/route.ts)
-
-### What changed
 
 Kloak now supports:
 
@@ -73,33 +75,36 @@ Kloak now supports:
 - threshold proofs
 - timebox proofs
 
-These proofs are anchored to wallet-held `PaymentRequestReceipt` records, not to arbitrary off-chain rows.
+These proofs are anchored to private `PaymentRequestReceipt` records from the wallet, not to a loosely trusted off-chain row.
 
-### Product implication
+### Why that matters
 
-The compliance product is now honest about its trust model:
+This is a better fit for Aleo than a backend-first compliance model.
 
-- generation is on-chain through `prove_*` transitions
-- exported proof packages are portable artifacts
-- verification starts with package integrity and public Aleo chain confirmation
-- Kloak records add revocation and history context on top
+The receipt is the real private witness. The app helps package and manage the proof flow, but the proof itself starts from wallet-held Aleo-native state.
 
-## 3. Portable proof packages and chain-first verification
+That gives Kloak a stronger foundation for:
 
-Wave 5 introduced a cleaner separation between:
+- selective disclosure
+- proof ownership
+- verifier confidence
+- future portability
 
-- proof generation
-- proof packaging
-- public-chain verification
-- Kloak-backed verification
+## 3. Portable proofs and chain-first verification
 
-### Portable package model
+Wave 5 also made proof verification much clearer and stronger.
 
-The portable proof package is defined in:
+Relevant files:
 
 - [next-app/lib/selective-disclosure.ts](./next-app/lib/selective-disclosure.ts)
+- [next-app/lib/portable-proof-verifier.ts](./next-app/lib/portable-proof-verifier.ts)
+- [next-app/lib/aleo-chain-verifier.ts](./next-app/lib/aleo-chain-verifier.ts)
+- [next-app/lib/services/selective-disclosure.service.ts](./next-app/lib/services/selective-disclosure.service.ts)
+- [internal-docs/portable-proof-package-v1.md](./internal-docs/portable-proof-package-v1.md)
 
-Current package shape:
+### Portable proof package
+
+Kloak now exports a versioned proof package with a stable structure:
 
 - `kind`
 - `version`
@@ -110,78 +115,90 @@ Current package shape:
 - `chain`
 - `proofDigest`
 
-### Package validation
+The proof package is canonicalized and hashed so it can be checked consistently outside the UI.
 
-Package validation was extracted into:
+### Verification model
 
-- [next-app/lib/portable-proof-verifier.ts](./next-app/lib/portable-proof-verifier.ts)
+Wave 5 gave Kloak a layered verification model:
 
-This validates:
+1. **Package integrity**
+   The shared proof package is parsed, canonicalized, and checked against its digest.
 
-- supported package format
-- supported kind
-- supported version
-- canonical digest integrity
+2. **Public Aleo chain confirmation**
+   Kloak confirms the referenced payment and disclosure transactions on Aleo testnet and checks that the disclosure transition matches the shared proof statement.
 
-### Public chain verification
+3. **Kloak record checks**
+   Kloak adds revocation status, proof history, and payment-history context where available.
 
-Public Aleo verification is now centralized in:
+This model is strong because it uses the public Aleo chain as the primary trust signal for verification, instead of treating Kloak's database as the only authority.
 
-- [next-app/lib/aleo-chain-verifier.ts](./next-app/lib/aleo-chain-verifier.ts)
+That is a better design for Aleo:
 
-That verifier checks:
+- the chain proves the transaction path
+- the wallet holds the private receipt
+- the proof package carries the disclosed statement
+- Kloak adds lifecycle and product-level context on top
 
-- payment transaction exists
-- payment transaction contains the expected Kloak payment transition
-- disclosure transaction exists
-- disclosure transaction contains the expected Kloak proof transition
-- disclosure function matches the shared proof statement
+## 4. Receipt recovery for missed payment syncs
 
-### Why this is important
+Wave 5 also improved one of the most important real-world reliability gaps in a private-payment workflow.
 
-Earlier verification paths leaned too heavily on Kloak-managed rows.
+Sometimes the wallet has the real receipt, but the app misses the final post-payment sync because the tab closes early or the user leaves before the success flow completes.
 
-Wave 5 moved Kloak toward this layered model:
+That no longer forces a second payment.
 
-1. **Package is intact**
-2. **Public Aleo chain confirms the referenced transactions**
-3. **Kloak adds revocation and history checks**
+Kloak now supports payment recovery from:
 
-That makes verification more portable and less dependent on private application state.
+- the wallet-held receipt
+- the original transaction hash
 
-## 4. Security hardening
+Relevant files:
 
-Wave 5 included meaningful security cleanup across the API layer.
+- [next-app/app/api/proof/payments/recover/route.ts](./next-app/app/api/proof/payments/recover/route.ts)
+- [next-app/lib/services/selective-disclosure.service.ts](./next-app/lib/services/selective-disclosure.service.ts)
+- [next-app/features/compliance/components/payment-selector.tsx](./next-app/features/compliance/components/payment-selector.tsx)
+
+This flow reconstructs the missing payment row so the payment becomes proof-ready again, without asking the user to pay twice.
+
+That is a meaningful usability improvement for a private-payment system because it respects the fact that the wallet receipt is real Aleo state, even if the app missed part of the off-chain sync.
+
+## 5. Security hardening across the app
+
+Wave 5 included broad security improvements across the API layer.
 
 Key references:
 
 - [next-app/lib/creator-access.ts](./next-app/lib/creator-access.ts)
 - [next-app/lib/compliance-access.ts](./next-app/lib/compliance-access.ts)
+- [internal-docs/api-security-hardening-plan.md](./internal-docs/api-security-hardening-plan.md)
+- [internal-docs/api-route-classification.md](./internal-docs/api-route-classification.md)
 
 ### Signed creator access
 
-Creator-scoped routes now rely on signed creator access instead of trusting raw wallet addresses from the client.
+Creator-facing routes now use signed creator access instead of trusting a client-supplied address.
 
-That includes hardening work around:
+That includes protection around:
 
-- dashboard routes
-- bots overview
+- dashboard data
 - payment links
 - payment-link analytics
+- bot overview
 - webhooks
-- creator profile activation
+- creator profile updates
 
 ### Signed compliance access
 
-Proof-history and proof-sensitive routes use signed compliance access. This was extended to proof revocation as well, so revocation is no longer driven by a spoofable plain actor address.
+Compliance-sensitive routes use signed compliance access, including proof revocation.
+
+This keeps proof history and proof management tied to the wallet that actually controls the compliance workspace.
 
 ### Webhook hardening
 
-Webhook endpoints were tightened so that:
+Webhook management was tightened so that:
 
-- management requires signed creator access
-- secrets are not re-exposed after creation
-- reads show configured state rather than decrypted secrets
+- read and write actions require signed creator access
+- webhook secrets are not repeatedly exposed after creation
+- the UI shows configured state instead of re-sending decrypted secrets on every read
 
 Implementation:
 
@@ -191,46 +208,74 @@ Implementation:
 
 ### Payment recording hardening
 
-Payment recording was also tightened:
+Payment recording was also strengthened:
 
 - [next-app/app/api/payment-links/[id]/pay/route.ts](./next-app/app/api/payment-links/[id]/pay/route.ts)
 - [next-app/lib/payment-chain-validation.ts](./next-app/lib/payment-chain-validation.ts)
 
-Important design choice:
+Kloak now validates payments in a way that matches Aleo private transactions properly:
 
-The validator now checks only what the SDK truly exposes for confirmed private-payment transitions:
+- the transaction must exist
+- the correct Kloak payment transition must be present
+- the transition shape must match the expected private-payment path
+- fixed-amount links still enforce the saved amount
 
-- transaction exists
-- program is Kloak
-- function matches the link token
-- input shape matches the expected private-payment transition
-- fixed-amount links still enforce the saved link amount
+This is a more disciplined Aleo-native approach than pretending the server can publicly inspect private payment arguments that are meant to remain private.
 
-This avoids impossible or misleading "validation" against plaintext private arguments that the public SDK response does not expose.
+## 6. At-rest encryption
 
-## 5. Product and UX updates
+Wave 5 added encryption at rest for selected sensitive off-chain fields.
 
-Wave 5 also pushed the product surface toward a more production-ready state.
+Key files:
+
+- [next-app/lib/at-rest-encryption.ts](./next-app/lib/at-rest-encryption.ts)
+- [next-app/lib/services/webhook.service.ts](./next-app/lib/services/webhook.service.ts)
+- [next-app/lib/services/selective-disclosure.service.ts](./next-app/lib/services/selective-disclosure.service.ts)
+
+Examples include:
+
+- webhook secrets
+- stored proof payloads
+
+This improves the storage posture of the application and reduces the risk of exposing sensitive plaintext through raw database access or backups.
+
+## 7. Program-level improvements
+
+The program itself now reflects several important design decisions:
+
+- Leo v4-compatible syntax and structure
+- `kloak_protocol_v10.aleo`
+- explicit payer and receiver proof transitions
+- timebox proofs in addition to amount and threshold proofs
+- refreshed receipt returns from proof transitions instead of one-shot witness consumption
+
+That refreshed-receipt model matters because it lets the same payment support multiple later disclosure flows without the first proof permanently ending the compliance utility of the receipt.
+
+This is a practical and product-aware design choice for Aleo-based proofs.
+
+## 8. Product maturity
+
+Wave 5 also improved the surrounding product significantly.
 
 ### Payment Links v2
 
-The payment-links flow now includes:
+The payment-link flow now includes:
 
 - templates
-- multi-step creator flow
+- multi-step link creation
 - suggested amounts
 - success messages
 - redirect URLs
-- redesigned payer pages
+- a redesigned pay page
 
 Relevant files:
 
 - [next-app/app/(main)/payment-links/create-link-form.tsx](./next-app/app/(main)/payment-links/create-link-form.tsx)
 - [next-app/app/(receipent)/pay/[id]/pay-client.tsx](./next-app/app/(receipent)/pay/[id]/pay-client.tsx)
 
-### Trust surfaces
+### Docs, pricing, and trust pages
 
-Wave 5 added actual trust and support surfaces:
+Wave 5 also added or upgraded:
 
 - privacy page
 - terms page
@@ -238,74 +283,17 @@ Wave 5 added actual trust and support surfaces:
 - support page
 - docs workspace
 - FAQ
+- pricing page
 
-### Docs and pricing
-
-The docs and pricing surfaces were rebuilt to reflect the real product:
-
-- privacy-first payments
-- selective disclosure
-- chain-first verification
-- free-to-start pricing with Pro centered on automation, integrations, and scale
-
-## 6. At-rest encryption
-
-Wave 5 also added encryption at rest for selected sensitive off-chain fields.
-
-Key implementation:
-
-- [next-app/lib/at-rest-encryption.ts](./next-app/lib/at-rest-encryption.ts)
-- [next-app/lib/services/webhook.service.ts](./next-app/lib/services/webhook.service.ts)
-- [next-app/lib/services/selective-disclosure.service.ts](./next-app/lib/services/selective-disclosure.service.ts)
-
-Protected examples include:
-
-- webhook secrets
-- stored proof payloads
-
-This is not a substitute for proper server trust boundaries, but it improves the blast radius of raw database exposure and backup leakage.
-
-## 7. Program-level changes worth calling out
-
-Compared with earlier waves, the program now reflects several important structural decisions:
-
-- Leo v4-compatible syntax and layout
-- `kloak_protocol_v10.aleo`
-- receipt refresh behavior in proof transitions instead of one-shot proof consumption
-- explicit payer and receiver selective disclosure functions
-- timebox proofs in addition to exact amount and threshold proofs
-
-This means the same payment receipt can support multiple later disclosure flows without being permanently consumed by the first proof.
-
-## 8. Known limits and honest boundaries
-
-Wave 5 improved a lot, but a few limits remain important to state clearly.
-
-### Verification is more portable, not fully trustless
-
-Kloak now has a much better chain-first verification model, but proof verification is still not purely reconstructed from chain state alone in every dimension.
-
-### Public chain cannot reveal private arguments
-
-For Aleo private payments, the confirmed transaction shape is still limited. That is why Kloak validates against:
-
-- transaction existence
-- program/function shape
-- disclosure transition matching
-
-and not against private payment arguments that remain ciphertext.
-
-### Campaign code remains dead/deferred
-
-Campaign-related routes and logic are still treated as dead or deferred code and are not part of the hardened live product path.
+These updates matter because Kloak now explains its privacy model, verification model, and plan structure much more clearly.
 
 ## 9. Net result of Wave 5
 
-Wave 5 made Kloak materially stronger in four ways:
+Wave 5 made Kloak substantially stronger in four ways:
 
-- more Aleo-native
-- more honest about what is private and what is verifiable
-- more secure at the API layer
-- more complete as a real product, especially around compliance
+- more Aleo-native in both protocol and app logic
+- stronger and more usable compliance workflows
+- better verification through portable proof packages and public-chain confirmation
+- tighter security across creator, proof, and webhook routes
 
-It is the branch where Kloak becomes a private-payments-and-proof system with a clearer security model, a clearer verification model, and a product surface that better matches what the protocol can actually guarantee.
+This is the branch where Kloak becomes a more complete private-payments and selective-disclosure system built around Aleo's actual strengths, rather than a generic payment product with privacy claims layered on top.

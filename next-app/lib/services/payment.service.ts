@@ -10,7 +10,11 @@ type RecordPaymentInput = {
   receiptCommitment?: string | null
 }
 
-export async function recordPayment(linkId: string, data: RecordPaymentInput) {
+type RecordPaymentOptions = {
+  notify?: boolean
+}
+
+export async function recordPayment(linkId: string, data: RecordPaymentInput, options?: RecordPaymentOptions) {
   if (data.txHash) {
     const existingPayment = await prisma.payment.findFirst({
       where: { txHash: data.txHash },
@@ -45,7 +49,9 @@ export async function recordPayment(linkId: string, data: RecordPaymentInput) {
     return { payment, link }
   })
 
-  await notifyPaymentSuccess(link, payment)
+  if (options?.notify !== false) {
+    await notifyPaymentSuccess(link, payment)
+  }
 
   return payment
 }
