@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useSyncExternalStore } from "react"
+import { useMemo, useState, useSyncExternalStore } from "react"
 import { useWallet } from "@provablehq/aleo-wallet-adaptor-react"
 
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -59,7 +59,8 @@ export default function DashboardPage() {
 }
 
 function DashboardWorkspace({ actorAddress }: { actorAddress: string }) {
-  const { overview, loading, error } = useDashboardOverview(actorAddress)
+  const [selectedToken, setSelectedToken] = useState<"ALEO" | "USDCX" | "USAD">("ALEO")
+  const { overview, loading, error } = useDashboardOverview(actorAddress, selectedToken)
   const { proofs, loading: proofsLoading } = useSelectiveDisclosureProofs(actorAddress)
   const hasProofAccess = useSyncExternalStore(
     () => () => { },
@@ -122,6 +123,8 @@ function DashboardWorkspace({ actorAddress }: { actorAddress: string }) {
         linkedTelegramUsers={overview.connectivity.telegram.linkedUsers}
         telegramOnline={overview.pulse.telegram.online}
         chart={overview.metrics.chart}
+        selectedToken={overview.metrics.selectedToken}
+        onTokenChange={setSelectedToken}
         proofAccessGranted={hasProofAccess}
         proofAccessLoading={proofsLoading}
       />

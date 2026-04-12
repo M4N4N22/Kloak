@@ -33,6 +33,7 @@ export type DashboardOverview = {
     totalPayments: number
     totalViews: number
     conversionRate: number
+    selectedToken: "ALEO" | "USDCX" | "USAD"
     chart: Array<{
       date: string
       label: string
@@ -69,7 +70,10 @@ export type DashboardOverview = {
   }
 }
 
-export function useDashboardOverview(creatorAddress?: string | null) {
+export function useDashboardOverview(
+  creatorAddress?: string | null,
+  selectedToken: "ALEO" | "USDCX" | "USAD" = "ALEO",
+) {
   const { signMessage } = useWallet()
   const [overview, setOverview] = useState<DashboardOverview | null>(null)
   const [loading, setLoading] = useState(false)
@@ -129,6 +133,7 @@ export function useDashboardOverview(creatorAddress?: string | null) {
         scope: access.scope,
         issuedAt: access.issuedAt,
         signature: access.signature,
+        token: selectedToken,
       })
       const res = await fetch(`/api/dashboard?${searchParams.toString()}`)
       const data = await res.json()
@@ -146,7 +151,7 @@ export function useDashboardOverview(creatorAddress?: string | null) {
     } finally {
       setLoading(false)
     }
-  }, [creatorAddress, requestCreatorReadAccess])
+  }, [creatorAddress, requestCreatorReadAccess, selectedToken])
 
   useEffect(() => {
     void refresh()

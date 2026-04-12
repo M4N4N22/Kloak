@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma"
-import { Prisma } from "@prisma/client"
+import { Prisma, type Token } from "@prisma/client"
 
 function startOfDay(value: Date) {
   return new Date(value.getFullYear(), value.getMonth(), value.getDate())
@@ -21,7 +21,10 @@ function formatDayLabel(value: Date) {
   })
 }
 
-export async function getDashboardOverview(creatorAddress: string) {
+export async function getDashboardOverview(
+  creatorAddress: string,
+  selectedToken: Token = "ALEO",
+) {
   const today = startOfDay(new Date())
   const sevenDaysAgo = new Date(today)
   sevenDaysAgo.setDate(today.getDate() - 6)
@@ -36,7 +39,7 @@ export async function getDashboardOverview(creatorAddress: string) {
     recentWebhookDeliveries,
   ] = await Promise.all([
     prisma.paymentLink.findMany({
-      where: { creatorAddress },
+      where: { creatorAddress, token: selectedToken },
       select: {
         id: true,
         title: true,
@@ -44,6 +47,7 @@ export async function getDashboardOverview(creatorAddress: string) {
         views: true,
         paymentsReceived: true,
         totalVolume: true,
+        token: true,
       },
     }),
     prisma.payment.findMany({
@@ -70,6 +74,7 @@ export async function getDashboardOverview(creatorAddress: string) {
     prisma.payment.findMany({
       where: {
         PaymentLink: { creatorAddress },
+        token: selectedToken,
         status: "SUCCESS",
         createdAt: { gte: sevenDaysAgo },
       },
@@ -170,6 +175,7 @@ export async function getDashboardOverview(creatorAddress: string) {
       totalViews,
       conversionRate,
       chart: chartTemplate,
+      selectedToken,
     },
     connectivity: {
       telegram: {

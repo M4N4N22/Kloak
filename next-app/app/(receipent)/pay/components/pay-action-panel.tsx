@@ -93,7 +93,7 @@ export function PayActionPanel({
         </div>
 
         {errorMessage ? (
-          <div className="rounded-[1.5rem] border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm leading-6 text-red-300">
+          <div className="rounded-[1.5rem] py-3 text-sm leading-6 text-red-400">
             {errorMessage}
           </div>
         ) : null}

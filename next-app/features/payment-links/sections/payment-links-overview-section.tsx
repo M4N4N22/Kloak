@@ -1,18 +1,26 @@
 "use client"
 
 import Link from "next/link"
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { useWallet } from "@provablehq/aleo-wallet-adaptor-react"
 import { BarChart3, Eye, Link2, ShieldCheck } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { PaymentLinksAccessGate } from "@/features/payment-links/components/payment-links-access-gate"
 import { PaymentLinksSectionHeader } from "@/features/payment-links/components/payment-links-section-header"
 import { PaymentLinksTable } from "@/features/payment-links/components/payment-links-table"
 import { ContextHelpCard } from "@/features/trust/components/context-help-card"
 import { usePaymentLinks } from "@/hooks/use-payment-links"
 import { usePaymentLinksOverview } from "@/hooks/use-payment-links-overview"
+import { formatAmount } from "@/features/payment-links/lib/presentation"
 
 export function PaymentLinksOverviewSection() {
   const { connected, address } = useWallet()
@@ -26,9 +34,13 @@ export function PaymentLinksOverviewSection() {
 }
 
 function PaymentLinksOverviewContent({ creatorAddress }: { creatorAddress: string }) {
-  const { overview } = usePaymentLinksOverview(creatorAddress)
+  const [selectedToken, setSelectedToken] = useState<"ALEO" | "USDCX" | "USAD">("ALEO")
+  const { overview } = usePaymentLinksOverview(creatorAddress, selectedToken)
   const { links } = usePaymentLinks(creatorAddress)
-  const recentLinks = useMemo(() => links.slice(0, 5), [links])
+  const recentLinks = useMemo(
+    () => links.filter((link) => link.token === selectedToken).slice(0, 5),
+    [links, selectedToken],
+  )
 
   return (
       <div className="space-y-8">
@@ -88,11 +100,12 @@ function PaymentLinksOverviewContent({ creatorAddress }: { creatorAddress: strin
             </CardContent>
           </Card>
 
-          <div className="flex gap-4">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex gap-4">
             <OverviewMetric
               label="Net Volume"
-              value={`${Number(overview?.totals.totalVolume ?? 0).toFixed(4)} ALEO`}
-              helper="Total collected across all payment links."
+              value={formatAmount(overview?.totals.totalVolume ?? 0, selectedToken)}
+              helper={`Total collected across ${selectedToken} payment links.`}
             />
             <OverviewMetric
               label="Active Links"
@@ -109,6 +122,17 @@ function PaymentLinksOverviewContent({ creatorAddress }: { creatorAddress: strin
               value={`${(((overview?.totals.conversionRate ?? 0) as number) * 100).toFixed(1)}%`}
               helper="Visits converted into paid settlements."
             />
+          </div>
+            <Select value={selectedToken} onValueChange={(value) => setSelectedToken(value as "ALEO" | "USDCX" | "USAD")}>
+              <SelectTrigger className="w-[140px] rounded-full border border-foreground/8 bg-black/20 font-mono text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALEO">ALEO</SelectItem>
+                <SelectItem value="USDCX">USDCX</SelectItem>
+                <SelectItem value="USAD">USAD</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -138,8 +162,8 @@ function PaymentLinksOverviewContent({ creatorAddress }: { creatorAddress: strin
                 </div>
                 <p className="mt-2 text-sm text-neutral-500">
                   {overview?.insights.highestRevenueLink
-                    ? `${overview.insights.highestRevenueLink.revenue.toFixed(4)} ALEO collected`
-                    : "Your best earner will show up here once payments start coming in."}
+                    ? `${formatAmount(overview.insights.highestRevenueLink.revenue, selectedToken)} collected`
+                    : `Your best ${selectedToken} earner will show up here once payments start coming in.`}
                 </p>
               </div>
               <div className="rounded-[2.5rem] border px-6 py-8">
